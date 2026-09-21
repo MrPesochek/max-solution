@@ -1,0 +1,21 @@
+# Общий контекст сборки образа web (deploy/web.Dockerfile, context: репозиторий).
+# Без этого файла Docker подмешивает node_modules/dist с хост-машины поверх
+# уже поставленных в образе зависимостей, из-за чего pnpm build падает на
+# проверке соответствия node_modules лок-файлу. Секреты (.env*) и всё, что
+# образу web не нужно, в контекст не попадает.
+**/node_modules
+**/dist
+**/.turbo
+**/.env
+**/.env.*
+**/*.sqlite3
+.git
+.github
+backend
+integration_1c
+docs
+design
+scripts
+var
+openapi
+webapp/docs

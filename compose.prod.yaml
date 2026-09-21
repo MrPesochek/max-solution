@@ -1,0 +1,173 @@
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+
+x-backend-image: &backend-image
+  image: ${IMAGE_PREFIX:-repair-hub}/backend:${IMAGE_TAG:-latest}
+
+x-prod-backend-env: &prod-backend-env
+  APP_ENV: prod
+  DATABASE_URL: postgresql+asyncpg://repair:${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env (openssl rand -hex 32)}@postgres:5432/repair
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?задайте PUBLIC_BASE_URL=https://<домен> в .env}
+  MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:?задайте MAX_BOT_TOKEN в .env}
+  MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:-}
+  MAX_UPDATES_MODE: ${MAX_UPDATES_MODE:-webhook}
+  SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:?задайте SECRETS_ENCRYPTION_KEY в .env и сохраните его копию отдельно от бэкапов БД}
+  DEMO_LOGIN_ENABLED: "false"
+  DEMO_LOGIN_WITH_REAL_BOT: "false"
+  ALLOWED_PRIVATE_WEBHOOK_HOSTS: ""
+
+services:
+  postgres:
+    <<: [*restart, *logging]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env (openssl rand -hex 32)}
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /var/run/postgresql:size=1m
+    shm_size: 256m
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1g
+          pids: 256
+
+  init-secrets:
+    <<: [*backend-image, *logging, *hardening]
+    user: "10001:10001"
+    entrypoint: ["python", "-m", "app.infra.crypto_keys"]
+    command: ["fingerprint"]
+    environment:
+      <<: *prod-backend-env
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+
+  migrate:
+    <<: [*backend-image, *logging, *hardening]
+    environment:
+      <<: *prod-backend-env
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+
+  api:
+    <<: [*backend-image, *restart, *logging, *hardening]
+    environment:
+      <<: *prod-backend-env
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 768m
+          pids: 256
+
+  worker:
+    <<: [*backend-image, *restart, *logging, *hardening]
+    environment:
+      <<: *prod-backend-env
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1g
+          pids: 256
+
+  web:
+    <<: [*restart, *logging, *hardening]
+    image: ${IMAGE_PREFIX:-repair-hub}/web:${IMAGE_TAG:-latest}
+    build:
+      args:
+        VITE_DEMO_LOGIN: "false"
+        VITE_MAX_BRIDGE_URL: ${MAX_BRIDGE_URL:-https://st.max.ru/js/max-web-app.js}
+    environment:
+      SITE_ADDRESS: ${PUBLIC_BASE_URL:?задайте PUBLIC_BASE_URL=https://<домен> в .env}
+      MAX_BRIDGE_URL: ${MAX_BRIDGE_URL:-https://st.max.ru/js/max-web-app.js}
+      ACME_EMAIL_OPTION: ${ACME_EMAIL:+email ${ACME_EMAIL}}
+      HSTS: ${HSTS:-max-age=31536000}
+    ports: !override
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256m
+          pids: 256
+
+  onec-connector:
+    <<: [*restart, *logging, *hardening]
+    profiles: ["onec"]
+    image: ${IMAGE_PREFIX:-repair-hub}/onec-connector:${IMAGE_TAG:-latest}
+    build:
+      context: ./integration_1c
+      target: connector
+    environment:
+      CONNECTOR_PLATFORM_API_BASE_URL: http://api:8000/api/v1
+      CONNECTOR_PLATFORM_API_KEY: ${ONEC_PLATFORM_API_KEY:-}
+      CONNECTOR_PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}/onec
+      CONNECTOR_ONEC_ODATA_URL: ${ONEC_ODATA_URL:-}
+      CONNECTOR_ONEC_USERNAME: ${ONEC_USERNAME:-}
+      CONNECTOR_ONEC_PASSWORD: ${ONEC_PASSWORD:-}
+      CONNECTOR_ONEC_VERIFY_TLS: ${ONEC_VERIFY_TLS:-true}
+      CONNECTOR_ONEC_ALLOW_HTTP: "false"
+      CONNECTOR_PROFILE: ${ONEC_PROFILE:-unf}
+      CONNECTOR_POLL_INTERVAL_SECONDS: ${ONEC_POLL_INTERVAL_SECONDS:-15}
+      CONNECTOR_DATABASE_PATH: /app/data/connector.sqlite3
+    volumes:
+      - connectordata:/app/data
+      - ./deploy/onec:/app/custom:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+          pids: 128
+
+volumes:
+  caddy_data:
+  caddy_config:
+  connectordata:

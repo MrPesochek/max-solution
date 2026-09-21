@@ -1,0 +1,179 @@
+name: repair-hub
+
+x-backend-env: &backend-env
+  APP_ENV: ${APP_ENV:-prod}
+  DATABASE_URL: postgresql+asyncpg://repair:${POSTGRES_PASSWORD:-repair}@postgres:5432/repair
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+  MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
+  MAX_BOT_USERNAME: ${MAX_BOT_USERNAME:-}
+  MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:-}
+  MAX_WEBHOOK_SECRET_PREVIOUS: ${MAX_WEBHOOK_SECRET_PREVIOUS:-}
+  OPS_TOKEN: ${OPS_TOKEN:-}
+  MAX_UPDATES_MODE: ${MAX_UPDATES_MODE:-off}
+  MAX_WEBAPP_MODE: ${MAX_WEBAPP_MODE:-mini_app}
+  SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
+  ALLOWED_PRIVATE_WEBHOOK_HOSTS: ${ALLOWED_PRIVATE_WEBHOOK_HOSTS:-}
+  DEMO_LOGIN_ENABLED: ${DEMO_LOGIN_ENABLED:-${WEBAPP_DEMO_LOGIN:-false}}
+  DEMO_LOGIN_WITH_REAL_BOT: ${DEMO_LOGIN_WITH_REAL_BOT:-false}
+  DEMO_SHOWCASE_ENABLED: ${DEMO_SHOWCASE_ENABLED:-false}
+  MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-10485760}
+  FILE_STORAGE_PATH: /data/files
+
+x-with-secrets-entrypoint: &with-secrets-entrypoint ["/bin/sh", "/deploy/with-secrets.sh"]
+x-secrets-volumes: &secrets-volumes
+  - ./deploy/with-secrets.sh:/deploy/with-secrets.sh:ro
+  - secrets:/data/secrets:ro
+
+services:
+  postgres:
+    image: postgres:18.6-trixie
+    environment:
+      POSTGRES_USER: repair
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-repair}
+      POSTGRES_DB: repair
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U repair -d repair"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  init-secrets:
+    build: ./backend
+    user: root
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        umask 077
+        mkdir -p /data/secrets
+        if [ -n "$${SECRETS_ENCRYPTION_KEY:-}" ]; then
+          printf '%s' "$$SECRETS_ENCRYPTION_KEY" > /data/secrets/fernet.key
+        elif [ ! -s /data/secrets/fernet.key ]; then
+          python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > /data/secrets/fernet.key
+        fi
+        chown 10001:10001 /data/secrets /data/secrets/fernet.key
+        chmod 0700 /data/secrets
+        chmod 0600 /data/secrets/fernet.key
+    environment:
+      SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
+    volumes:
+      - secrets:/data/secrets
+
+  migrate:
+    build: ./backend
+    command: ["python", "-m", "app.db.migrate"]
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    entrypoint: *with-secrets-entrypoint
+    command:
+      [
+        "uvicorn",
+        "app.main:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--proxy-headers",
+        "--no-access-log",
+      ]
+    environment:
+      <<: *backend-env
+      FORWARDED_ALLOW_IPS: ${WEB_PROXY_IP:-172.30.57.10}
+    volumes:
+      - files:/data/files
+      - ./deploy/with-secrets.sh:/deploy/with-secrets.sh:ro
+      - secrets:/data/secrets:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      init-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/readyz').status == 200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    stop_grace_period: 20s
+
+  api-debug:
+    extends:
+      service: api
+    ports:
+      - "${API_DEBUG_BIND:-127.0.0.1}:${API_DEBUG_PORT:-8000}:8000"
+    profiles: ["debug"]
+
+  worker:
+    build: ./backend
+    entrypoint: *with-secrets-entrypoint
+    command: ["python", "-m", "app.worker"]
+    environment: *backend-env
+    volumes:
+      - files:/data/files
+      - ./deploy/with-secrets.sh:/deploy/with-secrets.sh:ro
+      - secrets:/data/secrets:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      init-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import asyncio, importlib.util, os, runpy, sys
+          if importlib.util.find_spec("app.worker.health"):
+              runpy.run_module("app.worker.health", run_name="__main__")
+          import asyncpg
+          async def main():
+              conn = await asyncpg.connect(os.environ["DATABASE_URL"].replace("+asyncpg", ""), timeout=3)
+              await conn.close()
+          asyncio.run(main())
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+      args:
+        VITE_MAX_BRIDGE_URL: ${MAX_BRIDGE_URL:-}
+        VITE_DEMO_LOGIN: ${WEBAPP_DEMO_LOGIN:-false}
+        VITE_MAX_BOT_USERNAME: ${MAX_BOT_USERNAME:-}
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:8080}
+      MAX_BRIDGE_URL: ${MAX_BRIDGE_URL:-}
+      MAX_FRAME_ANCESTORS: ${MAX_FRAME_ANCESTORS:-https://*.max.ru}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.1/32}
+      MAX_REQUEST_BODY: ${MAX_REQUEST_BODY:-11MiB}
+    networks:
+      default:
+        ipv4_address: ${WEB_PROXY_IP:-172.30.57.10}
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${COMPOSE_SUBNET:-172.30.57.0/24}
+
+volumes:
+  pgdata:
+  files:
+  secrets:

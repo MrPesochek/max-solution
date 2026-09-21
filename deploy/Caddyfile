@@ -1,0 +1,104 @@
+{
+	admin off
+	# Необязательный адрес для уведомлений Let's Encrypt: строка `email <адрес>`
+	# целиком или пусто (compose.prod.yaml собирает её из ACME_EMAIL).
+	{$ACME_EMAIL_OPTION}
+
+	servers {
+		# Клиентский IP из X-Forwarded-For берём только от перечисленных прокси
+		# (балансировщик или CDN перед сервером). По умолчанию таких нет: клиенты
+		# подключаются к Caddy напрямую, заголовок от них перезаписывается.
+		trusted_proxies static {$TRUSTED_PROXIES:127.0.0.1/32}
+		client_ip_headers X-Forwarded-For
+		protocols h1 h2 h3
+		# Медленные клиенты не держат соединения бесконечно; тело — с запасом на
+		# загрузку фото по мобильной сети.
+		timeouts {
+			read_header 10s
+			read_body 2m
+			write 2m
+			idle 2m
+		}
+	}
+}
+
+# Внутренняя проверка живости для healthcheck контейнера; наружу не публикуется.
+http://:8081 {
+	bind 127.0.0.1
+	respond /health 200
+	respond 404
+}
+
+# Локально — `:8080` (http), на сервере — `https://<домен>` (compose.prod.yaml):
+# Caddy сам выпускает и продлевает сертификат Let's Encrypt, с 80 порта
+# перенаправляет на https, по UDP 443 отдаёт HTTP/3.
+{$SITE_ADDRESS::8080} {
+	encode zstd gzip
+
+	# Тело больше лимита загрузки (MAX_UPLOAD_BYTES + запас на multipart) не
+	# доходит до api; api держит тот же потолок сам (BodyLimitMiddleware).
+	request_body {
+		max_size {$MAX_REQUEST_BODY:11MiB}
+	}
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		# includeSubDomains — только если все поддомены домена работают по https (HSTS).
+		Strict-Transport-Security "{$HSTS:max-age=31536000}"
+		Permissions-Policy "geolocation=(), microphone=(), payment=(), usb=()"
+		Cross-Origin-Resource-Policy same-origin
+		X-Permitted-Cross-Domain-Policies none
+		# Мини-приложение открывается внутри клиента MAX, в том числе во фрейме
+		# веб-версии (frame-ancestors). Сторонний скрипт — только bridge MAX по
+		# полному адресу (MAX_BRIDGE_URL). Инлайн-скриптов и стилей в сборке нет:
+		# стили React задаёт через CSSOM, CSP это не ограничивает.
+		Content-Security-Policy "default-src 'self'; script-src 'self' {$MAX_BRIDGE_URL:}; style-src 'self'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors {$MAX_FRAME_ANCESTORS:https://*.max.ru}"
+	}
+
+	# Операционный контур api (/ops/status, /ops/metrics) — только из сети compose
+	# или с сервера (docs/monitoring.md); снаружи явный 404, а не SPA-фолбэк.
+	handle /ops/* {
+		respond 404
+	}
+
+	@api path /app-api/* /api/* /max/* /operator-api/* /healthz /readyz
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	# Вебхуки платформы для коннектора 1С (compose.prod.yaml, профиль onec): наружу
+	# открыт только этот путь, /status и прочее остаётся внутри сети compose.
+	# Без запущенного коннектора путь отвечает 502.
+	handle /onec/webhooks/platform {
+		uri strip_prefix /onec
+		reverse_proxy onec-connector:8083
+	}
+
+	handle {
+		root * /srv/webapp
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+
+	log {
+		output stdout
+		format json
+		# query-строки не пишем: в них может оказаться токен приглашения
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					replace token REDACTED
+				}
+				request>headers>Authorization delete
+				request>headers>Cookie delete
+				request>headers>X-Max-Bot-Api-Secret delete
+			}
+		}
+	}
+}
