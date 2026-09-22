@@ -1,0 +1,112 @@
+from app.db.models.customer import Equipment, Location
+from app.db.models.directories import City, District, EquipmentCategory
+from app.db.models.files import Attachment, AttachmentVariant
+from app.db.models.identity import (
+    Invitation,
+    LoginLink,
+    Membership,
+    MembershipLocation,
+    Organization,
+    PlatformRole,
+    Session,
+    UsedInitData,
+    User,
+)
+from app.db.models.infra import AuditEntry, IdempotencyKey, SettingsKv
+from app.db.models.integration import (
+    ExternalReference,
+    IntegrationClient,
+    IntegrationEvent,
+    IntegrationFeedCounter,
+    WebhookDelivery,
+    WebhookSubscription,
+)
+from app.db.models.max import BotAction, BotConversation, MaxUpdate, Notification
+from app.db.models.ops import WorkerHeartbeat
+from app.db.models.provider import (
+    ProviderBrandRestriction,
+    ProviderCategory,
+    ProviderProfile,
+    ProviderServiceArea,
+)
+from app.db.models.reputation import (
+    ModerationCase,
+    ProviderRatingAggregate,
+    Review,
+    ReviewReply,
+    ReviewVersion,
+)
+from app.db.models.requests import (
+    Assignment,
+    CancellationRequest,
+    Message,
+    MessageRead,
+    Offer,
+    RepairQuote,
+    RepairRequest,
+    RequestEvent,
+    RequestPublicCard,
+    VisitProposal,
+)
+from app.db.models.trust import (
+    ServiceBinding,
+    ServiceContract,
+    VerificationCase,
+    WarrantyAuthorization,
+)
+
+__all__ = [
+    "Assignment",
+    "Attachment",
+    "AttachmentVariant",
+    "AuditEntry",
+    "BotAction",
+    "BotConversation",
+    "CancellationRequest",
+    "City",
+    "District",
+    "Equipment",
+    "EquipmentCategory",
+    "ExternalReference",
+    "IdempotencyKey",
+    "IntegrationClient",
+    "IntegrationEvent",
+    "IntegrationFeedCounter",
+    "Invitation",
+    "Location",
+    "LoginLink",
+    "MaxUpdate",
+    "Membership",
+    "MembershipLocation",
+    "Message",
+    "MessageRead",
+    "ModerationCase",
+    "Notification",
+    "Offer",
+    "Organization",
+    "PlatformRole",
+    "ProviderBrandRestriction",
+    "ProviderCategory",
+    "ProviderProfile",
+    "ProviderRatingAggregate",
+    "ProviderServiceArea",
+    "RepairQuote",
+    "RepairRequest",
+    "RequestEvent",
+    "RequestPublicCard",
+    "Review",
+    "ReviewReply",
+    "ReviewVersion",
+    "ServiceBinding",
+    "ServiceContract",
+    "Session",
+    "SettingsKv",
+    "UsedInitData",
+    "User",
+    "VerificationCase",
+    "VisitProposal",
+    "WarrantyAuthorization",
+    "WebhookDelivery",
+    "WebhookSubscription",
+    "WorkerHeartbeat",
+]
