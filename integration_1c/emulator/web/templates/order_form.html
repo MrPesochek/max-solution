@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Заказ-наряд {{ doc.Number }} — Сервисная CRM{% endblock %}
+{% block content %}
+<h1>Заказ-наряд {{ doc.Number }} от {{ doc.Date | date1c }}
+  {% if doc.Posted %}<span class="posted">(проведён)</span>{% else %}<span class="muted">(не проведён)</span>{% endif %}</h1>
+{% if cancellation_requested %}
+<p class="notice">Заказчик просит отменить заявку. Согласиться — выберите состояние «Отменен» и проведите
+  документ. Оспорить — выберите «Отмена не согласована», заполните «Причина несогласия с отменой» и проведите.</p>
+{% endif %}
+{% if message %}<p class="{{ 'error' if error else 'ok' }}">{{ message }}</p>{% endif %}
+<form method="post" action="/ui/orders/{{ doc.Ref_Key }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="toolbar">
+    <button type="submit" name="action" value="post" class="primary">Провести</button>
+    <button type="submit" name="action" value="write">Записать</button>
+    {% if doc.Posted %}<button type="submit" name="action" value="unpost">Отмена проведения</button>{% endif %}
+  </div>
+
+  <div class="grid">
+    <label>Контрагент</label><div class="readonly">{{ counterparty }}</div>
+    <label for="state">Состояние</label>
+    <select id="state" name="state">
+      {% for item in states %}
+      <option value="{{ item.Description }}" {% if item.Ref_Key == doc.СостояниеЗаказа_Key %}selected{% endif %}>{{ item.Description }}</option>
+      {% endfor %}
+    </select>
+    <label for="start">Начало (выезд)</label>
+    <input type="datetime-local" id="start" name="start" value="{{ doc.Начало | local_input }}">
+    <label for="end">Окончание</label>
+    <input type="datetime-local" id="end" name="end" value="{{ doc.Окончание | local_input }}">
+    {% for name in editable %}
+    <label for="prop-{{ loop.index }}">{{ name }}</label>
+    <textarea id="prop-{{ loop.index }}" name="prop:{{ name }}">{{ props.get(name, "") }}</textarea>
+    {% endfor %}
+    <label for="comment">Комментарий</label>
+    <textarea id="comment" name="comment">{{ doc.Комментарий }}</textarea>
+  </div>
+
+  <h2>Работы</h2>
+  <table class="list">
+    <thead><tr><th>N</th><th>Номенклатура</th><th>Содержание</th><th class="num">Сумма, руб.</th></tr></thead>
+    <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>
+          <select name="row-{{ loop.index0 }}-item">
+            <option value="">—</option>
+            {% for item in items %}
+            <option value="{{ item.Ref_Key }}" {% if item.Ref_Key == row.Номенклатура_Key %}selected{% endif %}>{{ item.Description }}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><input name="row-{{ loop.index0 }}-content" value="{{ row.Содержание }}"></td>
+        <td><input class="amount" name="row-{{ loop.index0 }}-amount" value="{{ row.amount_text }}"></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted">Сумма документа: {{ doc.СуммаДокумента | money }} руб. Пустые строки не сохраняются.</p>
+</form>
+
+<h2>Данные заявки</h2>
+<div class="grid">
+  {% for name, value in platform_props %}
+  <label>{{ name }}</label><div class="readonly">{{ value or "—" }}</div>
+  {% endfor %}
+</div>
+
+<h2>Присоединённые файлы</h2>
+<ul>
+  {% for file in files %}
+  <li><a href="/ui/files/{{ file.Ref_Key }}">{{ file.Description }}.{{ file.Расширение }}</a> <span class="muted">{{ file.Размер }} байт</span></li>
+  {% else %}
+  <li class="muted">Файлов нет</li>
+  {% endfor %}
+</ul>
+{% endblock %}

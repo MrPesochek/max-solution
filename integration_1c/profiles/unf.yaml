@@ -1,0 +1,106 @@
+name: unf
+title: "1С:УНФ — заказ-наряд"
+timezone: Europe/Moscow
+
+additional_attributes:
+  table: ДополнительныеРеквизиты
+  property_field: Свойство_Key
+  value_field: Значение
+  chart: ChartOfCharacteristicTypes_ДополнительныеРеквизитыИСведения
+
+document:
+  entity: Document_ЗаказНаряд
+  number_field: Number
+  date_field: Date
+  react_only_posted: true
+  post_after_create: false
+  counterparty:
+    field: Контрагент_Key
+    catalog: Catalog_Контрагенты
+    name_field: Description
+    inn_field: ИНН
+    create_if_missing: true
+    placeholder: "Заказчик платформы (контакты до принятия скрыты)"
+  fields:
+    - target: {attribute: Комментарий}
+      template: "Заявка платформы №{request_number}. {symptom_description}"
+      when: create
+    - target: {additional: "Заявка платформы"}
+      template: "№{request_number} ({request_id})"
+    - target: {additional: "Статус на платформе"}
+      template: "{status_label}"
+    - target: {additional: "Неисправность"}
+      template: "{symptom_description}{error_code_suffix}"
+    - target: {additional: "Оборудование"}
+      template: "{equipment_title}"
+    - target: {additional: "Адрес объекта"}
+      template: "{location_name}{address_suffix}"
+    - target: {additional: "Контакт на объекте"}
+      template: "{contact}"
+    - target: {additional: "Срочность"}
+      template: "{urgency_label}"
+
+state:
+  attribute: СостояниеЗаказа_Key
+  catalog: Catalog_СостоянияЗаказНарядов
+  stages:
+    "Новый": new
+    "Принят": accepted
+    "Отказ": declined
+    "В работе": in_progress
+    "Выполнен": done
+    "Не выполнен": not_resolved
+    "Отменен": cancelled
+    "Отмена не согласована": cancellation_declined
+  inbound:
+    cancelled: "Отменен"
+    revoked: "Отменен"
+
+works:
+  table: Работы
+  amount_field: Сумма
+  item_field: Номенклатура_Key
+  item_catalog: Catalog_Номенклатура
+  title_fields: [Содержание]
+
+visit:
+  start: Начало
+  end: Окончание
+  default_window_hours: 2
+  amount:
+    table_items: ["Выезд мастера (диагностика)"]
+  allow_unknown_price: false
+  scope_template: "{visit_items}"
+
+estimate:
+  stages: [accepted, in_progress]
+  description_template: "Смета по заказ-наряду {number}: {items}"
+
+decline_reason:
+  source: {additional: "Причина отказа"}
+  default: "Отказ исполнителя"
+
+cancellation:
+  decline_reason:
+    source: {additional: "Причина несогласия с отменой"}
+    default: "Исполнитель не согласен с отменой"
+
+completion_summary:
+  source: {additional: "Итог работ"}
+  default: "Работы выполнены"
+
+messages:
+  outbound: {additional: "Комментарий для заказчика"}
+  inbound: {additional: "Сообщения заказчика"}
+  inbound_limit: 10
+
+exchange_status: {additional: "Обмен с платформой"}
+
+attachments:
+  mode: attached_files
+  catalog: Catalog_ЗаказНарядПрисоединенныеФайлы
+  owner_field: ВладелецФайла_Key
+  binary_register: InformationRegister_ДвоичныеДанныеФайлов
+  binary_file_field: Файл
+  binary_data_field: ДвоичныеДанныеФайла_Base64Data
+  list_field: {additional: "Фото с платформы"}

@@ -1,0 +1,11 @@
+# В образ попадают только зависимости, connector/, emulator/ и profiles/.
+.venv
+data
+tests
+**/__pycache__
+.env
+.env.*
+**/*.sqlite3
+.ruff_cache
+.mypy_cache
+.pytest_cache

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Вход — Сервисная CRM{% endblock %}
+{% block content %}
+<div class="login">
+  <h1>Вход в базу</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="/login">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <p><label for="password">Пароль</label><br>
+    <input type="password" id="password" name="password" required autofocus></p>
+    <button type="submit" class="primary">Войти</button>
+  </form>
+</div>
+{% endblock %}

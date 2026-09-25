@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Сервисная CRM{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="topbar-title">Сервисная CRM</span>
+      <span class="badge">Демо</span>
+    </div>
+    {% if request.cookies.get("onec_emulator_session") %}
+    <nav class="topbar-nav">
+      <a href="/ui/orders">Заказ-наряды</a>
+      <form method="post" action="/logout" class="inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <button type="submit" class="link-button">Выйти</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

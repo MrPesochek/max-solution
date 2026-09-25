@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Заказ-наряды — Сервисная CRM{% endblock %}
+{% block content %}
+<h1>Заказ-наряды</h1>
+<table class="list">
+  <thead>
+    <tr><th>Проведён</th><th>Номер</th><th>Дата</th><th>Контрагент</th><th>Состояние</th><th class="num">Сумма</th><th>Заявка</th></tr>
+  </thead>
+  <tbody>
+  {% for row in orders %}
+    <tr>
+      <td>{% if row.doc.Posted %}<span class="posted">✔</span>{% endif %}</td>
+      <td><a href="/ui/orders/{{ row.doc.Ref_Key }}">{{ row.doc.Number }}</a></td>
+      <td>{{ row.doc.Date | date1c }}</td>
+      <td>{{ row.counterparty }}</td>
+      <td>{{ row.state }}</td>
+      <td class="num">{{ row.doc.СуммаДокумента | money }}</td>
+      <td>{{ row.platform }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">Заказ-нарядов пока нет. Здесь появятся заявки, направленные вашему сервису.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

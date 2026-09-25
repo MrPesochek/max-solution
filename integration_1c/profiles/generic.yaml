@@ -1,0 +1,83 @@
+name: generic
+title: "Своя конфигурация — заявка на ремонт"
+timezone: Europe/Moscow
+
+document:
+  entity: Document_ЗаявкаНаРемонт
+  react_only_posted: false
+  post_after_create: true
+  counterparty:
+    field: Контрагент_Key
+    catalog: Catalog_Контрагенты
+    inn_field: ИНН
+    create_if_missing: false
+    placeholder: "Клиенты платформы"
+  fields:
+    - target: {attribute: НомерЗаявкиПлатформы}
+      template: "{request_number}"
+      when: create
+    - target: {attribute: ОписаниеНеисправности}
+      template: "{symptom_description}{error_code_suffix}"
+    - target: {attribute: Оборудование}
+      template: "{equipment_title}"
+    - target: {attribute: Адрес}
+      template: "{location_name}{address_suffix}"
+    - target: {attribute: Срочная}
+      template: "{urgent}"
+    - target: {attribute: СтатусПлатформы}
+      template: "{status_label}"
+
+state:
+  attribute: Статус
+  stages:
+    Новая: new
+    Принята: accepted
+    Отклонена: declined
+    ВРаботе: in_progress
+    Выполнена: done
+    НеВыполнена: not_resolved
+    Отменена: cancelled
+    ОтменаНеСогласована: cancellation_declined
+  inbound:
+    cancelled: Отменена
+    revoked: Отменена
+
+works:
+  table: Работы
+  amount_field: Сумма
+  title_fields: [Наименование]
+
+visit:
+  start: ДатаВыезда
+  end: ОкончаниеВыезда
+  amount:
+    attribute: СуммаВыезда
+  allow_unknown_price: false
+  scope_template: "Выезд и диагностика"
+
+estimate:
+  stages: [accepted, in_progress]
+  description_template: "Смета по заявке {number}"
+
+decline_reason:
+  source: {attribute: ПричинаОтказа}
+  default: "Отказ исполнителя"
+
+cancellation:
+  decline_reason:
+    source: {attribute: ПричинаНесогласияСОтменой}
+    default: "Исполнитель не согласен с отменой"
+
+completion_summary:
+  source: {attribute: ИтогРабот}
+  default: "Работы выполнены"
+
+messages:
+  outbound: {attribute: КомментарийДляЗаказчика}
+  inbound: {attribute: СообщенияЗаказчика}
+
+exchange_status: {attribute: СостояниеОбмена}
+
+attachments:
+  mode: none
+  list_field: {attribute: ФотоСПлатформы}
