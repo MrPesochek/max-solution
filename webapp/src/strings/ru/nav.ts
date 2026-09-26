@@ -1,0 +1,16 @@
+export const nav = {
+  home: 'Главная',
+  requests: 'Заявки',
+  equipment: 'Техника',
+  organization: 'Организация',
+  incoming: 'Входящие',
+  availableRequests: 'Доступные',
+  inWork: 'В работе',
+  providerProfile: 'Профиль',
+  providerRequests: 'Заявки',
+  chats: 'Чаты',
+  crm: 'CRM',
+  integration: 'Интеграция',
+  more: 'Ещё',
+  mainLabel: 'Основная навигация',
+} as const;

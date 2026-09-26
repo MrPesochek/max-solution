@@ -1,0 +1,140 @@
+.wizard-details {
+  display: contents;
+}
+.wizard-details .ui-field__label,
+.wizard-label {
+  font: 600 15px/20px var(--ui-font);
+  color: var(--t1);
+}
+
+.wizard-label {
+  margin: 0;
+  padding: 0 var(--ui-gutter) 8px;
+}
+
+.wizard-label-block {
+  padding-bottom: 8px;
+}
+
+.wizard-label-block .wizard-label {
+  padding-bottom: 2px;
+}
+
+.wizard-hint {
+  margin: 0;
+  padding: 0 var(--ui-gutter);
+  font: 400 13px/18px var(--ui-font);
+  color: var(--t2);
+}
+
+.wizard-equipment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--t2);
+  font: 400 15px/20px var(--ui-font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.wizard-equipment img {
+  flex: none;
+}
+
+.wizard-equipment__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wizard-equipment__edit {
+  flex: none;
+  font-weight: 600;
+  color: var(--a);
+}
+
+.wizard-equipment:focus-visible {
+  outline: 2px solid var(--a);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.wizard-summary {
+  margin: 0 var(--ui-gutter) var(--ui-gap);
+  padding: 0;
+  list-style: none;
+}
+
+.wizard-summary__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--d);
+}
+
+.wizard-summary__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wizard-summary__key {
+  font: 400 13px/18px var(--ui-font);
+  color: var(--t2);
+}
+
+.wizard-summary__value {
+  font: 600 15px/1.4 var(--ui-font);
+  color: var(--t1);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.wizard-summary__hint {
+  font: 400 13px/18px var(--ui-font);
+  color: var(--t2);
+}
+
+.wizard-summary__edit {
+  flex: none;
+  padding: 2px 0 0;
+  border: 0;
+  background: none;
+  font: 600 14px/20px var(--ui-font);
+  color: var(--t2);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .wizard-summary__edit:hover {
+    color: var(--t1);
+  }
+}
+
+.wizard-summary__edit:focus-visible {
+  outline: 2px solid var(--a);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.wizard-footnote {
+  margin: 0 0 var(--ui-gap);
+  padding: 0 var(--ui-gutter);
+  font: 400 14px/1.45 var(--ui-font);
+  color: var(--t2);
+}
+.wizard-summary__edit {
+  position: relative;
+}
+
+.wizard-summary__edit::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}

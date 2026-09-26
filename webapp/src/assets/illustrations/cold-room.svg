@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="240" viewBox="0 0 280 240" role="img">
+  <title>Морозильная камера</title>
+  <g stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M48 62 180 38 232 67 232 184 101 211 48 181Z" fill="#fff"/>
+    <path d="M48 62 101 90 232 67M101 90V211" fill="none"/>
+    <path d="M115 99 206 81 206 189 115 207Z" fill="#eaf3ff"/>
+    <path d="M128 111 191 99 191 176 128 189Z" fill="#fff"/>
+    <path d="M195 136v20M63 83v85M81 93v85" fill="none"/>
+    <path d="m157 126 0 37m-16-9 32-20m-32 2 32 16m-22-21 6-5 6 3m-12 30 6 4 6-6" stroke="#0077ff" fill="none"/>
+  </g>
+</svg>

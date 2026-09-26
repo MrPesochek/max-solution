@@ -1,0 +1,23 @@
+.org-caption-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.org-caption-link:focus-visible {
+  outline: 2px solid var(--a);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.org-empty {
+  margin: 0 0 var(--ui-gap);
+  padding: 0 var(--ui-gutter);
+  font: 400 14px/1.45 var(--ui-font);
+  color: var(--t2);
+}
+
+.org-plus {
+  flex: none;
+  margin-right: 8px;
+  vertical-align: -4px;
+}
