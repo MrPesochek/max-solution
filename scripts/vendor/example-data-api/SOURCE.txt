@@ -1,0 +1,10 @@
+Эталонный валидатор DATA-API 1.0 организаторов, скопирован без изменений.
+
+Источник:  https://gitverse.ru/stasnorman/example-data-api
+Коммит:    8504a6d9b39e6f652bce689d96e88538d7541c6b
+Автор:     Станислав Макиевский (условия — licence.md рядом)
+
+Файлы: validate_data_api.py (валидатор), DATA-API.schema.json (JSON Schema, в источнике —
+Example/DATA-API.schema.json; валидатор ищет её рядом с собой), requirements.txt, licence.md.
+
+Обновление: скопировать те же файлы из источника и поправить коммит выше.
