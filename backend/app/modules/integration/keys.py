@@ -19,6 +19,7 @@ from app.infra.crypto import SecretBox, constant_time_equals, generate_token, ha
 log = structlog.get_logger(__name__)
 
 KEY_SCHEME = "rk"
+JURY_KEY_SCHEME = "max"
 PREFIX_BYTES = 6
 SECRET_BYTES = 32
 
@@ -50,6 +51,14 @@ def issue_api_key(env: str | None = None) -> IssuedKey:
 
 
 def parse_api_key(raw: str) -> ParsedKey | None:
+    jury_parts = raw.strip().split("_", 1)
+    if (
+        len(jury_parts) == 2
+        and jury_parts[0] == JURY_KEY_SCHEME
+        and jury_parts[1].isalnum()
+    ):
+        return ParsedKey(env="*", prefix=jury_parts[1])
+
     parts = raw.strip().split("_", 3)
     if len(parts) != 4:
         return None
@@ -64,7 +73,11 @@ _COMPATIBLE_ENVS = frozenset({"local", "demo"})
 
 def env_matches(key_env: str, app_env: str) -> bool:
     """Ключ выпущен для этого окружения: demo-ключ не открывает рабочий контур."""
-    return key_env == app_env or {key_env, app_env} <= _COMPATIBLE_ENVS
+    return (
+        key_env == "*"
+        or key_env == app_env
+        or {key_env, app_env} <= _COMPATIBLE_ENVS
+    )
 
 
 async def authenticate_api_key(raw: str) -> IntegrationActor:

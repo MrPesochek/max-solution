@@ -9,6 +9,7 @@ api:
   openapi: "./openapi/data-api.json"
   defaultHeaders:
     Accept: "application/json"
+    Authorization: "Bearer max_7d8hdiwh"
 
 checks:
   - id: "health"
@@ -398,21 +399,23 @@ checks:
       integrationApiKey: "$.key"
       integrationClientId: "$.id"
 
-  - id: "crm-auth-required"
-    name: "API CRM без ключа отвечает 401"
+  - id: "jury-api-access"
+    name: "Доступ жюри к интеграционному API"
     method: "GET"
     path: "/api/v1/me"
-    role: "public"
+    role: "jury"
     expected:
-      statusCodes: [401]
+      statusCodes: [200]
       contentType: "application/json"
-      requiredFields: ["error"]
+      requiredFields: ["organization_id", "organization_name", "client_id", "key_prefix", "scopes"]
       bodySchema:
         type: "object"
+        required: ["organization_id", "client_id", "scopes"]
         properties:
-          error:
-            type: "object"
-            required: ["code", "message", "request_id"]
+          key_prefix: {const: "7d8hdiwh"}
+          scopes:
+            type: "array"
+            minItems: 1
     timeoutMs: 5000
     repeatable: true
 

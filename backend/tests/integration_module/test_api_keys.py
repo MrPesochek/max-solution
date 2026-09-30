@@ -6,6 +6,7 @@ from app.core import ids
 from app.core.actor import UserActor
 from app.core.errors import Conflict, DomainError, Forbidden, Unauthenticated
 from app.db.models import IntegrationClient, Notification, WebhookSubscription
+from app.infra.crypto import hash_token
 from app.modules.integration import api as integration
 from app.modules.integration.keys import issue_api_key, parse_api_key
 from app.modules.integration.policy import SCOPES
@@ -98,6 +99,21 @@ async def test_authenticate_success(db_session: AsyncSession) -> None:
     assert actor.integration_client_id == client.id
     assert actor.organization_id == org.id
     assert "webhooks:manage" in actor.scopes
+
+
+async def test_authenticate_jury_key(db_session: AsyncSession) -> None:
+    org = await provider_org(db_session)
+    client, _ = await factories.create_integration_client(db_session, org)
+    raw = "max_7d8hdiwh"
+    client.api_key_prefix = "7d8hdiwh"
+    client.api_key_hash = hash_token(raw)
+    await db_session.commit()
+
+    parsed = parse_api_key(raw)
+    actor = await integration.authenticate_api_key(raw)
+
+    assert parsed is not None and parsed.prefix == "7d8hdiwh"
+    assert actor.integration_client_id == client.id
 
 
 @pytest.mark.parametrize("raw", ["", "nonsense", "rk_test_abc", "rk_test_zz_secret"])
