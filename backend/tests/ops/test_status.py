@@ -227,7 +227,7 @@ async def app_with_token(
     yield
 
 
-async def _get(path: str, client: tuple[str, int], headers: dict[str, str] | None = None):  # type: ignore[no-untyped-def]
+async def _get(path: str, client: tuple[str, int], headers: dict[str, str] | None = None):
     transport = ASGITransport(app=create_app(), client=client)
     async with AsyncClient(transport=transport, base_url="http://testserver") as http:
         return await http.get(path, headers=headers or {})

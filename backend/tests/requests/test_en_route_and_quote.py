@@ -38,7 +38,7 @@ async def _mark_en_route(world: World, body: dict[str, object]) -> dict[str, obj
         world.dispatcher,
         h.rid(body),
         assignment_id=h.assignment_id(body),
-        expected_version=body["version"],  # type: ignore[arg-type]
+        expected_version=body["version"],
     )
     return result.body
 
@@ -64,7 +64,7 @@ async def test_mark_en_route_keeps_status_and_notifies(world: World) -> None:
         world.dispatcher,
         h.rid(scheduled),
         assignment_id=h.assignment_id(scheduled),
-        expected_version=marked["version"],  # type: ignore[arg-type]
+        expected_version=marked["version"],
     )
     assert started.body["status"] == "in_progress"
 
@@ -195,7 +195,6 @@ async def test_list_item_hides_worker_until_assignment_accepted(world: World) ->
 
 
 async def test_provider_list_counts_only_own_channel(world: World) -> None:
-    """Сообщения прежнего исполнителя не попадают в счётчик нового."""
     rival = await factories.build_rival_provider(world)
     published = await h.make_published(world)
     request_id = h.rid(published)
@@ -218,7 +217,7 @@ async def test_list_item_review_rating_and_closed_at(world: World) -> None:
     closed = await api.confirm_completion(
         world.manager,
         h.rid(reported),
-        expected_version=reported["version"],  # type: ignore[arg-type]
+        expected_version=reported["version"],
     )
     await reputation.submit_review(
         world.manager,
@@ -496,7 +495,6 @@ async def test_reminder_at_for_pending_own_service(world: World) -> None:
 
 
 async def test_provider_membership_names_are_resolved(world: World) -> None:
-    """Мастер-сотрудник платформы: имя берётся из профиля пользователя."""
     scheduled = await h.make_scheduled(world)
     async with db_session.transaction() as session:
         membership_id = (

@@ -9,7 +9,7 @@ from app.core.clock import utcnow
 from app.infra.config import Settings, get_settings
 from app.modules.ops import api as ops
 
-OPS_TOKEN_HEADER = "X-Ops-Token"  # noqa: S105 — имя заголовка, не секрет
+OPS_TOKEN_HEADER = "X-Ops-Token"
 
 Network = ipaddress.IPv4Network | ipaddress.IPv6Network
 

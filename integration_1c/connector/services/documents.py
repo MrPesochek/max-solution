@@ -123,8 +123,6 @@ async def create_document(state: AppState, card: dict[str, Any]) -> dict[str, An
 async def ensure_external_reference(
     state: AppState, request_id: str, card: dict[str, Any]
 ) -> dict[str, Any]:
-    """Номер документа 1С -> `external-reference` платформы. Если вызов не удался
-    (документ уже создан), он повторяется при следующем событии заявки."""
     external_id = repo.get_setting(state.conn, f"external_id:{request_id}")
     if not external_id or repo.get_setting(state.conn, f"external_id_sent:{request_id}"):
         return card

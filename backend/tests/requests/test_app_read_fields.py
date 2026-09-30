@@ -297,7 +297,7 @@ async def test_quote_items_sum_is_checked(world: World) -> None:
         world,
         api.RepairQuoteInput(description_of_work="Замена компрессора", currency="RUB", items=items),
     )
-    quote = body["repair_quotes"][0]  # type: ignore[index]
+    quote = body["repair_quotes"][0]
     assert quote["price"]["amount_minor"] == 500000
     assert quote["items"] == [
         {"title": "Компрессор", "amount_minor": 400000},
@@ -321,7 +321,7 @@ async def test_quote_without_items_keeps_single_amount(world: World) -> None:
         world,
         api.RepairQuoteInput(description_of_work="Ремонт", amount_minor=9900, currency="RUB"),
     )
-    assert body["repair_quotes"][0]["items"] == []  # type: ignore[index]
+    assert body["repair_quotes"][0]["items"] == []
 
 
 async def test_history_names_people_of_own_side_and_orgs_of_other(world: World) -> None:

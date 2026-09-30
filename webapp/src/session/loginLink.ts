@@ -26,7 +26,6 @@ export function rememberOpenedViaLink(): void {
   try {
     window.sessionStorage.setItem(VIA_LINK_KEY, '1');
   } catch {
-    // хранилище недоступно — после перезагрузки покажем общий экран входа
   }
 }
 
@@ -53,6 +52,5 @@ export function resetLoginLinkForTests(): void {
   try {
     window.sessionStorage.removeItem(VIA_LINK_KEY);
   } catch {
-    // нет хранилища — нечего чистить
   }
 }

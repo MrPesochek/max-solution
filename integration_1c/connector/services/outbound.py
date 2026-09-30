@@ -43,7 +43,6 @@ def action_key(ref_key: str, data_version: str, planned: PlannedAction) -> str:
 
 
 async def poll_once(state: AppState) -> int:
-    """Один проход опроса. Возвращает число документов, у которых сменилась версия."""
     links = repo.list_active_links(state.conn)
     entity = state.profile.document.entity
     changed = 0
@@ -74,8 +73,6 @@ async def poll_once(state: AppState) -> int:
 
 
 async def evaluate(state: AppState, request_id: str) -> list[str]:
-    """Перечитать документ 1С заявки и выполнить положенные действия на платформе.
-    Возвращает виды выполненных действий (для журнала и тестов)."""
     async with state.lock_for(request_id):
         return await evaluate_locked(state, request_id)
 
@@ -214,7 +211,6 @@ _CHANGED = "changed"
 
 
 def _waiting_hint(state: AppState, topic: str) -> str:
-    """Подсказка пользователю 1С: чего ждёт событие платформы."""
     names: dict[str, str] = {}
     for name, stage in state.profile.state.stages.items():
         names.setdefault(stage, name)
@@ -261,7 +257,6 @@ async def _refresh_card(state: AppState, request_id: str, card: dict[str, Any]) 
 async def _report(
     state: AppState, ref_key: str, doc: dict[str, Any], notes: list[str]
 ) -> dict[str, Any] | None:
-    """Итог обмена — в реквизит документа, чтобы пользователь 1С видел результат."""
     target = state.profile.exchange_status
     if target is None:
         return None

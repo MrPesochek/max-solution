@@ -65,7 +65,6 @@ _GROUP_UPDATES = frozenset(
 
 
 def is_personal_dialog(event: UpdateUnion) -> bool:
-    """Бот работает только в личном диалоге: в группе ответ увидели бы все участники."""
     if event.update_type in _GROUP_UPDATES:
         return False
     if (
@@ -96,7 +95,6 @@ class BotContext:
 
     @asynccontextmanager
     async def unit(self) -> AsyncIterator[AsyncSession]:
-        """Транзакция, которая на выходе сохраняет состояние диалога."""
         async with db_session.transaction() as session:
             yield session
             await conversations.save(session, self.conversation)
@@ -138,7 +136,6 @@ class BotContext:
         return await identity.list_user_memberships(self.user_id)
 
     async def active_membership(self) -> identity.MembershipView | None:
-        """Активное членство диалога; единственная организация выбирается сама."""
         items = [m for m in await self.memberships() if m.status == "active"]
         if not items:
             if self.conversation.active_organization_id is not None:
@@ -195,7 +192,6 @@ class BotContext:
 async def build_context(
     event: UpdateUnion, transport: MaxTransport, *, available: bool | None = True
 ) -> BotContext | None:
-    """Готовит контекст: отмечает доступность бота (D32) и поднимает диалог из БД."""
     sender = sender_of(event)
     if sender is None or sender.is_bot:
         return None

@@ -161,10 +161,10 @@ async def test_nameplate_goes_to_review_only_when_confirmed(world: World) -> Non
         return handler
 
     with pytest.raises(ValidationFailed) as exc:
-        await run_command(world.manager, attach(False))  # type: ignore[arg-type]
+        await run_command(world.manager, attach(False))
     assert exc.value.code == "SENSITIVE_PHOTO_NOT_CONFIRMED"
 
-    result = await run_command(world.manager, attach(True))  # type: ignore[arg-type]
+    result = await run_command(world.manager, attach(True))
     assert len(result.body["copies"]) == 1
 
 

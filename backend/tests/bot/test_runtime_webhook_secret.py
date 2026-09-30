@@ -28,11 +28,6 @@ FOREIGN = "https://other.example/hooks/max"
 
 @dataclass
 class FakeMaxApi:
-    """Подписки бота на стороне MAX: адрес → секрет, которым MAX подписывает события.
-
-    Как и настоящий `GET /subscriptions`, список подписок секрета не показывает.
-    """
-
     subscriptions: dict[str, str | None] = field(default_factory=dict)
     calls: list[tuple[str, ...]] = field(default_factory=list)
     reject_subscribe: int = 0
@@ -84,7 +79,6 @@ def api() -> FakeMaxApi:
 
 
 def rotated(runtime: BotRuntime) -> BotRuntime:
-    """Тот же бот после смены MAX_WEBHOOK_SECRET: новый секрет, прежний — в _PREVIOUS."""
     fresh = replace(runtime, secret=NEW_SECRET, previous_secret=runtime.secret)
     set_runtime(fresh)
     return fresh
@@ -110,7 +104,6 @@ async def post_event(secret: str | None) -> httpx.Response:
 async def test_same_url_new_secret_resubscribes(
     harness: BotHarness, api: FakeMaxApi, clock: list[datetime]
 ) -> None:
-    """Дефект аудита: адрес совпал, секрет сменился — MAX должен получить новый секрет."""
     await subscribed_with_old_secret(harness, api)
     runtime = rotated(harness.runtime)
 
@@ -140,7 +133,6 @@ async def test_unchanged_secret_makes_no_extra_calls(
 async def test_existing_subscription_without_fingerprint_resubscribes(
     harness: BotHarness, api: FakeMaxApi, clock: list[datetime]
 ) -> None:
-    """Подписка из прежней версии: отпечатка нет, секрет в MAX неизвестен."""
     url = harness.runtime.webhook_url
     api.subscriptions = {url: "unknown-secret", FOREIGN: "x"}
     api.install(harness.runtime)
@@ -238,7 +230,6 @@ async def test_previous_secret_only_for_grace_after_resubscribe(
 async def test_previous_secret_rejected_without_rotation(
     harness: BotHarness, api: FakeMaxApi, clock: list[datetime]
 ) -> None:
-    """Прежний секрет в настройках, но ротации не было — он ничего не открывает."""
     await subscribed_with_old_secret(harness, api)
     set_runtime(replace(harness.runtime, previous_secret="stale-secret-000"))
 
@@ -276,7 +267,6 @@ async def test_previous_secret_ignored_when_not_configured(
 async def test_events_keep_flowing_through_rotation(
     harness: BotHarness, api: FakeMaxApi, clock: list[datetime]
 ) -> None:
-    """Сквозной сценарий: MAX подписывает события тем секретом, что у него в подписке."""
     await subscribed_with_old_secret(harness, api)
     url = harness.runtime.webhook_url
     runtime = rotated(harness.runtime)
@@ -315,7 +305,6 @@ async def test_cli_check_and_rotate(
 def test_worker_builds_runtime_for_subscription_check(
     bot_settings: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """В worker нет маршрута вебхука и runtime приложения: подписку проверяет свой бот."""
     from app.adapters.bot import runtime as bot_runtime
 
     monkeypatch.setattr(bot_runtime, "_subscription_runtime", None)

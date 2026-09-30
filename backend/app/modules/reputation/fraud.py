@@ -114,7 +114,6 @@ async def _new_organizations(
 async def collect_fraud_signals(
     session: AsyncSession, review: Review, *, now: datetime
 ) -> dict[str, Any]:
-    """Пять признаков ТЗ 8.3.4. Каждый по отдельности не является доказательством."""
     return {
         "order_spike": await _order_spike(session, review, now),
         "duplicate_text": await _duplicate_text(session, review),
@@ -125,8 +124,6 @@ async def collect_fraud_signals(
 
 
 async def sync_signals(ctx: CommandContext, review: Review) -> dict[str, Any]:
-    """Пересчитывает сигналы и, если хоть один сработал, заводит/обновляет дело
-    для оператора. Ничего в самом отзыве не меняет и не скрывает его (ТЗ 8.3.4)."""
     signals = await collect_fraud_signals(ctx.session, review, now=ctx.now)
     if not any(item.get("triggered") for item in signals.values()):
         return signals

@@ -57,8 +57,6 @@ PING_EVENT_TYPE = "ping"
 
 @dataclass(frozen=True, slots=True)
 class WebhookAccess:
-    """Кто управляет подписками: ключ со scope webhooks:manage либо администратор исполнителя."""
-
     organization_id: uuid.UUID
     integration_client_id: uuid.UUID | None = None
     membership_id: uuid.UUID | None = None
@@ -74,13 +72,11 @@ def can_read_event(scopes: Collection[str], event_type: str) -> bool:
 
 
 def require_scope(actor: IntegrationActor, *scopes: str) -> None:
-    """Хотя бы один из перечисленных scope; пустой перечень — любой действующий ключ."""
     if scopes and not any(scope in actor.scopes for scope in scopes):
         raise Forbidden(code="INSUFFICIENT_SCOPE", required_scope=" | ".join(scopes))
 
 
 def owns_subscription(access: "WebhookAccess", subscription: WebhookSubscription) -> bool:
-    """Ключ управляет только своими подписками, администратор — всеми подписками организации."""
     if subscription.provider_org_id != access.organization_id:
         return False
     return (
@@ -105,7 +101,6 @@ def webhook_access(actor: Actor) -> WebhookAccess:
 
 
 def delivery_access(actor: Actor) -> WebhookAccess | None:
-    """None — оператор: видит и повторяет доставку любой организации (D14)."""
     if isinstance(actor, OperatorActor):
         return None
     return webhook_access(actor)
@@ -130,19 +125,16 @@ def check_scopes(scopes: list[str]) -> list[str]:
 
 
 def scope_conflicts(scopes: Collection[str]) -> list[str]:
-    """Scope, которые нельзя выдавать одним ключом с service_bindings:write."""
     if SERVICE_BINDINGS_WRITE not in scopes:
         return []
     return sorted(s for s in scopes if s in _SEPARATE_FROM_BINDINGS_WRITE)
 
 
 def key_warnings(scopes: Collection[str]) -> list[str]:
-    """Предупреждения по ключам, выпущенным до запрета совмещения scope."""
     return [SCOPE_CONFLICT_WARNING] if scope_conflicts(scopes) else []
 
 
 def check_event_types(events: list[str]) -> list[str]:
-    """Пустой список означает «все типы» (ТЗ 11)."""
     if not events:
         return sorted(EVENT_TYPES)
     unique = list(dict.fromkeys(events))

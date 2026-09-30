@@ -78,7 +78,6 @@ def sign_init_data(
     display_name: str = "Иван",
     signature: str | None = None,
 ) -> str:
-    """Собирает initData тем же алгоритмом, что и проверяющая сторона."""
     moment = auth_date or utcnow()
     fields = {
         "auth_date": str(int(moment.timestamp())),
@@ -260,8 +259,6 @@ SECRETS_ENCRYPTION_KEY = base64.urlsafe_b64encode(b"repair-hub-tests".ljust(32, 
 
 
 def integration_settings(monkeypatch: pytest.MonkeyPatch, **overrides: str) -> Iterator[Settings]:
-    """Настройки для интеграции: ключ шифрования секретов и разрешённый локальный адрес
-    приёмника вебхуков в тестах (loopback — только явным IP в списке)."""
     yield from apply_test_settings(
         monkeypatch,
         SECRETS_ENCRYPTION_KEY=SECRETS_ENCRYPTION_KEY,

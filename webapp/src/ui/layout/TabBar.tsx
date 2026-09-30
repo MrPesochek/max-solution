@@ -52,7 +52,6 @@ export function TabBar({ side, badges, activeTo, role }: TabBarProps) {
                 <span className="ui-tabbar__badge" aria-hidden="true">
                   {badge > 99 ? '99+' : badge}
                 </span>
-                {/* Кружок со счётчиком — только картинка; диктору — «N новых» после подписи. */}
                 <span className="ui-visually-hidden">{`, ${strings.ui.tabBadge(badge)}`}</span>
               </>
             ) : null}

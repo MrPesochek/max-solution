@@ -61,7 +61,6 @@ async def close_request(
     command: C,
     closure_kind: ClosureKind,
 ) -> None:
-    """T46/T48: `assignment→completed`, ожидающие дочерние объекты снимаются."""
     assignment.state = AssignmentState.COMPLETED
     await support.supersede_children(ctx, request, keep_approved=True)
     request.closure_kind = closure_kind

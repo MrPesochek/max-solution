@@ -110,7 +110,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -233,7 +233,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -379,7 +379,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -519,7 +519,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -667,7 +667,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -831,7 +831,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -852,7 +852,7 @@
           "events"
         ],
         "summary": "List Events",
-        "description": "Лента восстановления после курсора (ТЗ 11, п.8). Истёкший курсор — `409 CURSOR_EXPIRED`: выполните сверку через `GET /requests` и начните ленту заново без курсора. В ленте только события, которые ключ получил бы и вебхуком — по scope на чтение соответствующих данных.\n\nТребует scope `events:read`.",
+        "description": "Лента восстановления после курсора. Истёкший курсор — `409 CURSOR_EXPIRED`: выполните сверку через `GET /requests` и начните ленту заново без курсора. В ленте только события, которые ключ получил бы и вебхуком — по scope на чтение соответствующих данных.\n\nТребует scope `events:read`.",
         "operationId": "list_events_events_get",
         "security": [
           {
@@ -981,7 +981,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1185,7 +1185,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1324,7 +1324,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1481,7 +1481,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1639,7 +1639,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1795,7 +1795,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1817,7 +1817,7 @@
           "requests"
         ],
         "summary": "Withdraw Assignment",
-        "description": "D2: отказ исполнителя после принятия назначения.\n\nТребует scope `requests:write`.",
+        "description": "Отказ исполнителя после принятия назначения.\n\nТребует scope `requests:write`.",
         "operationId": "withdraw_assignment_requests__request_id__withdraw_post",
         "security": [
           {
@@ -1953,7 +1953,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2111,7 +2111,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2266,7 +2266,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2402,7 +2402,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2557,7 +2557,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2692,7 +2692,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2847,7 +2847,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3004,7 +3004,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3162,7 +3162,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3318,7 +3318,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3475,7 +3475,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3632,7 +3632,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3789,7 +3789,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3939,7 +3939,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4070,7 +4070,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4227,7 +4227,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4384,7 +4384,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4562,7 +4562,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4701,7 +4701,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4851,7 +4851,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5008,7 +5008,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5159,7 +5159,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5325,7 +5325,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5482,7 +5482,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5630,7 +5630,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5777,7 +5777,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6134,8 +6134,7 @@
           "byte_size",
           "created_at"
         ],
-        "title": "AttachmentView",
-        "description": "Состояние и размеры вложения; ключ хранилища и имя файла пользователя не отдаются."
+        "title": "AttachmentView"
       },
       "BindingEquipmentView": {
         "properties": {
@@ -6507,8 +6506,7 @@
         "required": [
           "description"
         ],
-        "title": "BindingInvitationItemBody",
-        "description": "Позиция оборудования по договору так, как её знает сервис: сопоставляет её\nс карточкой своего оборудования руководитель заказчика при принятии."
+        "title": "BindingInvitationItemBody"
       },
       "BindingInvitationItemView": {
         "properties": {
@@ -6557,8 +6555,7 @@
           "serial_number",
           "model"
         ],
-        "title": "BindingInvitationItemView",
-        "description": "Позиция оборудования по договору в формулировке сервиса."
+        "title": "BindingInvitationItemView"
       },
       "BindingInvitationView": {
         "properties": {
@@ -7047,8 +7044,7 @@
           }
         },
         "type": "object",
-        "title": "CompletionReportView",
-        "description": "Отчёт мастера о завершении: итог, описание и фото «до/после»."
+        "title": "CompletionReportView"
       },
       "DeclineRequestBody": {
         "properties": {
@@ -7140,8 +7136,7 @@
           "state",
           "channel"
         ],
-        "title": "DeliveryStatusView",
-        "description": "Доставка назначения в CRM исполнителя (ТЗ 8.2) — отдельно от его принятия.\n\n`none` + `channel=\"app\"` — у исполнителя нет CRM, заявка приходит в бот и\nмини-приложение. Технические подробности ошибок CRM сюда не попадают."
+        "title": "DeliveryStatusView"
       },
       "EnRouteBody": {
         "properties": {
@@ -7428,7 +7423,7 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Data",
-            "description": "Разрешённое получателю представление ресурса на момент события; состав зависит от `type`. `request.*`, `assignment.revoked`, `cancellation.requested` — поля карточки заявки для исполнителя (`status`, `assignment_state`, `version` и др.); `message.created` — сообщение; `offer.selected` — выбранное предложение без точного адреса; `visit_proposal.responded` и `repair_quote.responded` — id, версия и решение по предложению; `service_binding.changed` — привязка в договорном объёме без токена приглашения; `marketplace.request.*` — только публичная карточка биржи; `ping` — `{\"test\": true}`. Поля могут добавляться; при сомнении читайте актуальный ресурс по `resource_id` и сравнивайте `resource_version` (ТЗ 11, п. 3)."
+            "description": "Разрешённое получателю представление ресурса на момент события; состав зависит от `type`. `request.*`, `assignment.revoked`, `cancellation.requested` — поля карточки заявки для исполнителя (`status`, `assignment_state`, `version` и др.); `message.created` — сообщение; `offer.selected` — выбранное предложение без точного адреса; `visit_proposal.responded` и `repair_quote.responded` — id, версия и решение по предложению; `service_binding.changed` — привязка в договорном объёме без токена приглашения; `marketplace.request.*` — только публичная карточка биржи; `ping` — `{\"test\": true}`. Поля могут добавляться; при сомнении читайте актуальный ресурс по `resource_id` и сравнивайте `resource_version`."
           }
         },
         "type": "object",
@@ -7441,8 +7436,7 @@
           "resource_id",
           "data"
         ],
-        "title": "EventEnvelopeView",
-        "description": "Конверт события (ТЗ 11). Один и тот же для тела вебхука и ленты /events."
+        "title": "EventEnvelopeView"
       },
       "EventsPageView": {
         "properties": {
@@ -7968,8 +7962,7 @@
           "display_name",
           "verification_marks"
         ],
-        "title": "OfferProviderView",
-        "description": "Краткая карточка исполнителя при показе оффера заказчику."
+        "title": "OfferProviderView"
       },
       "OfferSubmitBody": {
         "properties": {
@@ -8461,8 +8454,7 @@
         "required": [
           "kind"
         ],
-        "title": "PendingDecisionView",
-        "description": "Что по заявке ждёт решения руководителя: сумма, срок ответа, число откликов."
+        "title": "PendingDecisionView"
       },
       "PriceView": {
         "properties": {
@@ -8517,8 +8509,7 @@
           }
         },
         "type": "object",
-        "title": "PriceView",
-        "description": "`amount_minor=None` — цена неизвестна и согласованной не считается (I3)."
+        "title": "PriceView"
       },
       "ProviderBindingView": {
         "properties": {
@@ -8617,8 +8608,7 @@
           "valid_until",
           "created_at"
         ],
-        "title": "ProviderBindingView",
-        "description": "Привязка глазами исполнителя. До подтверждения — минимум сведений (ТЗ 6.3)."
+        "title": "ProviderBindingView"
       },
       "ProviderEquipmentView": {
         "properties": {
@@ -8748,8 +8738,7 @@
           "id",
           "display_name"
         ],
-        "title": "ProviderSummaryRatingView",
-        "description": "Сводка исполнителя в карточке заказчика: проверки и рейтинг (ТЗ 8.3.3).\n\nПри менее чем трёх уникальных организациях-оценщиках `rating` пуст,\nа `rating_label` — «Мало отзывов»."
+        "title": "ProviderSummaryRatingView"
       },
       "PublicReviewView": {
         "properties": {
@@ -8820,8 +8809,7 @@
           "order_occurred_at",
           "published_at"
         ],
-        "title": "PublicReviewView",
-        "description": "Опубликованная версия отзыва — то, что видит рынок (ТЗ 8.3.2)."
+        "title": "PublicReviewView"
       },
       "RepairQuoteBody": {
         "properties": {
@@ -9078,8 +9066,7 @@
           "request_id",
           "assignment"
         ],
-        "title": "RequestFormerProviderView",
-        "description": "ТЗ 14: у прекращённого исполнителя остаётся запись о назначении без содержимого заявки."
+        "title": "RequestFormerProviderView"
       },
       "RequestListItemView": {
         "properties": {
@@ -9738,8 +9725,7 @@
           "status",
           "published_at"
         ],
-        "title": "RequestPublicCardView",
-        "description": "Публичная карточка внешнего поиска — белый список (ТЗ 9, S2.4, I7).\n\nТочный адрес, телефон, серийный номер, гарантийные документы и история\nобслуживания сюда не попадают: карточка собирается из выбранных полей, а не\nвычёркиванием из полной заявки."
+        "title": "RequestPublicCardView"
       },
       "ReviewReplyBody": {
         "properties": {

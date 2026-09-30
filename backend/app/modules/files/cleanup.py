@@ -60,12 +60,6 @@ async def _drop(stmt: Select[tuple[Attachment]], batch: int) -> int:
 
 
 async def _drop_orphan_keys(now: datetime, min_age_days: int, batch: int) -> int:
-    """Ключи хранилища без строки в attachments/attachment_variants.
-
-    Возраст читается из даты, зашитой в сам ключ (`make_storage_key`: `.../YYYY/MM/DD/...`,
-    вариант — тот же путь с суффиксом): свежие ключи никогда не совпадают с датой
-    до `cutoff`, так что незавершённая загрузка не может попасть под уборку.
-    """
     cutoff = (now - timedelta(days=min_age_days)).date()
     async with db_session.transaction() as session:
         live_keys = await _live_storage_keys(session)

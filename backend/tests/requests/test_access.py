@@ -99,7 +99,6 @@ async def test_own_service_provider_sees_address_before_answer(world: World) -> 
 
 
 def test_marketplace_pending_hides_contacts() -> None:
-    """ТЗ 11: `offer.selected` ещё не раскрывает точный адрес."""
     reserved = Assignment(
         request_id=uuid.uuid4(),
         provider_org_id=uuid.uuid4(),

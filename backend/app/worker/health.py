@@ -16,7 +16,6 @@ def required_loops(settings: Settings) -> dict[str, int]:
 
 
 async def check(settings: Settings) -> list[str]:
-    """Описания сбоев; пустой список — worker здоров."""
     beats = await ops.load_heartbeats(utcnow(), required_loops(settings))
     problems = []
     for beat in beats:

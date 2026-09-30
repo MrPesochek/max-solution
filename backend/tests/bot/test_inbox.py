@@ -31,7 +31,6 @@ async def _city_payload(harness: BotHarness) -> str:
 
 
 async def _registration_until_address(harness: BotHarness) -> None:
-    """Регистрация заказчика до последнего шага: остаётся прислать адрес."""
     await harness.deliver(message_created("/start"))
     await harness.deliver(message_callback("m:new_customer"))
     await harness.deliver(message_created("ООО Ромашка"))
@@ -47,7 +46,6 @@ async def _registration_until_address(harness: BotHarness) -> None:
 
 
 def _fail_once(monkeypatch: pytest.MonkeyPatch, target: Any, name: str) -> Callable[[], int]:
-    """Первый вызов падает временной ошибкой, следующие идут в настоящую функцию."""
     original: Callable[..., Awaitable[Any]] = getattr(target, name)
     calls = {"n": 0}
 
@@ -74,7 +72,6 @@ async def _row(session: AsyncSession) -> MaxUpdate:
 async def test_retry_after_failure_before_command_runs_it_once(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Сбой до команды: повтор того же события от MAX выполняет её, и ровно один раз."""
     await _registration_until_address(harness)
     calls = _fail_once(monkeypatch, identity, "create_organization")
     event = message_created("ул. Тестовая, 1")
@@ -103,7 +100,6 @@ async def test_retry_after_failure_before_command_runs_it_once(
 async def test_retry_after_failure_after_command_does_not_repeat_it(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Сбой после команды: повтор не создаёт второй объект и не дублирует ответы."""
     await _registration_until_address(harness)
     _fail_once(monkeypatch, menu, "send_menu")
     event = message_created("ул. Тестовая, 1")
@@ -134,7 +130,6 @@ async def test_processed_event_is_duplicate(harness: BotHarness, db_session: Asy
 async def test_event_in_live_lease_is_not_taken_twice(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Событие в обработке у другого экземпляра: повтор от MAX его не перехватывает."""
     event_json = message_created("/help")
     event = await process_update_webhook(event_json=event_json, bot=harness.runtime.bot)
     assert event is not None
@@ -150,7 +145,6 @@ async def test_event_in_live_lease_is_not_taken_twice(
 async def test_crash_between_record_and_handling_is_recovered(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Процесс упал после фиксации события: worker доводит обработку сам."""
     from app.worker import max_updates_recovery
 
     await _registration_until_address(harness)
@@ -175,7 +169,6 @@ async def test_crash_between_record_and_handling_is_recovered(
 async def test_expired_lease_is_recovered_without_repeating_effects(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Обработчик «умер» посреди работы: аренда истекла, повтор не дублирует ответы."""
     from app.worker import max_updates_recovery
 
     await _registration_until_address(harness)
@@ -262,7 +255,6 @@ async def test_exhausted_attempts_move_event_to_dead(
 async def test_stuck_last_attempt_is_buried(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Последняя попытка зависла (процесс упал) — событие уходит в dead, а не висит."""
     from app.worker import max_updates_recovery
 
     event = await process_update_webhook(
@@ -290,7 +282,6 @@ async def test_stuck_last_attempt_is_buried(
 async def test_group_event_without_payload_is_buried(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Групповое событие не хранится целиком — повторить его нечем, оно уходит в dead."""
     from app.worker import max_updates_recovery
 
     event = await process_update_webhook(
@@ -317,7 +308,6 @@ async def test_group_event_without_payload_is_buried(
 async def test_polling_middleware_retries_failed_event(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Polling идёт через тот же inbox: повтор после сбоя выполняет действие один раз."""
     await _registration_until_address(harness)
     harness.runtime.dispatcher.register_outer_middleware(updates.DedupMiddleware())
     calls = _fail_once(monkeypatch, identity, "create_organization")
@@ -339,8 +329,6 @@ async def test_polling_middleware_retries_failed_event(
 async def test_button_consumed_by_crashed_attempt_is_reclaimed_by_its_replay(
     db_session: AsyncSession,
 ) -> None:
-    """Кнопку погасила попытка, которая не дожила до команды: её повтор гасит снова,
-    а любое другое нажатие получает «уже использована»."""
     from app.adapters.bot import actions, conversations
     from app.db import session as app_session
     from tests import factories
@@ -404,7 +392,6 @@ async def _dialog(session: AsyncSession) -> BotConversation:
 async def test_stale_event_does_not_leak_into_restarted_dialog(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Регистрацию отменили и начали заново: повтор старого адреса в неё не попадает."""
     await _registration_until_address(harness)
     calls = _fail_once(monkeypatch, identity, "create_organization")
     stale = message_created("ул. Старая, 1")
@@ -442,7 +429,6 @@ async def test_stale_event_does_not_leak_into_restarted_dialog(
 async def test_stale_event_is_not_replayed_by_worker(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """То же через восстановление в worker: устаревшее событие закрывается без действия."""
     await _registration_until_address(harness)
     _fail_once(monkeypatch, identity, "create_organization")
     assert (await harness.deliver(message_created("ул. Старая, 1"))).failed is True
@@ -468,7 +454,6 @@ async def test_stale_event_is_not_replayed_by_worker(
 async def test_temporary_send_failure_keeps_event_for_retry(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Единичный 429 на вопрос следующего шага: событие повторяется, вопрос доходит."""
     await harness.deliver(message_created("/start"))
     await harness.deliver(message_callback("m:new_customer"))
     harness.reset()
@@ -501,7 +486,6 @@ async def test_temporary_send_failure_keeps_event_for_retry(
 async def test_delivered_replies_are_not_repeated_around_failed_one(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Из трёх ответов не дошёл средний: повтор досылает только его."""
     await _registration_until_address(harness)
     sent: list[str] = []
     original = harness.transport.send_message
@@ -531,7 +515,6 @@ async def test_delivered_replies_are_not_repeated_around_failed_one(
 async def test_permanent_send_failure_does_not_retry_event(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Пользователь заблокировал бота (403): повторять нечего, событие обработано."""
     await harness.deliver(message_created("/start"))
     await harness.deliver(message_callback("m:new_customer"))
     harness.transport.send_message_failures.append(
@@ -547,7 +530,6 @@ async def test_permanent_send_failure_does_not_retry_event(
 async def test_crash_before_snapshot_does_not_replay_into_new_dialog(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Процесс упал до записи снимка диалога: worker не отдаёт старый адрес новой регистрации."""
     await _registration_until_address(harness)
     stale = message_created("ул. Старая, 1")
     key = f"message_created:{stale['message']['body']['mid']}"
@@ -585,7 +567,6 @@ async def test_crash_before_snapshot_does_not_replay_into_new_dialog(
 async def test_crash_before_snapshot_in_untouched_dialog_is_replayed(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Тот же обрыв, но диалог никто не трогал: worker доводит событие как обычно."""
     await _registration_until_address(harness)
     event = message_created("ул. Тестовая, 1")
 
@@ -609,7 +590,6 @@ async def test_crash_before_snapshot_in_untouched_dialog_is_replayed(
 async def test_crash_between_record_and_acquire_does_not_replay_into_new_dialog(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Обрыв между фиксацией и арендой: попытка №1 от worker тоже не путает диалоги."""
     await _registration_until_address(harness)
     stale = message_created("ул. Старая, 1")
     key = f"message_created:{stale['message']['body']['mid']}"
@@ -647,7 +627,6 @@ async def test_crash_between_record_and_acquire_does_not_replay_into_new_dialog(
 async def test_redelivery_of_unhandled_event_after_dialog_moved_is_superseded(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Тот же обрыв, но событие повторно приносит сам MAX, а не worker."""
     await _registration_until_address(harness)
     stale = message_created("ул. Старая, 1")
 
@@ -673,7 +652,6 @@ async def test_redelivery_of_unhandled_event_after_dialog_moved_is_superseded(
 async def test_redelivery_of_unhandled_event_in_untouched_dialog_is_handled(
     harness: BotHarness, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Обрыв до аренды, диалог не трогали: повтор от MAX выполняет действие."""
     await _registration_until_address(harness)
     event = message_created("ул. Тестовая, 1")
 
@@ -696,11 +674,6 @@ async def test_first_start_is_recovered_after_crash(
     monkeypatch: pytest.MonkeyPatch,
     crash_point: str,
 ) -> None:
-    """Первый /start нового пользователя: обрыв до обработки, worker создаёт диалог сам.
-
-    Только что созданная строка диалога не считается чужим изменением — приветствие
-    доходит, событие обработано.
-    """
     start = message_created("/start")
 
     async def crash(*args: object, **kwargs: object) -> None:

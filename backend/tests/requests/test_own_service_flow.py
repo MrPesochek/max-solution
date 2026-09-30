@@ -158,8 +158,6 @@ async def test_submit_requires_confirmed_binding_and_active_provider(world: Worl
 
 
 async def test_update_draft_null_semantics(world: World) -> None:
-    """ТЗ 10.4: непереданное поле не трогается, явный `null` очищает nullable-поле,
-    для `equipment_id`/`urgency` (NOT NULL) — `ValidationFailed`."""
     draft = await h.make_draft(world)
     updated = (
         await api.update_draft(

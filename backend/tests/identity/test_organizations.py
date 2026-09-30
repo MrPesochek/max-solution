@@ -35,7 +35,7 @@ async def _bare_actor(max_user_id: str = "u1") -> BareUserActor:
 def _customer_data(**kwargs: object) -> identity.OrganizationCreateData:
     base = {"name": "ООО Ромашка", "kind": "customer", "contact_phone": "+79990000000"}
     base.update(kwargs)
-    return identity.OrganizationCreateData(**base)  # type: ignore[arg-type]
+    return identity.OrganizationCreateData(**base)
 
 
 async def test_inn_checksums() -> None:
@@ -121,7 +121,6 @@ async def test_unknown_kind_rejected() -> None:
 
 
 async def test_foreign_inn_grants_no_access_to_existing_organization() -> None:
-    """A30: занятый ИНН не блокирует черновик и не открывает чужие данные."""
     owner = await _bare_actor("u-owner")
     await identity.create_organization(
         owner, _customer_data(name="ООО Оригинал", inn=VALID_INN_10), idem=_idem("org-a30-1")
@@ -184,8 +183,6 @@ async def test_update_organization_requires_manager() -> None:
 
 
 async def test_update_organization_null_semantics() -> None:
-    """ТЗ 10.4: непереданное поле не трогается, явный `null` очищает nullable-поле,
-    для `name` (NOT NULL) явный `null` — `ValidationFailed`."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         org.contact_email = "old@example.test"

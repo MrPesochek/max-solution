@@ -54,4 +54,4 @@ cp openapi/app-api.json openapi/operator-api.json webapp/openapi/
 (cd webapp && pnpm gen:api)
 ```
 
-Параметры сборки и подключения MAX описаны в [основном README](../README.md) и [инструкции развёртывания](../docs/deploy.md).
+Параметры сборки и подключения MAX описаны в [основном README](../README.md).

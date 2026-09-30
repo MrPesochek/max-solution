@@ -5,7 +5,6 @@ export async function copyText(value: string): Promise<boolean> {
       return true;
     }
   } catch {
-    // Отказ Clipboard API — пробуем запасной путь.
   }
   try {
     const area = document.createElement('textarea');

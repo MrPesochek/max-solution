@@ -35,8 +35,6 @@ class UserActor:
 
 @dataclass(frozen=True, slots=True)
 class BareUserActor:
-    """Вошедший пользователь без контекста организации: регистрация, приём приглашения."""
-
     user_id: uuid.UUID
     kind: Literal["bare_user"] = "bare_user"
 

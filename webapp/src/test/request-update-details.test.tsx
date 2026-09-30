@@ -65,7 +65,7 @@ function captureActionBodies(action: string): unknown[] {
   return bodies;
 }
 
-describe('изменение условий заявки, которой нужно решение (T56)', () => {
+describe('изменение условий заявки, которой нужно решение', () => {
   it('руководитель меняет описание и срочность; уходят только изменения и версия заявки', async () => {
     const request = await declinedOwnService();
     expect(request.status).toBe('action_required');

@@ -1,10 +1,4 @@
-"""settings_kv: служебное состояние платформы (отпечаток секрета подписки MAX)
-
-Revision ID: 0020
-Revises: 0019
-Create Date: 2026-09-30
-
-"""
+"""settings_kv: служебное состояние платформы (отпечаток секрета подписки MAX)"""
 
 from collections.abc import Sequence
 

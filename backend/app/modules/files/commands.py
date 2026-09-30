@@ -35,7 +35,6 @@ MODERATED_CLASSES = (VisibilityClass.PROFILE_PUBLIC, VisibilityClass.REVIEW_PUBL
 
 
 def register_attachment(plan: UploadPlan, blob: StoredBlob) -> Handler:
-    """Файл уже в хранилище; команда лишь фиксирует строку в карантине."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         await upload.ensure_provider_may_change(ctx.session, ctx.actor, message_id=plan.message_id)
@@ -97,7 +96,6 @@ async def open_moderation_case(
     status: str,
     evidence: dict[str, object] | None = None,
 ) -> ModerationCase:
-    """Дело — журнал решения; текущее состояние публикации живёт в attachments.publication_state."""
     case = ModerationCase(
         subject_type=ModerationSubjectType.ATTACHMENT,
         attachment_id=attachment.id,
@@ -117,10 +115,6 @@ MAX_CAPTION = 200
 
 
 def set_portfolio_caption(attachment_id: uuid.UUID, caption: str | None) -> Handler:
-    """Подпись к фото портфолио ведёт администратор исполнителя (ТЗ 14.1.1).
-
-    Новая подпись уходит на модерацию вместе с фото: до решения оператора фото
-    не показывается в публичном профиле."""
     text = (caption or "").strip() or None
     if text is not None and len(text) > MAX_CAPTION:
         raise ValidationFailed(f"Подпись — не длиннее {MAX_CAPTION} символов", field="caption")
@@ -161,7 +155,6 @@ def set_portfolio_caption(attachment_id: uuid.UUID, caption: str | None) -> Hand
 
 
 async def _return_to_moderation(ctx: CommandContext, row: Attachment, caption: str | None) -> None:
-    """Фото с новой подписью снова ждёт решения оператора в том же деле."""
     case = await queries.publication_case(ctx.session, row.id)
     if case is None:
         await open_moderation_case(
@@ -176,10 +169,6 @@ async def _return_to_moderation(ctx: CommandContext, row: Attachment, caption: s
 
 
 def delete_attachment(attachment_id: uuid.UUID) -> Handler:
-    """Удаляет автор и только до отправки заявки (A21: черновик остаётся целым).
-
-    Доказательства проверки удаляются, лишь пока по делу нет решения: после
-    него это основание решения оператора (ТЗ 14.1.2)."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         row = await queries.get_attachment(ctx.session, attachment_id)
@@ -222,7 +211,6 @@ def drop_keys(keys: list[str]) -> Callable[[], Awaitable[None]]:
 
 
 async def purge_row(session: AsyncSession, row: Attachment) -> None:
-    """Снимает перекрёстный FK и удаляет строку вместе с вариантами и делом модерации."""
     await session.execute(
         sql_delete(AttachmentVariant).where(AttachmentVariant.attachment_id == row.id)
     )

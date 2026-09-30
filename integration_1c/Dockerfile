@@ -1,6 +1,3 @@
-# syntax=docker/dockerfile:1
-# Один образ-сборка, две цели: `connector` (коннектор 1С) и `emulator` (эмулятор 1С).
-# Версии закреплены так же, как в backend/Dockerfile.
 ARG PYTHON_IMAGE=python:3.13.15-slim-trixie
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.10.2
 
@@ -18,8 +15,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM base AS runtime
 WORKDIR /app
-# uid/gid закреплены (999 — те же, что система выдавала раньше): на них опираются
-# права уже созданных томов /app/data.
 RUN groupadd --system --gid 999 onec \
     && useradd --system --uid 999 --gid onec --home-dir /app onec \
     && mkdir -p /app/data && chown -R onec:onec /app/data

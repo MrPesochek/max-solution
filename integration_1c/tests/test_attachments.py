@@ -59,8 +59,6 @@ async def test_repeated_events_do_not_duplicate_files(harness) -> None:
 
 
 async def test_file_created_before_crash_is_reused(harness) -> None:
-    """Элемент справочника создан, а запись о выгрузке не сохранилась (падение) —
-    повтор находит элемент по наименованию и дописывает только двоичные данные."""
     harness.subscribe()
     harness.platform.add_request("req_cr")
     harness.platform.add_attachment("att_c", "req_cr")

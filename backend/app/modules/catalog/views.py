@@ -23,8 +23,6 @@ class CityView(BaseModel):
 
 
 class PhotoTemplateSlotView(BaseModel):
-    """Слот фото оборудования для категории (D13)."""
-
     code: str
     label: str
     required: bool
@@ -52,12 +50,6 @@ class LocationView(BaseModel):
 
 
 class EquipmentBindingSummaryView(BaseModel):
-    """Лучшая привязка техники: подтверждённая, затем «мой контакт», затем ожидающая.
-
-    Источник гарантии — со слов сервиса (ТЗ 6.3); `provider_has_crm` — только признак
-    активной подписки исполнителя, без адреса и названия CRM; `contact_phone` — только
-    у «моего контакта»."""
-
     id: str
     status: str
     basis: str
@@ -73,8 +65,6 @@ class EquipmentBindingSummaryView(BaseModel):
 
 
 class EquipmentActiveRequestView(BaseModel):
-    """Последняя незакрытая и неотменённая заявка по технике."""
-
     id: str
     request_number: int
     status: str

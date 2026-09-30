@@ -2,7 +2,7 @@ import json
 import uuid
 from typing import Any
 
-import asyncpg  # type: ignore[import-untyped]
+import asyncpg
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -29,8 +29,6 @@ class ErrorBody(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Единый конверт ошибки всех трёх контуров API (ТЗ 10.3)."""
-
     error: ErrorBody
 
 
@@ -97,7 +95,6 @@ UNAVAILABLE_RETRY_AFTER = 5
 
 
 def error_body(request_id: str, code: str, message: str) -> bytes:
-    """Тот же конверт ошибки для ответов, собираемых на уровне ASGI без Request."""
     body = {"error": {"code": code, "message": message, "request_id": request_id, "details": {}}}
     return json.dumps(body, ensure_ascii=False).encode()
 

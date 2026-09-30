@@ -7,7 +7,7 @@ import { apiCall, demoLoginRaw } from './requestTestHelpers';
 import { server } from '../mocks/server';
 import type { IntegrationSummary } from '../api/types';
 
-describe('интеграция: ключи, подписки, доставки (ТЗ 5.2, 10.1, 11)', () => {
+describe('интеграция: ключи, подписки, доставки', () => {
   it('диспетчер не видит раздел «Интеграция» в навигации и не может открыть его напрямую', async () => {
     renderApp();
     await loginAsDemo('provider_active_dispatcher');
@@ -106,7 +106,7 @@ async function openIntegration(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByRole('heading', { name: 'Интеграция' });
 }
 
-describe('интеграция: сводка и подключение CRM (12d, K-11, K-12)', () => {
+describe('интеграция: сводка и подключение CRM', () => {
   it('сводка — из /integration/summary: события за сутки, ошибки, вебхук', async () => {
     const auth = await demoLoginRaw('provider_active_admin');
     const summary = await apiCall<IntegrationSummary>('/integration/summary', auth);

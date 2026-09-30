@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { loginAsDemo, renderApp, findHomeScreen } from './testUtils';
 import { apiCall, demoLoginRaw } from './requestTestHelpers';
 
-describe('оператор платформы (D14)', () => {
+describe('оператор платформы', () => {
   it('раздел не виден обычному пользователю', async () => {
     renderApp();
     await loginAsDemo('customer_manager');

@@ -33,9 +33,6 @@ _PRIORITY = (
 async def providers_with_active_webhook(
     session: AsyncSession, provider_org_ids: Collection[uuid.UUID]
 ) -> set[uuid.UUID]:
-    """K-05: «у исполнителя есть CRM» — действующая подписка на вебхук с
-    действующим ключом. Ключ без подписки (CRM читает ленту `/events`) сюда не
-    относится: по нему нет достоверного признака доставки (K-16)."""
     if not provider_org_ids:
         return set()
     rows = await session.execute(
@@ -52,8 +49,6 @@ async def providers_with_active_webhook(
 
 @dataclass(frozen=True, slots=True)
 class RequestDeliveryStatus:
-    """`channel="app"` — у исполнителя нет CRM, заявка приходит в бот и мини-приложение."""
-
     state: RequestDeliveryState
     channel: Literal["crm", "app"]
     delivered_at: datetime | None = None
@@ -68,7 +63,6 @@ async def request_delivery_status(
     provider_org_id: uuid.UUID,
     since: datetime,
 ) -> RequestDeliveryStatus:
-    """`since` — начало назначения: события прежних попыток не учитываются."""
     has_client = provider_org_id in await providers_with_active_webhook(session, [provider_org_id])
     if not has_client:
         return RequestDeliveryStatus(state="none", channel="app")
@@ -110,10 +104,6 @@ async def message_delivery_statuses(
     provider_org_id: uuid.UUID,
     message_public_ids: Collection[str],
 ) -> dict[str, RequestDeliveryStatus]:
-    """Доставка событий `message.created` в CRM исполнителя по id сообщений.
-
-    Сообщение без события или исполнитель без действующей подписки в ответ не попадают:
-    строку «Доставлено в CRM» тогда не показывают."""
     if not message_public_ids:
         return {}
     has_client = provider_org_id in await providers_with_active_webhook(session, [provider_org_id])

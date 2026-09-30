@@ -55,7 +55,6 @@ async def open_collection(ctx: BotContext, *, route: str) -> None:
 
 
 async def _find_awaiting_approval(actor: UserActor) -> requests_api.RequestListItemView | None:
-    """Черновик сотрудника, ждущий решения руководителя (S2)."""
     items, _ = await requests_api.list_requests(actor, statuses=["approval_required"], limit=50)
     return items[0] if items else None
 
@@ -105,8 +104,6 @@ async def _resume(ctx: BotContext, claimed: ClaimedAction) -> None:
 
 
 async def resume_draft(ctx: BotContext, request_id: uuid.UUID, route: str) -> None:
-    """Продолжает уже созданный черновик с шага симптомов: точка и оборудование
-    на нём зафиксированы, повторный выбор мог бы завести второй черновик."""
     actor = await ctx.org_actor()
     if actor is None:
         await ctx.reply(texts.NO_ORGANIZATION)
@@ -156,7 +153,6 @@ async def start_fresh(ctx: BotContext, route: str) -> None:
 async def start_with_equipment(
     ctx: BotContext, *, route: str, location_id: str, equipment_id: str
 ) -> None:
-    """Новая заявка из карточки оборудования: точка и оборудование уже известны."""
     await dialogs.enter(
         ctx,
         common.scenario_for(route),

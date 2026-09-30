@@ -25,8 +25,6 @@ WORK_EVENTS = (
 
 @dataclass(slots=True)
 class ReviewTarget:
-    """Назначение, о котором можно оставить отзыв, и режим допуска."""
-
     assignment_id: uuid.UUID
     provider_org_id: uuid.UUID
     mode: Literal["create", "needs_admission"]
@@ -43,9 +41,6 @@ class ReviewEligibility:
 
 
 def classify_assignment(state: str, marks: set[str]) -> Literal["create", "needs_admission"] | None:
-    """`completion_reported`/`closed` — обычный отзыв; работы начаты, но завершение
-    не отмечено — отзыв о плохом результате с допуском модератора; отказ или отзыв
-    назначения до начала работ — звёзд за ремонт нет."""
     if (
         state == AssignmentState.COMPLETED
         or EVENT_COMPLETION_REPORTED in marks
@@ -70,7 +65,6 @@ def _not_allowed(code: str, message: str, *, allow_no_show: bool) -> ReviewEligi
 def assess_review_eligibility(
     request: RepairRequest, target: ReviewTarget | None
 ) -> ReviewEligibility:
-    """Итог для заказчика по заявке и выбранному сервером назначению."""
     if request.accepted_at is None:
         return _not_allowed(
             NO_ASSIGNMENT,

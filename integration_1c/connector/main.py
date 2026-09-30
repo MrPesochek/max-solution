@@ -50,7 +50,6 @@ async def poll_loop(state: AppState) -> None:
 
 
 def create_app(state: AppState | None = None, *, run_loops: bool = True) -> FastAPI:
-    """`state`/`run_loops=False` — для тестов: подменённые платформа и 1С, без фоновых циклов."""
     owns_state = state is None
 
     @asynccontextmanager

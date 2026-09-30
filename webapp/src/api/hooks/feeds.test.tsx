@@ -65,7 +65,7 @@ describe('ленты с курсором', () => {
     expect(ids.at(-1)).toBe('m130');
   });
 
-  it('опрос списка после «Показать ещё» не дублирует строки (регресс quality-webapp-03)', async () => {
+  it('опрос списка после «Показать ещё» не дублирует строки', async () => {
     let version = 0;
     server.use(
       http.get('/app-api/v1/__list', ({ request }) => {

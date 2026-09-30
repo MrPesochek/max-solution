@@ -57,8 +57,6 @@ class OfferInput:
 
 @dataclass(frozen=True, slots=True)
 class PublicCardInput:
-    """Что руководитель явно разрешил раскрыть (ТЗ 14, п. 2)."""
-
     published_description: str | None = None
     district_id: uuid.UUID | None = None
     attachment_ids: tuple[uuid.UUID, ...] = ()
@@ -95,11 +93,6 @@ class CardOrigin:
 
 
 async def card_origin(session: AsyncSession, request: RepairRequest) -> CardOrigin:
-    """I26: карточка и подбор опираются на снимок отправленной заявки.
-
-    Правка оборудования или точки после отправки не меняет, кому и что показано.
-    До первой отправки (предпросмотр черновика) снимка ещё нет — берутся текущие данные.
-    """
     equipment = request.equipment_snapshot
     location = request.location_snapshot
     if not (equipment and location):
@@ -125,7 +118,6 @@ async def build_card_row(
     persist: bool,
     now: datetime | None = None,
 ) -> RequestPublicCard:
-    """Материализует (или пересобирает) публичную карточку из разрешённых полей."""
     origin = await card_origin(session, request)
     existing = await queries.get_public_card(session, request.id)
     district_id = (
@@ -395,7 +387,6 @@ def withdraw_offer(
 
 
 def withdraw_offer_by_id(offer_id: uuid.UUID, *, expected_version: int | None) -> Handler:
-    """`POST /offers/{id}/withdraw`: путь не содержит id заявки (ТЗ 10.2)."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         policy.ensure_command_allowed(ctx.actor, C.WITHDRAW_OFFER)
@@ -490,12 +481,6 @@ def select_offer(
 
 
 def _ensure_selectable(offer: Offer, now: datetime, version: int | None) -> None:
-    """I11/A10: просроченное предложение выбрать нельзя.
-
-    Переход `active → expired` фиксирует sweeper (или предварительный проход по
-    заявке перед командой) — здесь только отказ. Версия — та, что видел
-    руководитель (ТЗ 10.1): старый экран не согласует другие условия.
-    """
     if version is not None and offer.version != version:
         raise Conflict(
             "Условия предложения изменились, откройте актуальную версию",
@@ -522,7 +507,6 @@ def _confirm_seconds(urgency: str) -> int:
 async def confirm_assignment(
     ctx: CommandContext, request: RepairRequest, assignment: Assignment
 ) -> CommandResult:
-    """T22/T23: подтверждение выбранного назначения исполнителем."""
     if assignment.expires_at is not None and assignment.expires_at <= ctx.now:
         raise Conflict("Срок подтверждения назначения истёк", code="ASSIGNMENT_EXPIRED")
     await support.ensure_provider_active(ctx.session, assignment.provider_org_id)
@@ -584,11 +568,6 @@ async def confirm_assignment(
 
 
 def _offer_is_complete(offer: Offer, now: datetime) -> bool:
-    """I3/ТЗ 8.1: сразу `scheduled` только при известных окне, цене и составе услуг.
-
-    Окно, прошедшее за время резерва, согласованным не считается: заявка остаётся
-    в `accepted`, и исполнитель предлагает новое окно.
-    """
     return (
         support.visit_window_problem(now, offer.visit_window_start, offer.visit_window_end) is None
         and offer.visit_amount_minor is not None
@@ -599,7 +578,6 @@ def _offer_is_complete(offer: Offer, now: datetime) -> bool:
 async def decline_reservation(
     ctx: CommandContext, request: RepairRequest, assignment: Assignment, reason: str
 ) -> CommandResult:
-    """T24: исполнитель отказался от выбранного назначения — резерв освобождается."""
     assignment.state = AssignmentState.DECLINED
     assignment.decline_reason = reason
     assignment.responded_at = ctx.now
@@ -615,7 +593,6 @@ async def decline_reservation(
 async def release_reservation(
     ctx: CommandContext, request: RepairRequest, assignment: Assignment, *, expired: bool
 ) -> None:
-    """T25/T26: истёкший резерв освобождается, заявка возвращается к подбору."""
     assignment.state = AssignmentState.EXPIRED if expired else AssignmentState.DECLINED
     assignment.responded_at = ctx.now
     await _release(ctx, request, assignment, command=C.EXPIRE_ASSIGNMENT_CONFIRMATION)
@@ -658,12 +635,6 @@ async def _release(
 
 
 async def release_suspended_provider(ctx: CommandContext, provider_org_id: uuid.UUID) -> int:
-    """ТЗ 6.5.3: блокировка исполнителя закрывает ему новые заявки.
-
-    Действующие отклики снимаются (иначе заказчик видит в сравнении то, что выбрать
-    нельзя), ещё не принятые назначения отзываются с `provider_suspended` — резерв
-    не держит заявку до срока. Принятые работы остаются: их ведёт оператор со
-    сторонами (`queries.supervised_assignments`). Возвращает число изменений."""
     changed = 0
     offers = (
         await ctx.session.execute(
@@ -734,8 +705,6 @@ async def release_suspended_provider(ctx: CommandContext, provider_org_id: uuid.
 
 
 class SupervisedAssignmentView(BaseModel):
-    """Принятая работа заблокированного исполнителя — её ведёт оператор (ТЗ 6.5.3)."""
-
     request_id: str
     request_number: int
     status: str
@@ -746,10 +715,6 @@ class SupervisedAssignmentView(BaseModel):
 
 
 async def supervised_assignments(actor: Actor) -> list[SupervisedAssignmentView]:
-    """Список для оператора: принятые назначения исполнителей без допуска.
-
-    Отдельного флага нет — признак выводится из статуса профиля, поэтому после
-    восстановления исполнителя строка из списка уходит сама."""
     if not isinstance(actor, OperatorActor):
         raise Forbidden("Доступно оператору платформы")
     async with db_session.transaction() as session:
@@ -802,7 +767,6 @@ async def close_search(
     reason: str,
     keep_offer_id: uuid.UUID | None = None,
 ) -> None:
-    """Снимает карточку с публикации и закрывает чужие предложения без раскрытия их условий."""
     card = await queries.get_public_card(ctx.session, request.id)
     if card is not None and card.status == PublicCardStatus.OPEN:
         await files.revoke_public_card_copies(ctx, request.id)
@@ -849,11 +813,6 @@ async def close_search(
 async def resolve_dialog_thread(
     ctx: CommandContext, request: RepairRequest, thread_provider_org_id: uuid.UUID | None
 ) -> uuid.UUID:
-    """S3.5: приватный тред «заказчик — исполнитель» на время подбора.
-
-    Со стороны исполнителя тред — его собственный; заказчик отвечает в явно
-    указанный тред. Приватные поля заявки этот канал не раскрывает.
-    """
     card = await _open_card(ctx.session, request)
     if isinstance(ctx.actor, UserActor) and ctx.actor.side == "customer":
         policy.ensure_customer_request(ctx.actor, request)
@@ -892,7 +851,6 @@ async def _open_card(session: AsyncSession, request: RepairRequest) -> RequestPu
 
 
 def followup_request(parent_request_id: uuid.UUID, *, urgency: str | None) -> Handler:
-    """T58: новая поломка создаёт новую связанную заявку, прежняя остаётся неизменной."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         policy.ensure_command_allowed(ctx.actor, C.CREATE_LINKED_REQUEST)

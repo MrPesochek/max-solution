@@ -75,8 +75,6 @@ MAX_QUOTE_ITEMS = 50
 
 
 def quote_items(data: RepairQuoteInput) -> tuple[list[dict[str, Any]] | None, int | None]:
-    """Позиции сметы и итоговая сумма: без суммы она считается по позициям,
-    а переданная сумма обязана с ними совпасть."""
     if not data.items:
         return None, data.amount_minor
     if len(data.items) > MAX_QUOTE_ITEMS:
@@ -359,12 +357,6 @@ def update_request_details(
     published_description: str | UnsetType | None,
     expected_version: int | None,
 ) -> Handler:
-    """T56: руководитель уточняет условия заявки, которой нужно решение (S5).
-
-    Снимок оборудования и точки отправленной заявки не переписывается (ТЗ 10.1):
-    меняются описание, срочность и публичные поля будущей карточки, каждая
-    правка остаётся в журнале событием `RequestDetailsUpdated`.
-    """
     if urgency is None:
         raise ValidationFailed("Срочность обязательна", field="urgency")
 
@@ -505,7 +497,6 @@ def respond_visit_proposal(
 
 
 def _ensure_current_proposal(proposal: VisitProposal, version: int) -> None:
-    """A13/I23: старая кнопка не одобряет новую версию условий."""
     if proposal.version != version:
         raise Conflict(
             "Условия изменились, откройте актуальную версию",
@@ -928,7 +919,6 @@ def start_work(
 
 
 def _reset_en_route(assignment: Assignment) -> bool:
-    """Снимает отметку выезда; `True`, если она была."""
     if assignment.en_route_at is None:
         return False
     assignment.en_route_at = None
@@ -938,7 +928,6 @@ def _reset_en_route(assignment: Assignment) -> bool:
 def mark_en_route(
     request_id: uuid.UUID, *, assignment_id: uuid.UUID, expected_version: int | None
 ) -> Handler:
-    """Мастер выехал: только отметка времени, статус заявки не меняется (ТЗ 5.3)."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         request, assignment = await support.provider_command(
@@ -1117,7 +1106,6 @@ MAX_AUTHOR_LABEL = 100
 
 
 def _crm_author_label(ctx: CommandContext, label: str | None) -> str | None:
-    """Подпись автора задаёт только CRM; это строка без проверки личности."""
     if label is None:
         return None
     if not isinstance(ctx.actor, IntegrationActor):
@@ -1146,8 +1134,6 @@ def post_message(
     dialog_only: bool = False,
     author_label: str | None = None,
 ) -> Handler:
-    """`dialog_only` — только приватный тред до выбора: после назначения такой
-    ответ не должен молча уйти в общий канал."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         text = support.required_text(body, "Сообщение не может быть пустым", "body")

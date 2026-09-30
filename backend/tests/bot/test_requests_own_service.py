@@ -8,7 +8,6 @@ from tests.bot.conftest import BotHarness, message_callback, message_created
 
 
 async def _drive_to_photos(harness: BotHarness, world: rf.BotWorld) -> None:
-    """Точка → оборудование → симптомы → код ошибки → срочность."""
     uid, cid = int(world.employee_max_id), int(world.employee_max_id)
     await harness.deliver(message_created("/start", user_id=uid, chat_id=cid))
     harness.reset()

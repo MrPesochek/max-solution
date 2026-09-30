@@ -70,7 +70,7 @@ describe('инвалидация по доменам', () => {
     expect(stale(keys.history)).toBe(false);
   });
 
-  it('удаление вложения перечитывает и карточку — там лежат превью (регресс)', () => {
+  it('удаление вложения перечитывает и карточку — там лежат превью', () => {
     const { client, keys, stale } = seeded();
     attachmentsChanged(client, S, 'r1');
     expect(stale(keys.attachments)).toBe(true);
@@ -78,7 +78,7 @@ describe('инвалидация по доменам', () => {
     expect(stale(keys.otherItem)).toBe(false);
   });
 
-  it('ответ на отзыв обновляет публичную ленту по id исполнителя, а не по членству (регресс)', () => {
+  it('ответ на отзыв обновляет публичную ленту по id исполнителя, а не по членству', () => {
     const { client, keys, stale } = seeded();
     reviewsChanged(client, S);
     expect(stale(keys.publicReviews)).toBe(true);
@@ -94,7 +94,7 @@ describe('инвалидация по доменам', () => {
     expect(stale(keys.equipmentItem)).toBe(true);
   });
 
-  it('отклик на бирже обновляет и ленту «Доступные» (регресс), принятие приглашения — привязки', () => {
+  it('отклик на бирже обновляет и ленту «Доступные», принятие приглашения — привязки', () => {
     const { client, keys, stale } = seeded();
     marketplaceChanged(client, S, 'r1');
     expect(stale(keys.marketCard)).toBe(true);

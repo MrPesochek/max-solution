@@ -36,9 +36,7 @@ _REASON_REQUIRED_FOR = frozenset({ModerationStatus.REJECTED.value, ModerationSta
 
 
 async def _reload_if_expired(session: AsyncSession, row: Review | ModerationCase) -> None:
-    """После UPDATE серверные `updated_at` помечены устаревшими: читать их лениво
-    внутри async-сессии нельзя (см. `providers/queries.py: build_profile_view`)."""
-    if inspect(row).expired_attributes:  # type: ignore[attr-defined]
+    if inspect(row).expired_attributes:
         await session.refresh(row)
 
 
@@ -50,9 +48,6 @@ async def decide_review(
     *,
     idem: Idempotency | None,
 ) -> CommandResult:
-    """`pending → published|rejected`, `published → removed` (§2.11 02-state-machine.md)
-    и восстановление по пересмотру `rejected|removed → published`. Рейтинг
-    пересчитывается при каждом решении в той же транзакции."""
     policy.require_operator(actor)
     if decision not in _REVIEW_DECISIONS:
         raise ValidationFailed("Неизвестное решение", field="decision")
@@ -114,8 +109,6 @@ async def mark_suspected_fraud(
     *,
     idem: Idempotency | None,
 ) -> CommandResult:
-    """Флаг расследования не скрывает опубликованный отзыв, но исключает его из
-    числового рейтинга после подтверждения (ТЗ 8.3.4)."""
     policy.require_operator(actor)
     checked_reason = policy.require_reason(reason)
 
@@ -141,8 +134,6 @@ async def mark_suspected_fraud(
 async def decide_moderation_case(
     actor: Actor, case_id: uuid.UUID, decision: str, reason: str | None, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Решение по жалобе или обжалованию. Само по себе не меняет статус отзыва —
-    если жалоба/обжалование обоснованы, оператор отдельно вызывает `decide_review`."""
     operator = policy.require_operator(actor)
     if decision not in _CASE_DECISIONS:
         raise ValidationFailed("Неизвестное решение", field="decision")

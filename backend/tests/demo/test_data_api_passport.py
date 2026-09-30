@@ -52,7 +52,6 @@ def passport() -> Any:
 
 @pytest.fixture
 def link_stand(monkeypatch: pytest.MonkeyPatch) -> Iterator[Settings]:
-    """Стенд проверки: демо-сид и бот, demo-вход выключен."""
     yield from factories.apply_test_settings(
         monkeypatch, APP_ENV="demo", MAX_UPDATES_MODE="webhook", DEMO_LOGIN_ENABLED="false"
     )
@@ -122,7 +121,6 @@ def test_extension_is_loaded_from_either_file(passport: Any) -> None:
 
 
 def test_passport_without_expected_version_is_rejected(passport: Any) -> None:
-    """Прежний дефект паспорта: submit без expected_version получал 422."""
     del _check(passport, "submit-to-own-service")["request"]["body"]["expected_version"]
     problems = checker.validate_passport(passport)
     assert any("expected_version" in p and "submit-to-own-service" in p for p in problems)
@@ -181,8 +179,6 @@ async def test_report_hides_session_and_integration_key(client: AsyncClient, pas
 
 
 async def test_rerun_on_same_stand_passes(client: AsyncClient, passport: Any) -> None:
-    """Повторный прогон: новая заявка и новый ключ, данные прошлого прогона не мешают
-    (Idempotency-Key помечен уникальной для прогона меткой ${runMarker})."""
     await seed.run()
     first = await _run(client, passport)
     second = await _run(client, passport)
@@ -193,7 +189,6 @@ async def test_rerun_on_same_stand_passes(client: AsyncClient, passport: Any) ->
 
 
 async def test_failed_step_skips_dependents(client: AsyncClient, passport: Any) -> None:
-    """Без сида нет демо-пользователей: дальше по цепочке — SKIP, а не ложный PASS."""
     runner = await _run(client, passport)
 
     outcomes = _outcomes(runner)
@@ -206,7 +201,6 @@ async def test_failed_step_skips_dependents(client: AsyncClient, passport: Any) 
 
 
 async def test_crm_suite_with_pre_issued_key(client: AsyncClient, passport: Any) -> None:
-    """Боевой вариант: только API CRM, ключ выдан заранее (INTEGRATION_API_KEY)."""
     await seed.run()
     full = await _run(client, passport)
     assert set(_outcomes(full).values()) == {"PASS"}
@@ -231,7 +225,6 @@ async def test_crm_suite_without_key_fails(client: AsyncClient, passport: Any) -
 async def test_full_suite_passes_with_cli_login_links(
     link_stand: Settings, passport: Any, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Стенд проверки без demo-входа: ссылки ролей выпущены CLI оператора."""
     await seed.run()
     args = ["issue-login-link", "--ttl-minutes", "60"]
     for key in LINK_ROLES:

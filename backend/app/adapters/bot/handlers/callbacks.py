@@ -72,8 +72,6 @@ async def _run_action(ctx: BotContext, code: str) -> None:
 
 
 async def _act_as(ctx: BotContext, membership_id: uuid.UUID) -> bool:
-    """Контекст диалога переключается на членство адресата кнопки — в том числе для
-    сценария, который кнопка начинает. Членство должно быть действующим."""
     public_id = ids.encode("membership", membership_id)
     target = next(
         (m for m in await ctx.memberships() if m.id == public_id and m.status == "active"),
@@ -128,7 +126,6 @@ async def _feed_dialog(ctx: BotContext, payload: keyboards.Payload) -> None:
 
 
 async def _select_organization(ctx: BotContext, public_id: str) -> None:
-    """Кнопка несёт id членства; id организации — от старых кнопок, пока роль в ней одна."""
     active = [m for m in await ctx.memberships() if m.status == "active"]
     matched = [m for m in active if m.id == public_id]
     if not matched:

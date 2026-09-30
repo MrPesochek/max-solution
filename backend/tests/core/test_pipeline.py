@@ -99,7 +99,6 @@ async def test_denied_is_audited():
 
 
 async def test_denied_audit_names_the_operation():
-    """Действие отказа — операция команды, а не имя замыкания обработчика."""
     actor = BareUserActor(await _make_user())
 
     async def handler(ctx: CommandContext) -> CommandResult:
@@ -121,7 +120,6 @@ async def test_denied_audit_names_the_operation():
 
 
 async def test_key_under_pre_0011_scope_is_not_replayed():
-    """Старый формат scope больше не читается: лишнего SELECT на каждую команду нет."""
     from datetime import timedelta
 
     from app.core.actor import UserActor

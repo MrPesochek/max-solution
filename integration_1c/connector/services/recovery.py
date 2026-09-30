@@ -15,7 +15,6 @@ logger = logging.getLogger("onec_connector.recovery")
 
 
 def resume_unprocessed(state: AppState) -> int:
-    """Ставит в обработку события `received`, которые сейчас никто не обрабатывает."""
     scheduled = 0
     for payload in repo.list_unprocessed_events(state.conn):
         try:

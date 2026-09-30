@@ -35,7 +35,6 @@ def scenario_for(route: str) -> str:
 
 
 def page_value(value: str) -> int | None:
-    """`page=N` из кнопки листания; None — это не листание."""
     if not value.startswith("page="):
         return None
     try:

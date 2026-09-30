@@ -34,7 +34,6 @@ def test_http_and_port_allowed_for_listed_host() -> None:
 
 
 def test_listed_host_with_other_port_is_not_listed() -> None:
-    """Порт в списке задан — соседний порт того же хоста проверяется как обычный адрес."""
     with pytest.raises(SsrfValidationError):
         validate_webhook_url("http://onec-connector:5432/", private_hosts=CONNECTOR)
 
@@ -149,7 +148,6 @@ def test_resolve_listed_ips_accepts_private_address(monkeypatch: pytest.MonkeyPa
 def test_resolve_listed_ips_rejects_loopback_and_metadata(
     monkeypatch: pytest.MonkeyPatch, ip: str
 ) -> None:
-    """Имя из списка не должно указывать на сам сервер или на метаданные облака."""
     _fake_dns(monkeypatch, "172.30.57.20", ip)
     with pytest.raises(SsrfValidationError):
         resolve_listed_ips("onec-connector")
@@ -205,8 +203,8 @@ async def test_post_pinned_reaches_local_server_with_original_host(
     assert received["path"] == "/hook"
     assert received["body"] == b'{"x":1}'
     headers = received["headers"]
-    assert headers["Host"].startswith("localhost")  # type: ignore[union-attr]
-    assert headers["X-Test"] == "1"  # type: ignore[index]
+    assert headers["Host"].startswith("localhost")
+    assert headers["X-Test"] == "1"
 
 
 async def test_post_pinned_truncates_large_response(local_server: http.server.HTTPServer) -> None:
@@ -240,7 +238,6 @@ async def test_post_pinned_rejects_unlisted_private_ip(
 async def test_post_pinned_rejects_listed_name_resolving_to_loopback(
     local_server: http.server.HTTPServer,
 ) -> None:
-    """localhost в списке по имени не открывает loopback: адрес нужно указать явно."""
     port = local_server.server_address[1]
     with pytest.raises(SsrfValidationError):
         await post_pinned(
@@ -253,8 +250,6 @@ async def test_post_pinned_rejects_listed_name_resolving_to_loopback(
 
 
 class _SlowHandler(http.server.BaseHTTPRequestHandler):
-    """Отдаёт ответ по байту: каждая операция чтения укладывается в таймаут httpx."""
-
     def do_POST(self) -> None:
         self.rfile.read(int(self.headers.get("Content-Length", 0)))
         self.send_response(200)

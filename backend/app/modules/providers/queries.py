@@ -148,7 +148,6 @@ async def get_own_profile(scope: AccessScope) -> ProviderProfileView:
 
 
 async def get_public_profile(provider_org_id: uuid.UUID) -> ProviderPublicProfileView:
-    """Каталожная карточка допущенного исполнителя; черновики наружу не видны (A02)."""
     async with db_session.transaction() as session:
         profile = (
             await session.execute(
@@ -185,10 +184,6 @@ _INN_LENGTHS = (10, 12)
 
 
 def _search_condition(q: str) -> ColumnElement[bool]:
-    """Поиск сервиса по названию или ИНН (привязка по номеру договора).
-
-    Цифры — только точное совпадение ИНН: подбор по части ИНН перебором не
-    допускается. Иначе — начало любого слова в названии, от трёх символов."""
     value = q.strip()
     digits = normalize_inn(value)
     if digits and digits == value.replace(" ", ""):
@@ -223,7 +218,6 @@ async def count_catalog(
     city_id: uuid.UUID | None = None,
     district_id: uuid.UUID | None = None,
 ) -> int:
-    """Сколько допущенных исполнителей принимают заявки по фильтру каталога."""
     async with db_session.transaction() as session:
         stmt = select(func.count(ProviderProfile.id)).where(
             ProviderProfile.status == ProviderProfileStatus.ACTIVE,
@@ -242,7 +236,6 @@ async def list_catalog(
     cursor: uuid.UUID | None = None,
     limit: int = DEFAULT_LIMIT,
 ) -> tuple[list[ProviderCatalogItemView], uuid.UUID | None]:
-    """Только активные профили: черновые, приостановленные и отклонённые не ищутся."""
     condition = _search_condition(q) if q is not None and q.strip() else None
     async with db_session.transaction() as session:
         stmt = (
@@ -284,7 +277,6 @@ async def list_catalog(
 async def get_provider_summaries(
     session: AsyncSession, provider_org_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, ProviderSummaryView]:
-    """Батч краткой карточки исполнителя для встраивания в чужие представления (offer.provider)."""
     if not provider_org_ids:
         return {}
     rows = list(
@@ -322,7 +314,6 @@ def _apply_filters[T: tuple[Any, ...]](
 
 
 def _territory_condition(district_id: uuid.UUID | None) -> ColumnElement[bool]:
-    """Город целиком подходит всегда; список районов — только при совпадении района (D12)."""
     whole_city = ProviderServiceArea.district_id.is_(None)
     if district_id is None:
         return whole_city
@@ -337,7 +328,6 @@ async def find_matching_providers(
     *,
     session: AsyncSession | None = None,
 ) -> list[uuid.UUID]:
-    """Исполнители, которым можно показать заявку: без рекламного приоритета, порядок устойчив."""
     if session is not None:
         return await _find_matching(session, category_id, city_id, district_id, brand)
     async with db_session.transaction() as own:

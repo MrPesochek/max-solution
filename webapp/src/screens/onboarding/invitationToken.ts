@@ -7,7 +7,6 @@ export function extractInviteToken(raw: string, kind: 'inv' | 'sb'): string {
     const url = new URL(trimmed);
     candidate = url.searchParams.get('startapp') ?? trimmed;
   } catch {
-    // не полный URL — используем введённое значение как есть
   }
   const parsed = parseStartParam(candidate);
   return parsed?.kind === kind ? parsed.value : candidate;

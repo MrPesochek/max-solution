@@ -59,8 +59,6 @@ def test_schema_has_uniform_error_format(schemas: dict[str, dict], filename: str
 
 @pytest.mark.parametrize("filename", CONTOURS)
 def test_every_mutation_documents_409_and_our_422(schemas: dict[str, dict], filename: str) -> None:
-    """Роутеры объявляют стандартные ответы (ТЗ 10.3): 409 у произвольной мутации,
-    а 422 — в нашем формате, а не дефолтном `HTTPValidationError` FastAPI."""
     schema = schemas[filename]
     found_409 = False
     for path_item in schema["paths"].values():
@@ -106,8 +104,6 @@ def test_write_all_produces_files(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("filename", ALL_FILES)
 def test_committed_schema_matches_code(schemas: dict[str, dict], filename: str) -> None:
-    """Закоммиченный `openapi/*.json` — часть поставки (ТЗ 10.1): он обязан совпадать
-    с тем, что строится из кода. Расхождение — перегенерировать `scripts/export_openapi.py`."""
     committed = json.loads((REPO_ROOT / "openapi" / filename).read_text(encoding="utf-8"))
     assert committed == schemas[filename], (
         f"openapi/{filename} устарел: выполните `uv run python scripts/export_openapi.py`"
@@ -123,8 +119,6 @@ def test_integration_api_declares_servers_and_bearer(schemas: dict[str, dict]) -
 
 
 def test_data_api_index_covers_every_contour_path(schemas: dict[str, dict]) -> None:
-    """Карта путей для DATA-API: все пути трёх контуров с префиксом монтирования,
-    служебные пробы, без схем тел — только путь, метод, параметры и коды ответов."""
     index = schemas["data-api.json"]
     paths = index["paths"]
     for filename, prefix in (

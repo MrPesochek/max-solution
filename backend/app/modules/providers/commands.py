@@ -28,8 +28,6 @@ LEGAL_FORMS = ("ooo", "ip", "self_employed")
 
 @dataclass(slots=True)
 class ServiceAreaInput:
-    """Зона обслуживания: город целиком (`district_ids` пуст) либо перечень районов (D12)."""
-
     city_id: str
     district_ids: list[str] = field(default_factory=list)
 
@@ -42,12 +40,6 @@ class BrandRestrictionInput:
 
 @dataclass(slots=True)
 class ProviderProfileUpdateData:
-    """`UNSET` — поле не передано (не меняется); `None` — явная очистка nullable-поля.
-
-    Списочные поля (`category_ids`, `service_areas`, `brand_restrictions`) сохраняют
-    прежнюю семантику: `None` — не менять, `[]` — очистить весь список.
-    """
-
     provider_kind: str | UnsetType | None = UNSET
     legal_form: str | UnsetType | None = UNSET
     inn: str | UnsetType | None = UNSET
@@ -253,7 +245,6 @@ async def _replace_brand_restrictions(
 
 
 async def submit_for_review(actor: Actor, *, idem: Idempotency | None) -> CommandResult:
-    """`draft`/`needs_information` → `pending_review` и очередь проверки оператора."""
     admin = policy.require_provider_admin(actor)
 
     async def handler(ctx: CommandContext) -> CommandResult:
@@ -341,7 +332,6 @@ async def apply_verification_result(
     details_verified: bool,
     representative_verified: bool,
 ) -> None:
-    """Вызывается модулем trust после решения оператора; допуск даёт только он."""
     profile = (
         await ctx.session.execute(
             select(ProviderProfile)
@@ -374,9 +364,6 @@ async def apply_verification_result(
 async def apply_verification_expiry(
     ctx: CommandContext, organization_id: uuid.UUID, *, reason: str
 ) -> None:
-    """Истёк срок проверки реквизитов или представителя (ТЗ 6.5.1 п.6): допуск
-    держится на обеих проверках, поэтому профиль уходит в `needs_information`
-    до повторного решения оператора. Блокировку и отказ не перекрывает."""
     profile = (
         await ctx.session.execute(
             select(ProviderProfile)
@@ -396,7 +383,6 @@ async def apply_verification_expiry(
 async def set_profile_status(
     ctx: CommandContext, organization_id: uuid.UUID, status: str, reason: str
 ) -> dict[str, object]:
-    """Блокировка и восстановление профиля оператором (ТЗ 6.5.3)."""
     profile = (
         await ctx.session.execute(
             select(ProviderProfile)

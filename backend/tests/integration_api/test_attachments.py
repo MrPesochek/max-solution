@@ -39,7 +39,7 @@ async def _api_key(organization_id: str | None = None, *, name: str = "CRM") -> 
             )
             await factories.create_provider_profile(session, org)
         else:
-            org = await session.get(Organization, organization_id)  # type: ignore[arg-type]
+            org = await session.get(Organization, organization_id)
             assert org is not None
         _client, raw = await factories.create_integration_client(
             session, org, name=name, scopes=("requests:read", "requests:write")
@@ -96,7 +96,6 @@ async def test_integration_key_uploads_to_assigned_request(client: AsyncClient) 
 
 
 async def test_upload_idempotency_accounts_for_content(client: AsyncClient) -> None:
-    """Тот же ключ и то же имя, но другой файл — конфликт, а не старый результат."""
     world = await build_world()
     key = await _api_key(world.provider_org_id)
     accepted = await request_helpers.make_accepted(world)

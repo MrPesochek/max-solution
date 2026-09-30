@@ -74,8 +74,9 @@ class _Parser:
 
     def parse(self) -> Predicate:
         predicate = self.parse_or()
-        if self.peek() is not None:
-            raise QueryError(f"Лишний фрагмент $filter: {self.peek().text!r}")  # type: ignore[union-attr]
+        extra = self.peek()
+        if extra is not None:
+            raise QueryError(f"Лишний фрагмент $filter: {extra.text!r}")
         return predicate
 
     def parse_or(self) -> Predicate:

@@ -1,10 +1,4 @@
-"""безопасность: секреты вне idempotency_keys, одноразовый initData, префикс токена из хеша
-
-Revision ID: 0010
-Revises: 0009
-Create Date: 2026-09-25
-
-"""
+"""безопасность: секреты вне idempotency_keys, одноразовый initData, префикс токена из хеша"""
 
 from collections.abc import Sequence
 

@@ -88,7 +88,6 @@ async def run(args: argparse.Namespace) -> None:
 
 
 def login_link_env_name(user_key: str) -> str:
-    """Имя переменной, из которой scripts/data-api-check.py берёт ссылку роли."""
     return f"LOGIN_LINK_{user_key.strip().upper()}"
 
 

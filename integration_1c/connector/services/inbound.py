@@ -103,8 +103,6 @@ async def handle_request(
 
 
 async def _handle_revoked(state: AppState, envelope: WebhookEnvelope) -> None:
-    """Назначение прекращено (ТЗ 14): карточка больше не читается, документ 1С
-    помечается состоянием из профиля и перестаёт отслеживаться."""
     request_id = str(envelope.data.get("request_id") or "")
     link = repo.get_link(state.conn, request_id) if request_id else None
     if link is None:

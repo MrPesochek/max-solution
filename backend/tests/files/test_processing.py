@@ -78,7 +78,6 @@ async def test_pixel_limit_is_rejected(world: World, override: Callable[..., Set
 
 
 async def test_processing_survives_restart(world: World) -> None:
-    """Процесс упал посреди работы: аренда истекает, файл берут снова."""
     attachment_id = await _uploaded(world, helpers.png())
     async with db_session.transaction() as session:
         await session.execute(

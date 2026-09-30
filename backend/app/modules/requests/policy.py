@@ -98,7 +98,6 @@ def actor_role(actor: Actor) -> str:
 
 
 def ensure_command_allowed(actor: Actor, command: C) -> None:
-    """Роль актора против матрицы § 5; для CRM дополнительно проверяется scope."""
     allowed = ROLE_MATRIX.get(command, frozenset())
     if actor_role(actor) not in allowed:
         raise Forbidden("Действие недоступно для вашей роли")
@@ -134,7 +133,6 @@ def acting_membership_id(actor: Actor) -> uuid.UUID | None:
 
 
 def ensure_customer_request(actor: Actor, request: RepairRequest) -> UserActor:
-    """Заявка своей организации и — для сотрудника — своей точки, иначе `NotFound`."""
     user = require_customer(actor)
     if user.organization_id != request.customer_org_id:
         raise NotFound()
@@ -149,7 +147,6 @@ def ensure_location_allowed(actor: UserActor, location_id: uuid.UUID) -> None:
 
 
 def ensure_own_draft(actor: UserActor, request: RepairRequest) -> None:
-    """Сотрудник отменяет только собственный черновик (§ 5, «(а) только draft»)."""
     if actor.is_manager:
         return
     if request.author_membership_id != actor.membership_id:
@@ -167,7 +164,6 @@ def ensure_assignment_belongs(
 
 
 def ensure_assignment_active(assignment: Assignment) -> None:
-    """I2/A12: поздний ответ по неактивному назначению отклоняется как устаревший."""
     if assignment.state == AssignmentState.EXPIRED:
         raise Conflict("Срок подтверждения назначения истёк", code="ASSIGNMENT_EXPIRED")
     if assignment.state not in ACTIVE_ASSIGNMENT_STATES:
@@ -181,7 +177,6 @@ def ensure_assignment_active(assignment: Assignment) -> None:
 def ensure_provider_read(
     actor: Actor, request: RepairRequest, assignment: Assignment | None
 ) -> Assignment:
-    """Чтение заявки исполнителем: только по своему ещё не прекращённому назначению."""
     found = ensure_assignment_belongs(actor, request, assignment)
     if found.state not in READABLE_ASSIGNMENT_STATES:
         raise NotFound()
@@ -189,11 +184,6 @@ def ensure_provider_read(
 
 
 def discloses_contacts(assignment: Assignment) -> bool:
-    """I7: адрес и рабочие контакты — после подтверждённого назначения.
-
-    Исключение — прямое обращение своему сервису: договорной подрядчик знает
-    объект и адрес до ответа, скрывать их бессмысленно (ТЗ 6.3).
-    """
     if assignment.state in (AssignmentState.ACCEPTED, AssignmentState.COMPLETED):
         return True
     return assignment.state == AssignmentState.PENDING and assignment.route == "own_service"

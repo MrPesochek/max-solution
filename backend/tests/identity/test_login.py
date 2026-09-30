@@ -154,7 +154,6 @@ def test_settings_default_to_prod(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def test_repeated_init_data_revokes_previous_session() -> None:
-    """D-S2: перезагрузка Web App входит снова, но прежняя сессия этой строки гаснет."""
     raw = factories.sign_init_data(791)
     first = await identity.login_with_init_data(raw)
     second = await identity.login_with_init_data(raw)

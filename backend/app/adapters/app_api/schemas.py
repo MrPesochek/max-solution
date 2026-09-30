@@ -156,8 +156,6 @@ class WebhookSubscriptionCreateBody(BaseModel):
 
 
 class ServiceAreaBody(BaseModel):
-    """Зона: город целиком (`district_ids` пуст) либо перечень его районов (D12)."""
-
     city_id: str
     district_ids: list[str] = Field(default_factory=list)
 
@@ -218,18 +216,12 @@ class BindingRevokeBody(BaseModel):
 
 
 class BindingInvitationItemBody(BaseModel):
-    """Позиция оборудования по договору: у сервиса нет идентификатора карточки
-    заказчика, только описание, модель и серийный номер."""
-
     description: Annotated[str, Field(min_length=1, max_length=500)]
     serial_number: Annotated[str | None, Field(default=None, max_length=500)]
     model: Annotated[str | None, Field(default=None, max_length=500)]
 
 
 class BindingInvitationCreateBody(BaseModel):
-    """ТЗ 6.6.2 п.2: приглашение несёт перечень оборудования по договору; при
-    принятии руководитель заказчика сопоставляет каждую позицию со своей карточкой."""
-
     customer_inn: Annotated[str, Field(min_length=1, max_length=20)]
     contract_number: Annotated[str, Field(min_length=1, max_length=200)]
     basis: str = "service_contract"
@@ -321,11 +313,6 @@ class RequestRevokeAssignmentBody(BaseModel):
 
 
 class RequestPublicCardPreviewBody(BaseModel):
-    """Экран раскрытия (ТЗ 14, п. 2): предпросмотр и публикация используют один набор полей.
-
-    Предпросмотр заявку не меняет, поэтому версия для него необязательна.
-    """
-
     published_description: Annotated[str, Field(max_length=4000)] | None = None
     district_id: str | None = None
     attachment_ids: list[str] = Field(default_factory=list)
@@ -338,12 +325,6 @@ class RequestPublicCardBody(RequestPublicCardPreviewBody):
 
 
 class RequestUpdateDetailsBody(BaseModel):
-    """T56: уточнение условий заявки в `action_required`; непереданное поле не меняется.
-
-    Снимок оборудования и точки отправленной заявки не переписывается. Район и
-    описание карточки меняются, только если заявка уже публиковалась.
-    """
-
     symptom_description: Annotated[str, Field(max_length=4000)] | None = None
     urgency: Annotated[Urgency, Field(description="Срочность заявки")] | None = None
     district_id: str | None = None
@@ -352,16 +333,12 @@ class RequestUpdateDetailsBody(BaseModel):
 
 
 class RequestSelectOfferBody(BaseModel):
-    """ID и версия предложения, которое видел руководитель (ТЗ 10.1)."""
-
     offer_id: str
     offer_version: int
     expected_version: int
 
 
 class RequestVisitDecisionBody(BaseModel):
-    """Только id и версия предложения — сумма и время берутся с сервера (ТЗ 10.4)."""
-
     proposal_id: str
     proposal_version: int
     comment: Annotated[str, Field(max_length=2000)] | None = None
@@ -369,8 +346,6 @@ class RequestVisitDecisionBody(BaseModel):
 
 
 class RequestQuoteDecisionBody(BaseModel):
-    """Только id и версия сметы — сумма берётся с сервера (ТЗ 10.4)."""
-
     quote_id: str
     quote_version: int
     comment: Annotated[str, Field(max_length=2000)] | None = None
@@ -410,8 +385,6 @@ class RequestMessageBody(BaseModel):
 
 
 class DialogMessageBody(BaseModel):
-    """Сообщение приватного треда до выбора исполнителя (S3.5)."""
-
     body: Annotated[str, Field(min_length=1, max_length=4000)]
     expected_version: int | None = None
 

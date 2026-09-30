@@ -127,7 +127,6 @@ async def test_contact_binding_over_http(client: AsyncClient) -> None:
 
 
 async def test_foreign_objects_are_not_found_over_http(client: AsyncClient) -> None:
-    """A19/A03: чужие привязки, приглашения и оборудование недоступны по известному ID."""
     provider = await make_provider("h-iso", status="active", accepting=True, verified=True)
     mine = await make_customer("h-iso-mine", verified=True)
     other = await make_customer("h-iso-other", inn=OTHER_INN, verified=True)
@@ -254,7 +253,6 @@ async def test_unknown_public_id_is_not_found(client: AsyncClient) -> None:
 
 
 async def test_invitation_items_and_matches_over_http(client: AsyncClient) -> None:
-    """ТЗ 6.6.2: перечень оборудования в приглашении и сопоставление при принятии."""
     provider = await make_provider("h-items", status="active", accepting=True, verified=True)
     customer = await make_customer("h-items-c", verified=True)
     provider_headers = auth(await session_token(provider.admin), org_id(provider.admin))

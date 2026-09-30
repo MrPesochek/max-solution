@@ -29,8 +29,6 @@ class LocationCreateData:
 
 @dataclass(slots=True)
 class LocationUpdateData:
-    """`UNSET` — поле не передано (не меняется); `None` — явная очистка nullable-поля."""
-
     name: str | UnsetType | None = UNSET
     city_id: str | UnsetType | None = UNSET
     district_id: str | UnsetType | None = UNSET
@@ -52,8 +50,6 @@ class EquipmentCreateData:
 
 @dataclass(slots=True)
 class EquipmentUpdateData:
-    """`UNSET` — поле не передано (не меняется); `None` — явная очистка nullable-поля."""
-
     location_id: str | UnsetType | None = UNSET
     equipment_category_id: str | UnsetType | None = UNSET
     brand: str | UnsetType | None = UNSET

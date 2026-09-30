@@ -153,7 +153,6 @@ export function RepairQuoteApprovalScreen() {
       },
     );
     if (done) navigate(`/requests/${id}`, { replace: true });
-    // Условия изменились — назад к актуальной версии, причина отклонения остаётся в форме.
     else if (conflict) setRejecting(false);
   };
 
@@ -219,7 +218,6 @@ export function RepairQuoteApprovalScreen() {
               aria-label={warranty || !known ? undefined : a.approveWithPrice(price)}
               onClick={() => void decide(true)}
             >
-              {/* В два столбца цена не помещается: она — в итоге выше и в подписи для диктора. */}
               {warranty || !known ? a.approveRepair : a.approveButton}
             </ActionButton>
           </BottomActions>

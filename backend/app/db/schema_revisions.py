@@ -15,7 +15,7 @@ SCHEMA_BEHIND_CODE = "схема БД старше кода, выполните 
 
 
 class SchemaError(RuntimeError):
-    """Схема БД не позволяет запускать этот код."""
+    pass
 
 
 def alembic_config(database_url: str | None = None) -> Config:
@@ -27,7 +27,6 @@ def alembic_config(database_url: str | None = None) -> Config:
 
 
 def head_revisions(config: Config | None = None) -> set[str]:
-    """Головы цепочки миграций, известной этому коду."""
     return set(ScriptDirectory.from_config(config or alembic_config()).get_heads())
 
 
@@ -38,11 +37,6 @@ def _journal_exists(connection: Connection) -> bool:
 def record_step(
     ctx: MigrationContext, step: MigrationInfo, heads: set[str], run_args: dict[str, Any]
 ) -> None:
-    """Хук `on_version_apply`: ведёт журнал в той же транзакции, что и сама миграция.
-
-    До миграции 0024 таблицы нет (и после её отката тоже) — тогда шаг не журналируется;
-    0024 заполняет журнал сама. `stamp` и offline-режим (`--sql`) журнал не трогают.
-    """
     if step.is_stamp or ctx.as_sql or ctx.connection is None:
         return
     connection = ctx.connection
@@ -71,7 +65,6 @@ async def applied_revisions(connection: AsyncConnection) -> set[str]:
 
 
 async def _journal(connection: AsyncConnection) -> set[str] | None:
-    """Содержимое журнала; None — таблицы ещё нет (БД старше миграции 0024)."""
     exists = (await connection.execute(text("SELECT to_regclass('schema_revisions')"))).scalar()
     if exists is None:
         return None
@@ -80,7 +73,6 @@ async def _journal(connection: AsyncConnection) -> set[str] | None:
 
 
 async def heads_applied(connection: AsyncConnection, heads: set[str]) -> bool:
-    """Все головы кода применены к БД: схема на голове кода или новее."""
     if await applied_revisions(connection) == heads:
         return True
     journal = await _journal(connection)
@@ -88,11 +80,6 @@ async def heads_applied(connection: AsyncConnection, heads: set[str]) -> bool:
 
 
 async def check_schema(engine: AsyncEngine, heads: set[str] | None = None) -> None:
-    """Проверка готовности: схема не старше кода.
-
-    SchemaError с прежним текстом — журнала нет (БД старше миграции 0024 или пуста);
-    SCHEMA_BEHIND_CODE — журнал есть, но голова кода в него не попала.
-    """
     heads = heads if heads is not None else head_revisions()
     async with engine.connect() as connection:
         applied = await applied_revisions(connection)

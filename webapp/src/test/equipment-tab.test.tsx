@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import * as db from '../mocks/db';
 import { loginAsDemo, renderApp, findHomeScreen } from './testUtils';
 
-describe('вкладка «Техника» (15c)', () => {
+describe('вкладка «Техника»', () => {
   it('строка техники — статус обслуживания, раскрытие «Новая заявка / Карточка»; чипы фильтруют по точке', async () => {
     const user = userEvent.setup();
     renderApp();
@@ -51,7 +51,7 @@ describe('вкладка «Техника» (15c)', () => {
   });
 });
 
-describe('карточка техники (13b) и гарантия', () => {
+describe('карточка техники и гарантия', () => {
   it('«История» — заявки этой техники, «Данные» — модель, заводской номер и шильдик', async () => {
     const user = userEvent.setup();
     const item = db.listEquipment(db.demoSeed.demoCustomer.id).items.find((e) => e.brand === 'Bosch')!;

@@ -64,8 +64,6 @@ _SERVICE_FIELDS = ("ref_key", "number", "data_version", "posted", "deletion_mark
 
 
 def content_fingerprint(view: DocView) -> str:
-    """Отпечаток того, что правит пользователь 1С (состояние, окно, работы, реквизиты).
-    Перепроведение без правок и записи самого коннектора его не меняют."""
     data = asdict(view)
     for name in _SERVICE_FIELDS:
         data.pop(name)
@@ -74,8 +72,6 @@ def content_fingerprint(view: DocView) -> str:
 
 @dataclass(frozen=True)
 class PlannedAction:
-    """`path` — окончание маршрута `/requests/{id}/<path>`; `kind` — имя в журнале."""
-
     kind: str
     path: str
     fingerprint: str
@@ -160,7 +156,6 @@ def _latest(items: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 
 def waiting_topics(card: dict[str, Any]) -> list[str]:
-    """События карточки, ответ на которые ждёт правки документа в 1С."""
     topics: list[str] = []
     status = card.get("status")
     cancellation = card.get("cancellation") or {}
@@ -186,12 +181,6 @@ def plan_actions(
     handled: HandledCheck,
     changed_since: ChangedSince | None = None,
 ) -> list[PlannedAction]:
-    """Действия в порядке выполнения. Вызывающий выполняет первое, перечитывает
-    карточку и вызывает функцию снова: следующий шаг зависит от нового статуса.
-
-    `changed_since` вызывается для каждого ожидающего события сразу, при первой встрече:
-    так фиксируется содержание документа до ответа пользователя. Без него (тесты чистой
-    функции) документ считается изменённым."""
     assignment = card.get("assignment") or {}
     assignment_id = assignment.get("id")
     assignment_state = assignment.get("state")
@@ -284,9 +273,6 @@ def _plan_cancellation(
     version: int,
     armed: dict[str, bool],
 ) -> tuple[str, dict[str, Any]] | None:
-    """«Отменен» — согласиться с отменой, «Отмена не согласована» — оспорить. Состояние
-    «Отменен», которое коннектор пишет сам, приходит уже после отмены на платформе
-    (назначение прекращено) и командой не считается."""
     cancellation = card.get("cancellation") or {}
     cancellation_id = cancellation.get("id")
     if cancellation.get("status") != "pending" or not cancellation_id:

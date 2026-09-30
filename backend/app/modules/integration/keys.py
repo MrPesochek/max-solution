@@ -52,11 +52,7 @@ def issue_api_key(env: str | None = None) -> IssuedKey:
 
 def parse_api_key(raw: str) -> ParsedKey | None:
     jury_parts = raw.strip().split("_", 1)
-    if (
-        len(jury_parts) == 2
-        and jury_parts[0] == JURY_KEY_SCHEME
-        and jury_parts[1].isalnum()
-    ):
+    if len(jury_parts) == 2 and jury_parts[0] == JURY_KEY_SCHEME and jury_parts[1].isalnum():
         return ParsedKey(env="*", prefix=jury_parts[1])
 
     parts = raw.strip().split("_", 3)
@@ -72,16 +68,10 @@ _COMPATIBLE_ENVS = frozenset({"local", "demo"})
 
 
 def env_matches(key_env: str, app_env: str) -> bool:
-    """Ключ выпущен для этого окружения: demo-ключ не открывает рабочий контур."""
-    return (
-        key_env == "*"
-        or key_env == app_env
-        or {key_env, app_env} <= _COMPATIBLE_ENVS
-    )
+    return key_env == "*" or key_env == app_env or {key_env, app_env} <= _COMPATIBLE_ENVS
 
 
 async def authenticate_api_key(raw: str) -> IntegrationActor:
-    """Ключ → актор интеграции. Причина отказа наружу не раскрывается (ТЗ 10.3)."""
     parsed = parse_api_key(raw)
     if parsed is None:
         raise Unauthenticated("Неверный ключ интеграции", code="API_KEY_INVALID")

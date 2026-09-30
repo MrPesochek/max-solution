@@ -28,7 +28,6 @@ def _validate_alphabet(payload: str) -> None:
 
 
 def build_start_param(kind: str, value: str) -> str:
-    """Собирает стартовый параметр вида `<kind>_<value>`."""
     if not kind or not value:
         raise DeeplinkError("empty_part")
     for part in (kind, value):
@@ -37,7 +36,6 @@ def build_start_param(kind: str, value: str) -> str:
 
 
 def parse_start_param(param: str) -> tuple[str, str]:
-    """Разбирает `<kind>_<value>` обратно. Берёт первый `_` как разделитель."""
     _validate_alphabet(param)
     kind, sep, value = param.partition("_")
     if not sep or not kind or not value:
@@ -66,11 +64,6 @@ SCREEN_TARGET_KIND = "scr"
 
 
 def webapp_target(screen: str, object_public_id: str | None = None) -> str | None:
-    """Параметр перехода Web App: `req_<id>`, `mkt_<id>` или `scr_<экран>`.
-
-    Он задаёт только экран и объект и прав не даёт (ТЗ 5.4). Тот же формат несут
-    `startapp` мини-приложения и одноразовая ссылка входа.
-    """
     try:
         kind = _OBJECT_TARGET_KINDS.get(screen)
         if kind is not None and object_public_id is not None:

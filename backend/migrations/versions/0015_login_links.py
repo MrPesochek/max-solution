@@ -1,10 +1,4 @@
-"""одноразовые ссылки входа в Web App из бота
-
-Revision ID: 0015
-Revises: 0014
-Create Date: 2026-09-28
-
-"""
+"""одноразовые ссылки входа в Web App из бота"""
 
 from collections.abc import Sequence
 

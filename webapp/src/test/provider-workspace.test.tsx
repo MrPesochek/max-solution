@@ -374,7 +374,7 @@ async function scheduledRequest(): Promise<{ id: string; assignmentId: string }>
   return { id: draft.id, assignmentId };
 }
 
-describe('ход работ исполнителя (15e): отметка выезда', () => {
+describe('ход работ исполнителя: отметка выезда', () => {
   it('«Я выехал» ставит отметку, шаг «Выехал» пройден, дальше — «Я на месте»', async () => {
     const { id } = await scheduledRequest();
     const user = userEvent.setup();

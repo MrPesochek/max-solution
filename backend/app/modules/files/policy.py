@@ -30,8 +30,6 @@ SENSITIVE_CLASSES = frozenset({VisibilityClass.REQUEST_SENSITIVE})
 
 @dataclass(frozen=True, slots=True)
 class AttachmentAccess:
-    """Снимок состояния владельца, от которого зависит доступ."""
-
     attachment_id: uuid.UUID
     visibility_class: str
     processing_state: str
@@ -59,7 +57,6 @@ def is_ready(access: AttachmentAccess) -> bool:
 
 
 def is_uploader(actor: Actor, access: AttachmentAccess) -> bool:
-    """Автор — в той же организации, от имени которой загружал: членство привязано к ней."""
     if access.is_copy:
         return False
     if isinstance(actor, UserActor):
@@ -73,7 +70,6 @@ def is_uploader(actor: Actor, access: AttachmentAccess) -> bool:
 
 
 def can_read(actor: Actor, access: AttachmentAccess, *, marketplace_visible: bool = False) -> bool:
-    """Правило видимости по классу. Готовность файла проверяется отдельно."""
     match access.visibility_class:
         case VisibilityClass.REQUEST_PRIVATE:
             if access.owner_kind == AttachmentOwnerKind.EQUIPMENT:
@@ -99,7 +95,6 @@ def _request_private(actor: Actor, access: AttachmentAccess) -> bool:
 
 
 def _equipment_private(actor: Actor, access: AttachmentAccess) -> bool:
-    """Фото карточки оборудования: точка заказчика либо подтверждённая привязка исполнителя."""
     if _customer_participant(actor, access):
         return True
     if isinstance(actor, IntegrationActor):
@@ -152,8 +147,6 @@ def _moderated_public(actor: Actor, access: AttachmentAccess) -> bool:
 
 
 def _owns_moderated(actor: Actor, access: AttachmentAccess) -> bool:
-    """До публикации своё изображение видит только его сторона: у организации в двух
-    ролях портфолио исполнителя не видно её стороне заказчика, и наоборот."""
     if not isinstance(actor, UserActor):
         return False
     if (
@@ -192,7 +185,6 @@ def _customer_participant(actor: Actor, access: AttachmentAccess) -> bool:
 
 
 def _provider_reader(actor: Actor, access: AttachmentAccess, scope: str) -> bool:
-    """Исполнитель читает только по собственному назначению: оно загружено для его организации."""
     if access.assignment_state is None:
         return False
     if isinstance(actor, IntegrationActor):

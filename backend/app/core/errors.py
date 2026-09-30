@@ -27,8 +27,6 @@ class Forbidden(DomainError):
 
 
 class NotFound(DomainError):
-    """Чужой объект неотличим от несуществующего."""
-
     status = 404
     code = "NOT_FOUND"
     default_message = "Объект не найден"

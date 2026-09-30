@@ -92,7 +92,7 @@ async def test_customer_replies_to_provider_message_via_notification_button(
         db_session, "message.created", payload, recipient_user_id=manager.id, now=utcnow()
     )
     await db_session.commit()
-    reply_payload = message.attachments[0].payload.buttons[0][0].payload  # type: ignore[union-attr]
+    reply_payload = message.attachments[0].payload.buttons[0][0].payload
 
     manager_uid = int(world.manager_max_id)
     await harness.deliver(message_created("/start", user_id=manager_uid, chat_id=manager_uid))

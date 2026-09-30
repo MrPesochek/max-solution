@@ -115,11 +115,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Reopen Verification
-         * @description ТЗ 6.5.3: смена реквизитов или представителя допущенного исполнителя —
-         *     повторная проверка; при компрометации ключи и сессии отзываются.
-         */
+        /** Reopen Verification */
         post: operations["reopen_verification_operator_api_v1_provider_profiles__organization_id__reopen_verification_post"];
         delete?: never;
         options?: never;
@@ -134,10 +130,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * List Supervised Assignments
-         * @description Принятые работы заблокированных исполнителей — под контролем оператора (ТЗ 6.5.3).
-         */
+        /** List Supervised Assignments */
         get: operations["list_supervised_assignments_operator_api_v1_supervised_assignments_get"];
         put?: never;
         post?: never;
@@ -154,10 +147,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * List Deliveries
-         * @description Журнал доставок любой организации: техническая поддержка (ТЗ 3, 11.7).
-         */
+        /** List Deliveries */
         get: operations["list_deliveries_operator_api_v1_deliveries_get"];
         put?: never;
         post?: never;
@@ -478,10 +468,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /**
-         * AttachmentView
-         * @description Состояние и размеры вложения; ключ хранилища и имя файла пользователя не отдаются.
-         */
+        /** AttachmentView */
         AttachmentView: {
             /** Id */
             id: string;
@@ -798,13 +785,7 @@ export interface components {
             /** Role */
             role: string;
         };
-        /**
-         * ProfileAppealView
-         * @description Последнее обжалование отказа/приостановки профиля (ТЗ 6.5.1).
-         *
-         *     `status` — `pending` на рассмотрении, `resolved` — оператор принял решение;
-         *     `decision` — решение по делу, `decision_reason` — его основание.
-         */
+        /** ProfileAppealView */
         ProfileAppealView: {
             /** Id */
             id: string;
@@ -843,10 +824,7 @@ export interface components {
             /** Name */
             name: string;
         };
-        /**
-         * ProviderProfileView
-         * @description Собственный профиль исполнителя: то, что видит его администратор.
-         */
+        /** ProviderProfileView */
         ProviderProfileView: {
             /** Id */
             id: string;
@@ -1009,10 +987,7 @@ export interface components {
             /** Reason */
             reason: string;
         };
-        /**
-         * ServiceBindingView
-         * @description Карточка привязки для заказчика: статус, основание и источник гарантии.
-         */
+        /** ServiceBindingView */
         ServiceBindingView: {
             /** Id */
             id: string;
@@ -1063,10 +1038,7 @@ export interface components {
              */
             guarantor_stated_by_provider: boolean;
         };
-        /**
-         * SupervisedAssignmentView
-         * @description Принятая работа заблокированного исполнителя — её ведёт оператор (ТЗ 6.5.3).
-         */
+        /** SupervisedAssignmentView */
         SupervisedAssignmentView: {
             /** Request Id */
             request_id: string;
@@ -1083,10 +1055,7 @@ export interface components {
             /** Accepted At */
             accepted_at?: string | null;
         };
-        /**
-         * VerificationBadgeView
-         * @description Один признак проверки: что подтверждено, чем и когда.
-         */
+        /** VerificationBadgeView */
         VerificationBadgeView: {
             /** Kind */
             kind: string;
@@ -1193,10 +1162,7 @@ export interface components {
              */
             is_demo: boolean;
         };
-        /**
-         * VerificationInformationSubmittedView
-         * @description Ответ на донесение сведений: дела, к которым добавлена заметка.
-         */
+        /** VerificationInformationSubmittedView */
         VerificationInformationSubmittedView: {
             /** Items */
             items: components["schemas"]["VerificationCaseView"][];
@@ -1361,7 +1327,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1466,7 +1432,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1576,7 +1542,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1683,7 +1649,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1793,7 +1759,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -1903,7 +1869,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2013,7 +1979,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2116,7 +2082,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2223,7 +2189,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2329,7 +2295,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2436,7 +2402,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2544,7 +2510,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2654,7 +2620,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2761,7 +2727,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2871,7 +2837,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -2979,7 +2945,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3087,7 +3053,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3194,7 +3160,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3300,7 +3266,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3410,7 +3376,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3517,7 +3483,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3624,7 +3590,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3729,7 +3695,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3839,7 +3805,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -3949,7 +3915,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -4059,7 +4025,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -4164,7 +4130,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;
@@ -4274,7 +4240,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Ошибка (формат один для всех методов — ТЗ 10.3). */
+            /** @description Ошибка. Формат одинаковый для всех методов. */
             default: {
                 headers: {
                     [name: string]: unknown;

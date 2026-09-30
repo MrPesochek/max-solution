@@ -100,7 +100,6 @@ async def _more(ctx: BotContext, claimed: ClaimedAction) -> None:
 
 
 async def _confirm_deadline(actor: Actor, request_id: uuid.UUID) -> str | None:
-    """«Подтвердите до …» для назначения, выбранного на бирже (срок из ТЗ, раздел E)."""
     view = await requests_api.get_request(actor, request_id)
     if not isinstance(view, requests_api.RequestProviderView) or view.assignment.expires_at is None:
         return None

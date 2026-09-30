@@ -24,9 +24,6 @@ class _Model(BaseModel):
 
 
 class FieldRef(_Model):
-    """Реквизит документа (`attribute`) либо дополнительный реквизит БСП (`additional`,
-    по наименованию) — второй заводится пользователем 1С без изменения конфигурации."""
-
     attribute: str | None = None
     additional: str | None = None
 
@@ -38,8 +35,6 @@ class FieldRef(_Model):
 
 
 class FieldMapping(_Model):
-    """Поле, которое коннектор пишет в 1С из карточки заявки (шаблон `str.format`)."""
-
     target: FieldRef
     template: str
     when: Literal["create", "always"] = "always"
@@ -92,9 +87,6 @@ class WorksMapping(_Model):
 
 
 class VisitAmount(_Model):
-    """Сумма выезда: реквизит документа или строки табличной части работ с указанной
-    номенклатурой (в типовых конфигурациях отдельного реквизита для выезда нет)."""
-
     attribute: str | None = None
     table_items: list[str] = Field(default_factory=list)
 
@@ -131,19 +123,12 @@ class MessagesMapping(_Model):
 
 
 class CancellationMapping(_Model):
-    """Ответ на запрос отмены: этап `cancelled` — согласиться, `cancellation_declined` —
-    оспорить; причина несогласия обязательна, без неё уходит `decline_reason.default`."""
-
     decline_reason: TextSource = TextSource(
         source=FieldRef(attribute="Комментарий"), default="Исполнитель не согласен с отменой"
     )
 
 
 class AttachmentsMapping(_Model):
-    """`attached_files` — присоединённые файлы БСП: элемент справочника
-    `<Документ>ПрисоединенныеФайлы` + двоичные данные в регистре сведений;
-    `none` — фото остаются на платформе, в 1С пишется только их перечень."""
-
     mode: Literal["attached_files", "none"] = "none"
     catalog: str | None = None
     owner_field: str = "ВладелецФайла_Key"

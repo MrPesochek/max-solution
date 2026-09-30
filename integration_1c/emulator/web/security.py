@@ -51,5 +51,4 @@ def check_password(configured: str, provided: str) -> bool:
 
 
 def csrf_token(secret: str, nonce: str) -> str:
-    """Токен формы для double-submit: HMAC от случайного значения из cookie."""
     return hmac.new(secret.encode(), f"csrf.{nonce}".encode(), hashlib.sha256).hexdigest()

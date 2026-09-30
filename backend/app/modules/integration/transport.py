@@ -51,7 +51,7 @@ def build_headers(outgoing: OutgoingWebhook) -> dict[str, str]:
 async def deliver(
     outgoing: OutgoingWebhook,
     *,
-    timeout: float,  # noqa: ASYNC109 — таймаут HTTP передаётся транспорту, не asyncio
+    timeout: float,
     private_hosts: PrivateHosts = (),
 ) -> AttemptResult:
     try:
@@ -78,6 +78,5 @@ async def deliver(
 
 
 def retry_delay(attempt: int, *, base: float, maximum: float) -> float:
-    """Экспоненциальный бэкофф с разбросом; `attempt` — номер уже сделанной попытки."""
     span: float = min(base * float(2 ** max(0, attempt - 1)), maximum)
-    return span / 2 + random.random() * (span / 2)  # noqa: S311 — джиттер, не криптография
+    return span / 2 + random.random() * (span / 2)

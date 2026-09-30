@@ -46,7 +46,6 @@ def webhook_url(settings: Settings) -> str:
 
 
 def build_runtime(settings: Settings | None = None) -> BotRuntime | None:
-    """Готовит бота по настройкам. None — режим `off` или не задан токен."""
     settings = settings or get_settings()
     if settings.max_updates_mode == "off":
         return None
@@ -85,7 +84,7 @@ def build_runtime(settings: Settings | None = None) -> BotRuntime | None:
 
 
 class SubscriptionError(RuntimeError):
-    """MAX ответил на подписку или отписку неуспехом."""
+    pass
 
 
 def _check_result(result: object, operation: str) -> None:
@@ -95,7 +94,6 @@ def _check_result(result: object, operation: str) -> None:
 
 
 def subscription_runtime() -> BotRuntime | None:
-    """Runtime для проверки подписки: приложения (api) или собранный по настройкам (worker)."""
     global _subscription_runtime
     runtime = get_runtime()
     if runtime is not None:
@@ -106,13 +104,6 @@ def subscription_runtime() -> BotRuntime | None:
 
 
 async def ensure_subscription(runtime: BotRuntime | None = None, *, force: bool = False) -> bool:
-    """Идемпотентно подписывает бота на наш webhook. True — подписка создана заново.
-
-    Совпадения адреса мало: MAX не показывает секрет подписки, поэтому сверяется и
-    отпечаток секрета, с которым мы подписались (`webhook_secret`). Не совпал или
-    его нет — переподписка на тот же адрес с текущим секретом. `force` —
-    переподписаться в любом случае (CLI).
-    """
     runtime = runtime or subscription_runtime()
     if runtime is None or runtime.mode != "webhook":
         return False
@@ -153,11 +144,6 @@ async def ensure_subscription(runtime: BotRuntime | None = None, *, force: bool 
 
 
 async def start(runtime: BotRuntime | None = None) -> None:
-    """Старт приложения: подготовка диспетчера и восстановление подписки.
-
-    Недоступность MAX на старте не мешает приложению подняться: обработчики
-    остаются рабочими, подписку позже восстановит worker.
-    """
     runtime = runtime or get_runtime()
     if runtime is None:
         return

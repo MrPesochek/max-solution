@@ -1,5 +1,3 @@
-"""Создание демо-данных. --refresh обновляет заявки, --reset удаляет демо-данные."""
-
 from __future__ import annotations
 
 import argparse
@@ -107,7 +105,7 @@ _EXTERNAL_KEYS = ("ext_provider_1", "ext_provider_2", "ext_provider_3", "ext_pro
 
 
 class DemoSeedNotAllowed(RuntimeError):
-    """Сид/сброс демо-данных запрошен вне local/demo окружения."""
+    pass
 
 
 def _ensure_environment_allowed() -> None:
@@ -155,11 +153,10 @@ async def _load_reference(session: AsyncSession) -> _Reference:
 async def _ensure[M](
     session: AsyncSession, model: type[M], id_: uuid.UUID, /, **fields: Any
 ) -> tuple[M, bool]:
-    """Строка с детерминированным id: находит существующую либо создаёт новую."""
     obj = await session.get(model, id_)
     if obj is not None:
         return obj, False
-    created = model(id=id_, **fields)  # type: ignore[call-arg]
+    created = model(id=id_, **fields)
     session.add(created)
     await session.flush()
     return created, True
@@ -249,8 +246,6 @@ BOUND_EQUIPMENT_KEYS = tuple(key for key, *_, bound in _CUSTOMER_EQUIPMENT if bo
 
 
 async def _ensure_equipment(session: AsyncSession, id_: uuid.UUID, **fields: Any) -> uuid.UUID:
-    """Как `_ensure`, но подтягивает бренд, модель и заметку к текущему плану —
-    стенды, поднятые раньше, получают те же названия, что и новые."""
     row, created = await _ensure(session, Equipment, id_, **fields)
     if not created:
         for name in ("brand", "model", "notes"):
@@ -616,7 +611,6 @@ async def _seed_external_provider(
     district_name: str | None,
     report: SeedReport,
 ) -> uuid.UUID:
-    """Внешний (не подключённый по договору) исполнитель для сценария поиска."""
     org, created = await _ensure(
         session,
         Organization,
@@ -695,7 +689,6 @@ async def _seed_external_provider(
 
 
 async def _seed_outsider(session: AsyncSession, ref: _Reference, report: SeedReport) -> None:
-    """Отдельная организация-заказчик — для проверки запрета межорганизационного доступа (A19)."""
     org, created = await _ensure(
         session,
         Organization,
@@ -764,7 +757,6 @@ class BakeryFixture:
 async def _seed_bakery(
     session: AsyncSession, ref: _Reference, provider: ProviderFixture, report: SeedReport
 ) -> BakeryFixture:
-    """Второй заказчик подключённого сервиса — со своим договором, для входящих исполнителя."""
     org, created = await _ensure(
         session,
         Organization,
@@ -851,7 +843,6 @@ async def _seed_bakery(
 async def _seed_pending_provider(
     session: AsyncSession, ref: _Reference, report: SeedReport
 ) -> None:
-    """Неподтверждённый представитель: профиль в очереди проверки (`pending_review`)."""
     org, created = await _ensure(
         session,
         Organization,
@@ -928,8 +919,6 @@ async def _seed_pending_provider(
 async def _seed_dual_organization(
     session: AsyncSession, ref: _Reference, report: SeedReport
 ) -> None:
-    """Организация и заказчик, и исполнитель (ТЗ 3): у руководителя два членства —
-    по одному на сторону, контексты переключаются выбором членства."""
     org, created = await _ensure(
         session,
         Organization,
@@ -1019,12 +1008,6 @@ async def _seed_operator(session: AsyncSession, report: SeedReport) -> uuid.UUID
 
 
 def _connector_api_key(report: SeedReport) -> str | None:
-    """Ключ коннектора 1С: `CONNECTOR_API_KEY`, иначе файл `CONNECTOR_API_KEY_FILE`.
-
-    Файла ещё нет — первый запуск сида выпускает новый ключ и кладёт его туда
-    (compose.demo.yaml: том `demo-secrets`, оттуда же его читает коннектор). Так у
-    каждого стенда свой ключ, а в репозитории — только код генерации.
-    """
     raw_key = os.environ.get("CONNECTOR_API_KEY", "").strip()
     if raw_key:
         return raw_key
@@ -1050,15 +1033,6 @@ def _connector_api_key(report: SeedReport) -> str | None:
 async def _seed_integration_client(
     session: AsyncSession, provider: ProviderFixture, report: SeedReport
 ) -> None:
-    """Интеграционный клиент коннектора 1С (ключ — `_connector_api_key`).
-
-    Ключ действителен только в demo-окружении (проверка `APP_ENV` — на входе в
-    скрипт, окружение ключа — `env_matches`). Если ключа нет или он не соответствует
-    формату `rk_<env>_<prefix>_<secret>` (`app/modules/integration/keys.py`), клиент не
-    создаётся — остальной сид не прерывается, чтобы стенд поднимался и без него.
-    Отозванный администратором клиент сид не трогает: повторный запуск не должен
-    отменять отзыв ключа.
-    """
     raw_key = _connector_api_key(report)
     if raw_key is None:
         report.notes.append(
@@ -1125,8 +1099,6 @@ _PORTFOLIO: dict[str, tuple[tuple[str, tuple[int, int, int]], ...]] = {
 
 
 async def _seed_portfolio(operator_user_id: uuid.UUID) -> int:
-    """Опубликованные фото галереи: тот же путь, что у живой загрузки — карантин,
-    обработка, решение модератора. Повторный запуск не добавляет фото к уже имеющимся."""
     owners = {
         "provider": ("membership:provider:admin", "provider_profile:provider"),
         "ext_provider_1": ("membership:ext_provider_1:admin", "provider_profile:ext_provider_1"),
@@ -1174,7 +1146,6 @@ async def _seed_requests(
     operator_user_id: uuid.UUID,
     timezone: str,
 ) -> int:
-    """Демо-сценарии заявок (`app/demo/scenarios.py`) — один раз на чистый стенд."""
     async with db_session.get_sessionmaker()() as session:
         already = (
             await session.execute(
@@ -1340,7 +1311,6 @@ def _reset_params() -> dict[str, object]:
 
 
 async def reset_scenarios() -> None:
-    """Удаляет только заявки демо-заказчиков; организации, пользователи и справочники остаются."""
     _ensure_environment_allowed()
     async with db_session.transaction() as session:
         for statement in _SCENARIO_RESET_STATEMENTS:
@@ -1349,7 +1319,6 @@ async def reset_scenarios() -> None:
 
 
 async def refresh() -> SeedReport:
-    """Пересоздаёт демо-сценарии со свежими сроками — после простоя стенда."""
     await reset_scenarios()
     return await run()
 
@@ -1451,7 +1420,9 @@ async def run() -> SeedReport:
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description="Демо-данные: --refresh обновляет заявки, --reset удаляет их."
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--reset", action="store_true", help="удалить демо-данные вместо наполнения")
     mode.add_argument(
@@ -1463,7 +1434,6 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 async def _main_async(args: argparse.Namespace) -> SeedReport | None:
-    """Один event loop на весь запуск: движок БД открывается и закрывается в нём же."""
     try:
         if args.reset:
             await reset()

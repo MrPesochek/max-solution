@@ -84,8 +84,6 @@ async def list_my_reviews(
     cursor: str | None = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> Page[ProviderReviewView]:
-    """Отзывы о своей компании (сторона исполнителя): с номером заявки, ответом и
-    последним оспариванием."""
     items, next_cursor = await reputation.list_my_reviews(
         actor, cursor=ids.decode("review", cursor) if cursor else None, limit=limit
     )

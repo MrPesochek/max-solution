@@ -44,7 +44,6 @@ class FakePlatform:
         self.conflict_once: set[str] = set()
 
     def add_request(self, request_id: str, **fields: Any) -> dict[str, Any]:
-        """Форма карточки повторяет `RequestProviderView` платформы."""
         card: dict[str, Any] = {
             "id": request_id,
             "request_number": len(self.requests) + 101,
@@ -141,20 +140,17 @@ class FakePlatform:
         return meta
 
     def approve_visit(self, request_id: str) -> None:
-        """Заказчик согласовал выезд (T29)."""
         card = self.requests[request_id]
         card["visit_proposals"][-1]["status"] = "approved"
         self.bump(request_id, status="scheduled")
 
     def reject_visit(self, request_id: str) -> None:
-        """Заказчик отклонил предложенный выезд."""
         self.requests[request_id]["visit_proposals"][-1]["status"] = "rejected"
         self.bump(request_id)
 
     def request_cancellation(
         self, request_id: str, *, reason: str = "Сами починили", cancellation_id: str = "can_1"
     ) -> None:
-        """Заказчик просит отменить заявку после принятия (T31)."""
         card = self.requests[request_id]
         card["cancellation"] = {
             "id": cancellation_id,
@@ -173,7 +169,6 @@ class FakePlatform:
         self.bump(request_id, status="cancellation_pending")
 
     def reject_completion(self, request_id: str) -> None:
-        """Замечание заказчика к результату (T47): заявка снова в работе."""
         self.bump(request_id, status="in_progress")
 
     def count(self, name: str) -> int:

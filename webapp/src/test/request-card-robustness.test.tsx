@@ -164,7 +164,7 @@ describe('карточка заявки: конфликт версий, офла
     server.events.removeListener('request:start', onStart);
   });
 
-  it('вопрос из CRM сервиса (16g): блок в карточке, ответ новым сообщением, «Дополнить» вместо правки', async () => {
+  it('вопрос из CRM сервиса: блок в карточке, ответ новым сообщением, «Дополнить» вместо правки', async () => {
     const request = await createSubmittedOwnService();
     rdb.postMessage(
       request.id,

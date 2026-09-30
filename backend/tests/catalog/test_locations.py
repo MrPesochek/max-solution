@@ -66,7 +66,6 @@ async def test_manager_creates_and_updates_location() -> None:
 
 
 async def test_update_clears_nullable_district_explicitly() -> None:
-    """ТЗ 10.4: `district_id: null` — район сброшен; отсутствие поля его не меняет."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         manager = await factories.create_membership(
@@ -179,7 +178,6 @@ async def test_employee_cannot_manage_locations() -> None:
 
 
 async def test_employee_sees_only_granted_locations() -> None:
-    """A01: сотрудник видит только выданные точки, чужая — 404."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         granted = await factories.create_location(s, org, name="Разрешённая")

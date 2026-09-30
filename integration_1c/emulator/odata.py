@@ -210,7 +210,6 @@ def _edm_type(value: Any) -> str:
 
 
 def _metadata_xml() -> str:
-    """Сокращённое описание метаданных: только типы и свойства эмулируемых объектов."""
     types: list[str] = []
     sets: list[str] = []
     for definition in ENTITIES.values():

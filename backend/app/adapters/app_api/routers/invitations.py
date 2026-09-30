@@ -60,7 +60,6 @@ class InvitationPreviewBody(BaseModel):
 async def preview_invitation_by_body(
     session: CurrentSession, body: InvitationPreviewBody
 ) -> InvitationPreviewView:
-    """Предпросмотр ничего не расходует (ТЗ 6.7); токен в теле — не попадает в журналы URL."""
     return await identity.preview_invitation(body.token)
 
 
@@ -68,7 +67,6 @@ async def preview_invitation_by_body(
 async def preview_invitation(
     session: CurrentSession, token: Annotated[str, Query(min_length=8, max_length=512)]
 ) -> InvitationPreviewView:
-    """Устарело: токен в query оседает в журналах прокси. Используйте POST /invitations/preview."""
     return await identity.preview_invitation(token)
 
 

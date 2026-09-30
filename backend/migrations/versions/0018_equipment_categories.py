@@ -1,10 +1,4 @@
-"""категории оборудования под итоговый макет
-
-Revision ID: 0018
-Revises: 0017
-Create Date: 2026-09-29
-
-"""
+"""категории оборудования"""
 
 import json
 import uuid
@@ -71,7 +65,7 @@ def downgrade() -> None:
     category_ids = "(SELECT id FROM equipment_categories WHERE code = ANY(:codes))"
     for table in ("equipment", "request_public_cards", "warranty_authorizations"):
         used = bind.execute(
-            text(f"SELECT count(*) FROM {table} WHERE equipment_category_id IN {category_ids}"),  # noqa: S608
+            text(f"SELECT count(*) FROM {table} WHERE equipment_category_id IN {category_ids}"),
             {"codes": codes},
         ).scalar_one()
         if used:
@@ -81,7 +75,7 @@ def downgrade() -> None:
             )
     for table in ("provider_brand_restrictions", "provider_categories"):
         bind.execute(
-            text(f"DELETE FROM {table} WHERE equipment_category_id IN {category_ids}"),  # noqa: S608
+            text(f"DELETE FROM {table} WHERE equipment_category_id IN {category_ids}"),
             {"codes": codes},
         )
     bind.execute(

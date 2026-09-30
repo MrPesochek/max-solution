@@ -201,7 +201,6 @@ export function HeaderBar({
       <div className="ui-header__bar">
         {left ?? <span className="ui-header__side" aria-hidden="true" />}
         <div className="ui-header__center">
-          {/* Название приложения — не заголовок страницы: h1 у экрана — PageTitle/WorkspaceHeader. */}
           {isAppTitle(title) ? (
             <span className="ui-header__title">{title}</span>
           ) : (

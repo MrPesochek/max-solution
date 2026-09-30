@@ -46,7 +46,6 @@ _CURRENT_STATES = (AssignmentState.PENDING, AssignmentState.ACCEPTED, Assignment
 
 
 async def provider_contact_phone(session: AsyncSession, assignment: Assignment) -> str | None:
-    """Кнопка «Позвонить в сервис»: телефон из профиля — только по раскрытому назначению (I7)."""
     if not policy.discloses_contacts(assignment):
         return None
     org = await session.get(Organization, assignment.provider_org_id)
@@ -79,7 +78,6 @@ async def completion_report(
     assignment: Assignment | None,
     attachments: Sequence[AttachmentView],
 ) -> views.CompletionReportView | None:
-    """Последний отчёт текущего назначения; фото — из уже отфильтрованных для актора вложений."""
     if assignment is None:
         return None
     event = (
@@ -115,10 +113,6 @@ async def event_actor_names(
     side: Literal["customer", "provider"],
     other_side_disclosed: bool = True,
 ) -> dict[uuid.UUID, str | None]:
-    """Люди своей стороны — по имени, другая сторона — названием организации,
-    CRM — «CRM <сервис>». События уже отфильтрованы правилами видимости.
-
-    Исполнителю до раскрытия контактов название заказчика не показывается (I7)."""
     membership_ids = {e.actor_membership_id for e in events if e.actor_membership_id is not None}
     client_ids = {
         e.actor_integration_client_id
@@ -176,7 +170,6 @@ async def customer_names(
 async def disclosed_customer_name(
     session: AsyncSession, request: RepairRequest, *, disclose: bool
 ) -> str | None:
-    """Название заказчика для карточки исполнителя — только после раскрытия (I7)."""
     if not disclose:
         return None
     return (await customer_names(session, {request.customer_org_id})).get(request.customer_org_id)
@@ -185,7 +178,6 @@ async def disclosed_customer_name(
 async def contract_numbers(
     session: AsyncSession, provider_org_id: uuid.UUID, requests: Sequence[RepairRequest]
 ) -> dict[uuid.UUID, str]:
-    """Номер договора подтверждённой привязки оборудования заявки к этому сервису."""
     equipment_ids = {r.equipment_id for r in requests}
     if not equipment_ids:
         return {}
@@ -219,11 +211,6 @@ async def contract_numbers(
 async def search_state(
     session: AsyncSession, request: RepairRequest
 ) -> views.SearchStateView | None:
-    """Состояние внешнего поиска для карточки заказчика (ТЗ S2, S5).
-
-    Собирается из публичной карточки: пока она открыта, поиск идёт. Число
-    исполнителей берётся из события последней публикации, а не пересчитывается,
-    чтобы смена профилей исполнителей не меняла итог задним числом."""
     card = await queries.get_public_card(session, request.id)
     if card is None:
         return None
@@ -273,7 +260,6 @@ class CustomerCardExtras(TypedDict):
 def own_service_reminder_at(
     request: RepairRequest, assignment: Assignment | None
 ) -> datetime | None:
-    """Время напоминания своему сервису — по той же настройке, что у планировщика."""
     if (
         assignment is None
         or assignment.route != RequestRoute.OWN_SERVICE
@@ -294,7 +280,6 @@ def own_service_reminder_at(
 async def provider_summary(
     session: AsyncSession, provider_org_id: uuid.UUID
 ) -> views.ProviderSummaryRatingView | None:
-    """Проверки и рейтинг исполнителя назначения — те же, что в публичном профиле."""
     summaries = await providers.get_provider_summaries(session, [provider_org_id])
     summary = summaries.get(provider_org_id)
     if summary is None:
@@ -319,10 +304,6 @@ async def customer_card_extras(
     *,
     search: views.SearchStateView | None = None,
 ) -> CustomerCardExtras:
-    """Поля карточки заказчика, общие для чтения и ответа на команду.
-
-    `search` — итог только что выполненной публикации; без него состояние поиска
-    читается из публичной карточки, чтобы GET и ответы команд совпадали."""
     return {
         "provider_contact_phone": (
             await provider_contact_phone(session, assignment) if assignment is not None else None
@@ -350,14 +331,6 @@ async def message_authors(
     side: Literal["customer", "provider"],
     provider_disclosed: bool = False,
 ) -> dict[uuid.UUID, views.MessageAuthor]:
-    """Подписи авторов переписки для читателя стороны `side` (ТЗ 14, I7).
-
-    Своя сторона — имя сотрудника и название организации. Другая сторона:
-    заказчику имя сотрудника исполнителя — только в общем канале принятого назначения,
-    в треде до выбора — название компании; исполнителю имя и название заказчика —
-    только после раскрытия контактов его назначения (`provider_disclosed`).
-    Подпись CRM (`author_label`) — неподтверждённая строка и до назначения тоже
-    не показывается."""
     membership_ids = {m.author_membership_id for m in messages if m.author_membership_id}
     client_ids = {
         m.author_integration_client_id for m in messages if m.author_integration_client_id
@@ -394,7 +367,7 @@ async def message_authors(
     for message in messages:
         after_assignment = message.assignment_id is not None
         if message.author_kind == "integration_client":
-            organization = crm.get(message.author_integration_client_id)  # type: ignore[arg-type]
+            organization = crm.get(message.author_integration_client_id)
             other_side = side == "customer"
             visible = not other_side or after_assignment
             result[message.id] = views.MessageAuthor(
@@ -404,7 +377,7 @@ async def message_authors(
             )
             continue
         author_side = _SIDE_OF_KIND.get(message.author_kind)
-        person = people.get(message.author_membership_id)  # type: ignore[arg-type]
+        person = people.get(message.author_membership_id)
         if author_side is None or person is None:
             result[message.id] = views.MessageAuthor()
             continue
@@ -428,8 +401,6 @@ async def message_deliveries(
     *,
     side: Literal["customer", "provider"],
 ) -> dict[uuid.UUID, views.DeliveryStatusView]:
-    """«Доставлено в CRM» — заказчику по его сообщениям; адресат — назначение
-    сообщения либо исполнитель приватного треда."""
     if side != "customer":
         return {}
     by_provider: dict[uuid.UUID, list[Message]] = {}

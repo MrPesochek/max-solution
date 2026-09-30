@@ -141,7 +141,6 @@ async def test_limit_is_capped(db_session: AsyncSession) -> None:
 
 
 async def test_numbering_survives_retention_cleanup(db_session: AsyncSession) -> None:
-    """После 30 дней тишины уборка удаляет все события — нумерация не начинается заново."""
     org = await provider_org(db_session)
     client, _ = await factories.create_integration_client(db_session, org)
     for version in (1, 2, 3):

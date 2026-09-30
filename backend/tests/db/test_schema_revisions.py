@@ -53,7 +53,6 @@ def _chain(config: Config) -> set[str]:
 
 
 def _future_config(database_url: str, tmp_path: Path) -> Config:
-    """Конфигурация «новой версии»: цепочка кода плюс ревизия-потомок из tmp_path."""
     (tmp_path / f"{FUTURE_REVISION}_future.py").write_text(
         FUTURE_SCRIPT.format(revision=FUTURE_REVISION, head=_code_head()), encoding="utf-8"
     )
@@ -128,10 +127,6 @@ async def test_readiness_ok_on_head(fresh_db: tuple[str, AsyncEngine]) -> None:
 async def test_readiness_accepts_schema_newer_than_code(
     fresh_db: tuple[str, AsyncEngine], tmp_path: Path
 ) -> None:
-    """Воспроизведение дефекта: БД поднята следующей версией, образ откатан на прежний.
-
-    Прежняя проверка требовала alembic_version == головам кода и отвечала 503.
-    """
     database_url, engine = fresh_db
     await asyncio.to_thread(command.upgrade, _future_config(database_url, tmp_path), "head")
 

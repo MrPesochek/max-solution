@@ -24,7 +24,7 @@ from connector.settings import Settings
 
 Method = Literal["GET", "POST", "DELETE"]
 
-SECRET_NOT_REPLAYABLE = "IDEMPOTENT_SECRET_NOT_REPLAYABLE"  # noqa: S105 — код ошибки, не секрет
+SECRET_NOT_REPLAYABLE = "IDEMPOTENT_SECRET_NOT_REPLAYABLE"
 _ROTATE_ATTEMPTS = 3
 
 
@@ -47,8 +47,6 @@ class PlatformApiError(Exception):
 
 
 class VersionConflictError(PlatformApiError):
-    """`409 VERSION_CONFLICT` — нужно перечитать актуальную карточку, не повторять."""
-
     @property
     def current_version(self) -> int | None:
         value = self.details.get("current_version")
@@ -56,17 +54,10 @@ class VersionConflictError(PlatformApiError):
 
 
 class PlatformUnreachableError(Exception):
-    """Сетевые ошибки/таймауты после исчерпания повторов."""
+    pass
 
 
 class PlatformContractError(Exception):
-    """Ответ платформы не совпадает со схемой `contract.py`.
-
-    Разбор идёт на границе клиента: опечатка в имени поля или изменение контракта
-    дают явную ошибку с именем маршрута и полей, а не молчаливый `None` в сервисах.
-    Значения полей в сообщение не попадают — в карточке есть контакты заказчика.
-    """
-
     def __init__(self, what: str, errors: list[str]) -> None:
         super().__init__(f"ответ платформы {what} не совпадает с контрактом: {'; '.join(errors)}")
         self.what = what
@@ -74,11 +65,6 @@ class PlatformContractError(Exception):
 
 
 def _validate(model: type[BaseModel], payload: Any, what: str) -> dict[str, Any]:
-    """Проверяет ответ по модели контракта и возвращает исходный словарь.
-
-    Сервисы работают с исходным JSON (в нём могут быть поля новее контракта,
-    `extra="allow"`), но только после того, как обязательные поля и их типы проверены.
-    """
     try:
         model.model_validate(payload)
     except ValidationError as exc:
@@ -101,18 +87,12 @@ class _MessagesPage(BaseModel):
 
 
 def idempotency_key(action: str, request_id: str, **fields: Any) -> str:
-    """Ключ детерминирован от содержания операции: повторная отправка того же
-    действия с теми же данными после сбоя/таймаута даёт тот же ключ и не создаёт
-    дубль на платформе; изменение содержания — новый ключ (закономерно даёт 409
-    на платформе, если старая операция уже применена)."""
     canonical = json.dumps(fields, sort_keys=True, ensure_ascii=False, default=str)
     digest = hashlib.sha256(f"{action}|{request_id}|{canonical}".encode()).hexdigest()
     return f"onec-connector:{action}:{digest[:32]}"
 
 
 def operation_key(action: str) -> str:
-    """Ключ разовой операции (ротация секрета, тестовая доставка): повтор с ним же
-    внутри `_request` безопасен, а следующая операция получает новый ключ."""
     return f"onec-connector:{action}:{uuid.uuid4().hex}"
 
 
@@ -191,7 +171,7 @@ class PlatformClient:
                     retry_after = None
         base = self._settings.background_retry_base_delay_seconds
         delay = retry_after if retry_after is not None else base * (2 ** (attempt - 1))
-        delay += random.uniform(0, base)  # noqa: S311 — джиттер бэкоффа, не криптография
+        delay += random.uniform(0, base)
         await asyncio.sleep(delay)
 
     async def get_me(self) -> dict[str, Any]:
@@ -210,8 +190,6 @@ class PlatformClient:
         return _validate(_ListPage, response.json(), "GET /requests")
 
     async def get_request(self, request_id: str) -> dict[str, Any]:
-        """Карточка `RequestProviderView` или, если назначение прекращено,
-        `RequestFormerProviderView` (без `status` и содержимого заявки)."""
         response = await self._request("GET", f"/requests/{request_id}")
         payload = response.json()
         if isinstance(payload, dict) and "status" not in payload:
@@ -238,9 +216,6 @@ class PlatformClient:
     async def request_action(
         self, request_id: str, action: str, body: dict[str, Any], *, idem_key: str
     ) -> dict[str, Any]:
-        """Мутация заявки (`accept`, `visit-proposals`, `complete`…) с ключом из журнала
-        исходящих действий: ключ сохраняется до вызова, поэтому повтор после сбоя идёт
-        с тем же ключом и тем же телом."""
         response = await self._request(
             "POST", f"/requests/{request_id}/{action}", json_body=body, idem_key=idem_key
         )

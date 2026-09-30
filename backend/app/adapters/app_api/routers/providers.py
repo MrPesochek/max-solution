@@ -59,7 +59,6 @@ async def count_providers(
     city_id: str | None = None,
     district_id: str | None = None,
 ) -> ProviderCountView:
-    """Сколько допущенных исполнителей принимают заявки — по тем же фильтрам, что каталог."""
     count = await providers.count_catalog(
         category_id=ids.decode("category", category_id) if category_id else None,
         city_id=ids.decode("city", city_id) if city_id else None,

@@ -62,11 +62,6 @@ class EquipmentSummary:
 
 
 def _binding_rank(binding: ServiceBinding) -> int:
-    """Подтверждённая привязка сервиса, затем «Мой контакт», затем ожидающая привязка.
-
-    «Мой контакт» заказчик подтверждает сам при сохранении, подтверждения сервиса у него
-    не бывает и статус остаётся pending (ТЗ 6.6.4). По нему уже можно позвонить, поэтому
-    незавершённый запрос привязки к организации его не заслоняет."""
     if binding.provider_org_id is None:
         return 1
     return 0 if binding.status == BindingStatus.CONFIRMED else 2

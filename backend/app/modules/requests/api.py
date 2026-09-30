@@ -174,9 +174,6 @@ async def update_draft(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Непереданное поле (`UNSET`, по умолчанию) не меняется — общий черновик для бота
-    и Web App; явный `null` очищает nullable-поле, а для `equipment_id`/`urgency`/
-    `photos_incomplete` (`NOT NULL`) ведёт к `ValidationFailed`."""
     return await run_command(
         actor,
         commands.update_draft(
@@ -290,11 +287,6 @@ async def approve_visit_proposal(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Сумма берётся с сервера: команда принимает только решение, id и версию (ТЗ 10.4).
-
-    Истёкшие сроки заявки фиксируются до команды (`expire_request`): отказ самой
-    команды откатывает её транзакцию.
-    """
     await expire_request(request_id)
     return await run_command(
         actor,
@@ -394,7 +386,6 @@ async def request_cancellation(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """До принятия исполнителем отменяет сразу, после — открывает запрос отмены (I14)."""
     return await run_command(
         actor,
         cancellation.request_cancellation(
@@ -429,7 +420,6 @@ async def force_cancellation(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """D4/D24: одностороннее прекращение спорной отмены по истечении срока."""
     return await run_command(
         actor,
         cancellation.force_cancellation(
@@ -479,7 +469,6 @@ async def update_request_details(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """T56: уточнение условий в `action_required`; снимок заявки не переписывается."""
     return await run_command(
         actor,
         commands.update_request_details(
@@ -543,7 +532,6 @@ async def withdraw_assignment(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """D2: отказ исполнителя после принятия; заявка уходит в `action_required`."""
     return await run_command(
         actor,
         commands.withdraw_assignment(
@@ -642,7 +630,6 @@ async def report_completion(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """D3: `outcome` — `resolved` либо `not_resolved`; оба ведут в `completion_reported`."""
     return await run_command(
         actor,
         completion.report_completion(
@@ -691,7 +678,6 @@ async def set_warranty_decision(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """D8: решение о гарантийности сообщает исполнитель, платформа его не выводит."""
     return await run_command(
         actor,
         commands.set_warranty_decision(
@@ -716,7 +702,6 @@ async def set_field_worker(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """D9/D31: сотрудник платформы либо имя мастера, указанное компанией."""
     return await run_command(
         actor,
         commands.set_field_worker(
@@ -756,7 +741,6 @@ async def publish_search(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Публикует явно выбранные сведения подходящим исполнителям (A11: только руководитель)."""
     return await run_command(
         actor,
         search.publish_search(
@@ -803,7 +787,6 @@ async def withdraw_offer_by_id(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """`POST /offers/{id}/withdraw` — путь без id заявки (ТЗ 10.2)."""
     return await run_command(
         actor,
         search.withdraw_offer_by_id(offer_id, expected_version=expected_version),
@@ -820,9 +803,6 @@ async def select_offer(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """A08: выбирает только руководитель; резерв назначения создаётся атомарно.
-
-    `offer_version` — версия, которую видел руководитель; иначе `OFFER_NOT_CURRENT`."""
     await expire_request(request_id)
     return await run_command(
         actor,
@@ -843,7 +823,6 @@ async def create_followup_request(
     urgency: str | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """T58: новая поломка — новая связанная заявка; прежняя остаётся неизменной."""
     return await run_command(
         actor,
         search.followup_request(parent_request_id, urgency=urgency),
@@ -862,9 +841,6 @@ async def post_message(
     author_label: str | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """В `searching` сообщение уходит в приватный тред с исполнителем (S3.5).
-
-    `author_label` — подпись автора из CRM, только для интеграции."""
     return await run_command(
         actor,
         commands.post_message(
@@ -894,7 +870,6 @@ def _require_read_scope(actor: Actor) -> AccessScope:
 async def get_request(
     actor: Actor, request_id: uuid.UUID
 ) -> RequestCustomerView | RequestProviderView | RequestFormerProviderView:
-    """Представление зависит от стороны и состояния назначения (01-overview § 3.3)."""
     scope = _require_read_scope(actor)
     async with _read_session() as session:
         if scope.side == "customer":
@@ -967,7 +942,6 @@ async def list_requests(
     cursor: str | None = None,
     limit: int | None = None,
 ) -> tuple[list[RequestListItemView], str | None]:
-    """Заказчику — его заявки (сотруднику — по своим точкам), исполнителю — его назначения."""
     scope = _require_read_scope(actor)
     async with _read_session() as session:
         if scope.side == "customer":
@@ -1078,7 +1052,6 @@ async def list_requests(
 
 
 def _list_channel(side: str, row: queries.RequestRow) -> queries.MessageChannel:
-    """Видимая стороне часть переписки строки — как `support.unread_for` в карточке."""
     if side == "provider" and row.assignment is not None:
         return support.provider_channel(row.assignment)
     return queries.WHOLE_CHANNEL
@@ -1087,8 +1060,6 @@ def _list_channel(side: str, row: queries.RequestRow) -> queries.MessageChannel:
 def _list_field_worker_name(
     side: str, assignment: Assignment | None, names: dict[uuid.UUID, str]
 ) -> str | None:
-    """Имя мастера заказчику — только по принятому назначению (ТЗ 14): имя сотрудника
-    исполнителя до назначения не раскрывается."""
     if assignment is None:
         return None
     if side == "customer" and assignment.state not in (
@@ -1104,7 +1075,6 @@ def _list_field_worker_name(
 async def request_history(
     actor: Actor, request_id: uuid.UUID, *, cursor: str | None = None, limit: int | None = None
 ) -> tuple[list[RequestEventView], str | None]:
-    """Заказчику — вся лента; исполнителю — только период его назначения и свои отклики."""
     async with _read_session() as session:
         assignment = await _ensure_readable(actor, session, request_id)
         side = scope_of(actor).side
@@ -1134,7 +1104,6 @@ async def list_messages(
     limit: int | None = None,
     direction: queries.MessageDirection = "forward",
 ) -> tuple[list[MessageView], str | None]:
-    """Заказчик видит переписку целиком, исполнитель — только свой канал."""
     scope = _require_read_scope(actor)
     async with _read_session() as session:
         channel = await _message_channel(session, scope, request_id)
@@ -1158,7 +1127,6 @@ async def _message_views(
     messages: Sequence[Message],
     channel: queries.MessageChannel,
 ) -> list[MessageView]:
-    """Сообщения с подписью автора и доставкой в CRM — по правилам видимости стороны."""
     return await support.message_views_for(
         session, scope.side, request_id, messages, assignment_id=channel.assignment_id
     )
@@ -1167,7 +1135,6 @@ async def _message_views(
 async def _dialog_thread(
     session: AsyncSession, scope: AccessScope, request_id: uuid.UUID, offer_id: uuid.UUID | None
 ) -> uuid.UUID:
-    """Тред «заказчик — автор отклика» (S3.5): заказчику — по отклику, исполнителю — свой."""
     if scope.side == "customer":
         if await queries.customer_request(scope, session, request_id) is None:
             raise NotFound()
@@ -1188,7 +1155,6 @@ async def list_dialog_messages(
     limit: int | None = None,
     direction: queries.MessageDirection = "forward",
 ) -> tuple[list[MessageView], str | None]:
-    """Только приватный тред до выбора: видят автор вопроса и заказчик."""
     scope = _require_read_scope(actor)
     async with _read_session() as session:
         thread_org_id = await _dialog_thread(session, scope, request_id, offer_id)
@@ -1214,7 +1180,6 @@ async def post_dialog_message(
     expected_version: int | None = None,
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Вопрос исполнителя по публичной карточке или ответ заказчика автору отклика."""
     scope = scope_of(actor)
     thread_org_id: uuid.UUID | None = None
     if scope.side == "customer":
@@ -1237,8 +1202,6 @@ async def post_dialog_message(
 async def _message_channel(
     session: AsyncSession, scope: AccessScope, request_id: uuid.UUID
 ) -> queries.MessageChannel:
-    """Какая часть переписки видна: заказчику — вся, исполнителю — свой тред и общий
-    канал его текущего назначения."""
     if scope.side == "customer":
         if await queries.customer_request(scope, session, request_id) is None:
             raise NotFound()
@@ -1260,10 +1223,6 @@ async def _message_channel(
 
 
 async def mark_messages_read(actor: Actor, request_id: uuid.UUID) -> CommandResult:
-    """Отметка «прочитано до последнего видимого сообщения»; повтор ничего не меняет.
-
-    Отметка только продвигается вперёд: параллельный запрос со старым снимком
-    переписки её не откатит."""
     if not isinstance(actor, UserActor):
         raise Forbidden("Отметка прочтения — для участника-пользователя")
     scope = scope_of(actor)
@@ -1311,7 +1270,6 @@ async def list_repair_quotes(actor: Actor, request_id: uuid.UUID) -> list[dict[s
 async def preview_public_card(
     actor: Actor, request_id: uuid.UUID, *, data: PublicCardInput | None = None
 ) -> PublicCardPreviewView:
-    """Экран раскрытия (ТЗ 14, п. 2): что увидят внешние исполнители и сколько их найдено."""
     scope = _require_read_scope(actor)
     if scope.side != "customer":
         raise Forbidden("Предпросмотр публикации доступен стороне заказчика")
@@ -1325,7 +1283,6 @@ async def preview_public_card(
 async def list_marketplace_requests(
     actor: Actor, *, cursor: str | None = None, limit: int | None = None
 ) -> tuple[list[views.MarketplaceListItemView], str | None]:
-    """Биржа: только подходящему исполнителю и только публичная карточка (A07)."""
     provider_org_id = _marketplace_reader(actor)
     size = queries.page_limit(limit)
     after = queries.decode_cursor("request", cursor)
@@ -1378,7 +1335,6 @@ async def _marketplace_items(
 async def _open_marketplace_card(
     session: AsyncSession, provider_org_id: uuid.UUID, request_id: uuid.UUID
 ) -> tuple[RepairRequest, RequestPublicCard] | None:
-    """Открытая карточка биржи, подходящая этому исполнителю (A07); иначе None."""
     request = await session.get(RepairRequest, request_id)
     if request is None:
         return None
@@ -1396,7 +1352,6 @@ async def _open_marketplace_card(
 async def marketplace_card_visible(
     session: AsyncSession, actor: Actor, request_id: uuid.UUID
 ) -> bool:
-    """Видит ли актор карточку биржи — в сессии вызывающего (выдача фото карточки в files)."""
     try:
         provider_org_id = _marketplace_reader(actor)
     except Forbidden:
@@ -1428,8 +1383,6 @@ async def get_marketplace_card(actor: Actor, request_id: uuid.UUID) -> Marketpla
 
 
 async def list_offers(actor: Actor, request_id: uuid.UUID) -> list[OfferView]:
-    """Заказчику — все отклики для сравнения (с краткой карточкой исполнителя),
-    исполнителю — только собственные (без карточки — это его же офферы)."""
     scope = _require_read_scope(actor)
     async with _read_session() as session:
         if scope.side == "customer":
@@ -1478,9 +1431,6 @@ def _offer_provider_view(
 
 
 async def pending_approvals(actor: Actor) -> list[PendingApprovalItemView]:
-    """GET /requests/pending-approvals: агрегат того, что ждёт решения руководителя (I10).
-
-    Сотруднику — только «Нужен ваш ответ»: вопросы исполнителя по заявкам его точек."""
     user = policy.require_customer(actor)
     scope = scope_of(user)
     async with _read_session() as session:
@@ -1529,7 +1479,6 @@ async def _provider_request(session: AsyncSession, request_id: uuid.UUID) -> Rep
 async def _ensure_readable(
     actor: Actor, session: AsyncSession, request_id: uuid.UUID
 ) -> Assignment | None:
-    """Общая проверка доступа на чтение: чужая заявка неотличима от несуществующей."""
     scope = _require_read_scope(actor)
     if scope.side == "customer":
         row = await queries.customer_request(scope, session, request_id)

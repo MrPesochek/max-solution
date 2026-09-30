@@ -284,9 +284,6 @@ def test_ping_envelope_is_accepted() -> None:
 
 
 def test_request_card_shape() -> None:
-    """`GET /requests/{id}` (`RequestProviderView`): оборудование и точка — вложенные
-    объекты, а не *_snapshot словари; денежная сумма — `amount_minor`/`is_known`, без
-    `is_free`; выездной мастер — вложенный `field_worker`, а не плоское имя."""
     parsed = RequestCard.model_validate(REQUEST_CARD)
     assert parsed.equipment.brand == "Полюс"
     assert parsed.location.address == "ул. Ленина, 1"
@@ -306,8 +303,6 @@ def test_request_list_item_shape() -> None:
 
 
 def test_requests_page_has_no_has_more() -> None:
-    """`GET /requests` — курсорная страница `{items, next_cursor}`, без `has_more`
-    (в отличие от `/events` и `/webhook-subscriptions`)."""
     page = Page.model_validate({"items": [REQUEST_LIST_ITEM], "next_cursor": None})
     assert "has_more" not in page.model_dump()
 
@@ -319,8 +314,6 @@ def test_messages_page_shape() -> None:
 
 
 def test_visit_proposals_and_repair_quotes_are_plain_lists() -> None:
-    """`GET /requests/{id}/visit-proposals` и `/repair-quotes` — списки версий, не
-    курсорные страницы."""
     proposals = [VisitProposal.model_validate(p) for p in VISIT_PROPOSALS_LIST]
     quotes = [RepairQuote.model_validate(q) for q in REPAIR_QUOTES_LIST]
     assert proposals[0].scope_description == "Диагностика и ремонт"
@@ -456,7 +449,6 @@ def test_webhook_envelope_matches_platform_openapi(
 def test_mutation_bodies_match_platform_openapi(
     openapi: dict[str, Any], schema_name: str, model: Any, sample: dict[str, Any]
 ) -> None:
-    """Тела, которые строит коннектор (`actions.py`), проходят схему запроса платформы."""
     body = model.model_validate(sample).model_dump(mode="json", exclude_none=True)
     schema = {"$ref": f"#/components/schemas/{schema_name}"}
     errors = list(_validator(openapi, schema).iter_errors(body))

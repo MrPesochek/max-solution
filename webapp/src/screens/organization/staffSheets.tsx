@@ -68,7 +68,6 @@ export function ApproveSheet({
           >
             {strings.organization.approve}
           </ActionButton>
-          {/* Отклонение заявки на вступление — тот же отзыв членства на сервере. */}
           <ActionButton
             kind="d"
             loading={reject.isPending}

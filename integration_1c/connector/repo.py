@@ -59,7 +59,6 @@ def create_link(
 
 
 def update_link_card(conn: sqlite3.Connection, request_id: str, card: dict[str, Any]) -> None:
-    """Снимок карточки не откатывается на более старую версию (события не по порядку)."""
     conn.execute(
         """UPDATE links SET card_json = ?, platform_version = ?, updated_at = ?
            WHERE request_id = ? AND platform_version <= ?""",
@@ -75,8 +74,6 @@ def update_link_card(conn: sqlite3.Connection, request_id: str, card: dict[str, 
 
 
 def mark_link_applied(conn: sqlite3.Connection, request_id: str, version: int) -> None:
-    """Версия карточки полностью перенесена в 1С (документ, вложения, действия).
-    Пишется последним шагом: при сбое раньше повтор события применит её заново."""
     conn.execute(
         """UPDATE links SET applied_version = ?, updated_at = ?
            WHERE request_id = ? AND applied_version < ?""",
@@ -218,7 +215,6 @@ def reserve_event(
     resource_version: int | None,
     payload: dict[str, Any],
 ) -> bool:
-    """Атомарно резервирует `event_id`. Возвращает False, если событие уже видели."""
     return (
         claim_event(
             conn,
@@ -243,8 +239,6 @@ def claim_event(
     resource_version: int | None,
     payload: dict[str, Any],
 ) -> str:
-    """Резервирует `event_id`: `new` — событие впервые, `retry` — уже было, но
-    завершилось `failed` и срок следующей попытки наступил, `duplicate` — иначе."""
     try:
         conn.execute(
             """INSERT INTO processed_events
@@ -280,9 +274,6 @@ def _retry_due(status: str, next_retry_at: str | None) -> bool:
 def list_unprocessed_events(
     conn: sqlite3.Connection, *, received_before: datetime | None = None
 ) -> list[dict[str, Any]]:
-    """События, не доведённые до конца: `received` — процесс упал между подтверждением
-    вебхука и фоновой обработкой; `failed` с наступившим `next_retry_at` — 1С или
-    платформа были недоступны дольше фоновых повторов. Возвращает исходные конверты."""
     before = received_before.isoformat() if received_before is not None else None
     sql = """SELECT payload_json FROM processed_events
              WHERE (status = 'received' AND (? IS NULL OR received_at < ?))
@@ -313,8 +304,6 @@ def mark_event_failed(
     base_delay_seconds: float,
     max_delay_seconds: float,
 ) -> str:
-    """Неудачный раунд обработки: `failed` с экспоненциальной задержкой следующей
-    попытки или `dead`, если попытки исчерпаны. Возвращает новый статус."""
     row = conn.execute(
         "SELECT attempts FROM processed_events WHERE event_id = ?", (event_id,)
     ).fetchone()

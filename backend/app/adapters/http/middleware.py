@@ -8,8 +8,6 @@ log = structlog.get_logger("http")
 
 
 class RequestContextMiddleware:
-    """request_id в state, ответе и логах; длительность запроса без тел и query-строк."""
-
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 

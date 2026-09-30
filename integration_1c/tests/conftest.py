@@ -127,8 +127,6 @@ class Harness:
         return None
 
     def edit(self, request_id: str, *, post: bool = True, **changes: Any) -> dict[str, Any]:
-        """Правка документа как из формы 1С; `state=` — наименование состояния,
-        `props=` — дополнительные реквизиты по наименованию."""
         doc = self.doc(request_id)
         body: dict[str, Any] = {}
         if "state" in changes:

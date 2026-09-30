@@ -50,7 +50,6 @@ async def list_bindings(
 async def request_binding(
     actor: CurrentActor, body: BindingRequestBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """ТЗ 6.6.3: ответ одинаков независимо от того, существует ли такой договор."""
     data = trust.BindingRequestData(
         provider_organization_id=body.provider_organization_id,
         contract_number=body.contract_number,

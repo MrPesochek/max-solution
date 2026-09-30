@@ -43,7 +43,7 @@ describe('клиент API: пути, таймауты, повторы, blob', (
     expect((error as ApiError).isNetworkError).toBe(true);
   });
 
-  it('blob вложения при 401 проходит повторный вход, как обычный запрос (регресс)', async () => {
+  it('blob вложения при 401 проходит повторный вход, как обычный запрос', async () => {
     server.use(
       http.get('/app-api/v1/__test/file', ({ request }) =>
         request.headers.get('Authorization') === 'Bearer fresh'

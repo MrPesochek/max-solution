@@ -135,7 +135,6 @@ async def test_authenticate_revoked_key(db_session: AsyncSession) -> None:
 async def test_authenticate_does_not_depend_on_provider_status(
     db_session: AsyncSession, status: str
 ) -> None:
-    """Ключ подлинный — актор есть; что ему доступно, решает ядро (ТЗ 12, 6.5.3)."""
     org = await factories.create_organization(db_session, customer=False, provider=True)
     await factories.create_provider_profile(db_session, org, status=status)
     _, raw = await factories.create_integration_client(db_session, org)
@@ -231,7 +230,6 @@ async def test_list_api_keys_requires_provider_admin(db_session: AsyncSession) -
 
 
 async def test_key_of_other_environment_rejected(db_session: AsyncSession) -> None:
-    """L11: demo-ключ не открывает рабочий контур и наоборот."""
     org = await provider_org(db_session)
     issued = issue_api_key("demo")
     client, _ = await factories.create_integration_client(db_session, org)
@@ -244,7 +242,6 @@ async def test_key_of_other_environment_rejected(db_session: AsyncSession) -> No
 
 
 async def test_revoke_disables_client_subscriptions(db_session: AsyncSession) -> None:
-    """M4: отозванный ключ перестаёт получать вебхуки."""
     org = await provider_org(db_session)
     admin = await provider_admin(db_session, org)
     client, _ = await factories.create_integration_client(db_session, org)

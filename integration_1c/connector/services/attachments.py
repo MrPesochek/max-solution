@@ -25,7 +25,6 @@ def file_description(item: dict[str, Any]) -> str:
 
 
 async def sync_to_onec(state: AppState, request_id: str, ref_key: str, card: dict[str, Any]) -> int:
-    """Выгрузить в 1С готовые вложения, которых там ещё нет. Возвращает число выгруженных."""
     spec = state.profile.attachments
     ready = [
         item

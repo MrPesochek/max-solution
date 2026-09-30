@@ -122,8 +122,6 @@ class ModerationCase(IdMixin, TimestampsMixin, Base):
 
 
 class ProviderRatingAggregate(IdMixin, Base):
-    """Без created_at — таблица хранит только текущий агрегат (updated_at)."""
-
     __tablename__ = "provider_rating_aggregates"
 
     provider_org_id: Mapped[uuid.UUID] = mapped_column(

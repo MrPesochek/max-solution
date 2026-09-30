@@ -101,7 +101,6 @@ async def test_cannot_revoke_last_manager() -> None:
 
 
 async def test_revoke_blocks_next_request() -> None:
-    """A27: отзыв членства действует со следующего запроса."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         manager = await factories.create_membership(
@@ -201,7 +200,6 @@ async def test_provider_admin_approves_pending_membership() -> None:
 
 
 async def test_manager_cannot_revoke_self_even_with_other_manager() -> None:
-    """Самоисключение запрещено и при втором руководителе; другого руководителя — можно."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         manager = await factories.create_membership(
@@ -227,7 +225,6 @@ async def test_manager_cannot_revoke_self_even_with_other_manager() -> None:
 
 
 async def test_provider_admin_rejects_pending_membership() -> None:
-    """Отклонение заявки на вступление — тот же отзыв: ожидающий не попадает в организацию."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s, customer=False, provider=True)
         admin = await factories.create_membership(

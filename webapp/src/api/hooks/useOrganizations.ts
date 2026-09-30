@@ -55,7 +55,6 @@ export function useAddParticipation(organizationId: string) {
       try {
         await refreshMemberships();
       } catch {
-        // участие уже добавлено — переключимся по членству из ответа, список обновится при следующем /me
       }
       return result;
     },

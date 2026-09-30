@@ -46,7 +46,6 @@ def _paginate[T](
 
 
 def _side_roles(scope: AccessScope) -> frozenset[str]:
-    """Сотрудники и приглашения видны только в контексте своей стороны."""
     return CUSTOMER_ROLES if scope.side == "customer" else PROVIDER_ROLES
 
 
@@ -128,12 +127,10 @@ async def list_invitations(
 
 
 async def preview_invitation(token: str) -> InvitationPreviewView:
-    """GET-предпросмотр не гасит приглашение и не меняет его состояние (A32)."""
     return await _preview(token, to_invitation_preview)
 
 
 async def preview_invitation_for_bot(token: str) -> InvitationPreviewForBotView:
-    """Тот же предпросмотр, но с id приглашения: бот принимает его, не храня токен."""
     return await _preview(token, to_invitation_preview_for_bot)
 
 

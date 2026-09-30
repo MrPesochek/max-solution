@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.db.base import Base
-from app.db.models import *  # noqa: F403 — регистрирует все модели в Base.metadata
+from app.db.models import *
 from app.db.schema_revisions import record_step
 from app.infra.config import get_settings
 

@@ -96,7 +96,6 @@ async def _cancel_before_acceptance(
     assignment: Assignment | None,
     reason: str | None,
 ) -> CommandResult:
-    """I14/A15: до принятия исполнителем отмена применяется сразу."""
     request.cancellation_reason = reason
     if assignment is not None:
         _revoke(ctx, assignment, reason)
@@ -125,11 +124,6 @@ async def _change_provider_before_acceptance(
     assignment: Assignment | None,
     reason: str | None,
 ) -> CommandResult:
-    """ТЗ 8.1/S4: смена исполнителя до принятия не отменяет заявку.
-
-    Ожидающее назначение отзывается, подбор закрывается, заявка переходит в
-    `action_required` — новый маршрут выбирает руководитель (A11).
-    """
     if request.status == RequestStatus.AWAITING_PROVIDER:
         if assignment is None:
             raise Conflict("По заявке нет активного назначения", code="ASSIGNMENT_NOT_ACTIVE")
@@ -168,7 +162,6 @@ def _revoke(ctx: CommandContext, assignment: Assignment, reason: str | None) -> 
 async def revoke_pending(
     ctx: CommandContext, request: RepairRequest, assignment: Assignment, reason: str | None
 ) -> CommandResult:
-    """T13: отзыв ещё не принятого назначения своего сервиса."""
     if assignment.state != AssignmentState.PENDING:
         raise Conflict(
             "Назначение уже не ожидает ответа",
@@ -320,10 +313,6 @@ def dispute_timeout() -> timedelta:
 
 
 def response_deadline(cancellation: CancellationRequest) -> datetime | None:
-    """Когда руководитель может прекратить работы сам.
-
-    В споре — срок из ответа исполнителя; без ответа — срок от запроса (запросы,
-    открытые до появления срока в строке, считаются от `created_at`)."""
     if cancellation.status == CancellationStatus.DISPUTED:
         return cancellation.dispute_deadline_at
     if cancellation.status == CancellationStatus.PENDING:

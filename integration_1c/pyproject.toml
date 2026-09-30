@@ -42,6 +42,8 @@ ignore = ["RUF001", "RUF002", "RUF003", "S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S"]
+"connector/platform_client.py" = ["S105", "S311"]
+"emulator/settings.py" = ["S105"]
 
 [tool.mypy]
 python_version = "3.13"

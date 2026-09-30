@@ -44,8 +44,6 @@ class ProviderBrandRestrictionView(BaseModel):
 
 
 class ProviderProfileView(BaseModel):
-    """Собственный профиль исполнителя: то, что видит его администратор."""
-
     id: str
     organization_id: str
     name: str
@@ -79,8 +77,6 @@ class ProviderProfileView(BaseModel):
 
 
 class ProviderPublicProfileView(BaseModel):
-    """Каталожная карточка: раздельные признаки проверки, без единого флага «проверен»."""
-
     id: str
     name: str
     provider_kind: str
@@ -105,8 +101,6 @@ class ProviderPublicProfileView(BaseModel):
 
 
 class ProviderSummaryView(BaseModel):
-    """Краткая карточка исполнителя для встраивания в чужие представления (например, оффер)."""
-
     id: str
     display_name: str
     verification_marks: list[str]
@@ -266,7 +260,6 @@ def to_catalog_item_view(
 
 
 def to_provider_summary_view(org: Organization, checks: set[str]) -> ProviderSummaryView:
-    """`checks` — действующие признаки из trust (с учётом срока проверки)."""
     marks = [kind for kind in (CHECK_REQUISITES, CHECK_REPRESENTATIVE) if kind in checks]
     return ProviderSummaryView(
         id=ids.encode("organization", org.id),

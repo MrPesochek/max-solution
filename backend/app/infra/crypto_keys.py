@@ -30,7 +30,6 @@ __all__ = [
 
 
 def key_fingerprint(key: str) -> str:
-    """Несекретный отпечаток ключа для журналов и описи резервной копии."""
     return hashlib.sha256(key.strip().encode("ascii")).hexdigest()[:12]
 
 
@@ -46,7 +45,6 @@ class KeyCheck:
 
 
 async def check_stored_secrets(session: AsyncSession, key: str) -> KeyCheck:
-    """Пробует расшифровать все сохранённые секреты подписок заданными ключами."""
     keys = _keys(key)
     box = SecretBox(key)
     primary = SecretBox(keys[0])
@@ -68,11 +66,6 @@ async def check_stored_secrets(session: AsyncSession, key: str) -> KeyCheck:
 
 
 async def rotate_stored_secrets(session: AsyncSession, key: str) -> int:
-    """Перешифровывает все секреты подписок первым ключом; возвращает число строк.
-
-    Нерасшифровываемый секрет прерывает ротацию целиком: частично перешифрованная
-    таблица с неизвестным ключом хуже исходной.
-    """
     box = SecretBox(key)
     subscriptions = (
         (await session.execute(select(WebhookSubscription).with_for_update())).scalars().all()
@@ -88,12 +81,6 @@ class KeyMismatchError(RuntimeError):
 
 
 async def verify_on_startup() -> None:
-    """Проверка при старте api: ключ подходит к сохранённым секретам.
-
-    Нет подписок — проверять нечего, ключ может быть и не задан. Секреты есть, а ключ
-    их не читает — старт прерывается с понятной причиной: иначе все доставки молча
-    перестанут подписываться. Недоступная БД старт не прерывает: это забота readyz.
-    """
     key = get_settings().secrets_encryption_key
     try:
         async with db_session.transaction() as session:

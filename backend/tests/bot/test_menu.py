@@ -11,7 +11,6 @@ from tests.bot.conftest import USER_ID, BotHarness, message_callback, message_cr
 async def _member_of(
     db_session: AsyncSession, name: str, *, role: str = "customer_manager", provider: bool = False
 ) -> Organization:
-    """Пользователь бота (тот же MAX id) с членством в новой организации."""
     user = (
         await db_session.execute(select(User).where(User.max_user_id == str(USER_ID)))
     ).scalar_one_or_none()
@@ -48,7 +47,6 @@ async def test_provider_sees_provider_items(harness: BotHarness, db_session: Asy
 
 
 def test_every_menu_item_has_handler() -> None:
-    """Ни один пункт меню не отвечает «Раздел появится позже» (ТЗ 5.1, 5.2)."""
     missing = [
         item.key
         for item in menu.CUSTOMER_ITEMS + menu.PROVIDER_ITEMS

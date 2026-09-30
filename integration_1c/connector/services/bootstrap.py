@@ -16,7 +16,6 @@ def subscribed_events() -> list[str]:
 
 
 async def ensure_subscription(state: AppState) -> bool:
-    """Возвращает True, если подписка есть/только что создана."""
     if not state.settings.platform_api_key:
         logger.info("API-ключ платформы не задан — bootstrap подписки пропущен")
         return False
@@ -58,10 +57,6 @@ async def ensure_subscription(state: AppState) -> bool:
 
 
 async def _stale_subscription(state: AppState, subscription_id: str) -> str | None:
-    """Id сохранённой подписки, если её типы событий разошлись с `SUBSCRIBED_EVENTS`.
-
-    Сбой сверки не мешает работе: подписка остаётся прежней до следующего старта.
-    """
     try:
         listing = await state.client.list_webhook_subscriptions()
     except (PlatformApiError, PlatformUnreachableError):

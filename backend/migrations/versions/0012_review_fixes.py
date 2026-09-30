@@ -1,10 +1,4 @@
-"""повторный вход по initData отзывает прежние сессии этой строки
-
-Revision ID: 0012
-Revises: 0011
-Create Date: 2026-09-25
-
-"""
+"""повторный вход по initData отзывает прежние сессии этой строки"""
 
 from collections.abc import Sequence
 

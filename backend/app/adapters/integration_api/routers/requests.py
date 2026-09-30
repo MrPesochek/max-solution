@@ -124,7 +124,7 @@ async def decline_request(
 @router.post(
     "/{request_id}/withdraw",
     response_model=RequestProviderView,
-    description="D2: отказ исполнителя после принятия назначения.",
+    description="Отказ исполнителя после принятия назначения.",
 )
 async def withdraw_assignment(
     actor: RequestsWrite, request_id: str, body: WithdrawAssignmentBody, idem: Idem

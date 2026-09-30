@@ -85,7 +85,6 @@ class VerificationInformationData:
 
 
 def resolve_is_demo(is_demo: bool) -> bool:
-    """Вне прода любая проверка демонстрационная и помечается как таковая (A37)."""
     return is_demo or get_settings().app_env != "prod"
 
 
@@ -95,7 +94,6 @@ async def open_verification_cases(
     membership_id: uuid.UUID | None,
     check_kinds: tuple[str, ...],
 ) -> list[VerificationCase]:
-    """Ставит организацию в очередь проверки; уже открытые дела не дублируются."""
     existing = {
         case.check_kind: case
         for case in (
@@ -136,7 +134,6 @@ async def open_verification_cases(
 async def submit_verification_information(
     actor: Actor, data: VerificationInformationData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Заявитель доносит минимально необходимые сведения текстом (ТЗ 6.5.2)."""
     admin = policy.require_provider_admin(actor)
     note = policy.require_text(data.note, "note", "Укажите сведения для проверки")
 
@@ -306,10 +303,6 @@ async def _recalculate_customer_ratings(ctx: CommandContext, org: Organization) 
 
 
 async def _confirm_awaiting_bindings(ctx: CommandContext, org: Organization) -> None:
-    """ТЗ 6.6.2 п.4: привязка по приглашению ждала проверки организации заказчика.
-
-    Подтверждаются только привязки, чей заявленный при выпуске ИНН по-прежнему
-    совпадает с ИНН проверенной организации."""
     customer_org_id = org.id
     if not org.inn_normalized:
         return
@@ -414,7 +407,6 @@ async def _change_provider_status(
 
 
 async def _notify_active_customers(ctx: CommandContext, provider_org_id: uuid.UUID) -> None:
-    """D28: заказчики с активными работами узнают о потере статуса исполнителем."""
     rows = list(
         (
             await ctx.session.execute(
@@ -453,12 +445,6 @@ async def reopen_verification(
     compromise: bool = False,
     idem: Idempotency | None,
 ) -> CommandResult:
-    """ТЗ 6.5.3: смена реквизитов, владельца или представителя проверенного исполнителя.
-
-    Оператор открывает повторную проверку тем же механизмом, что и истечение срока:
-    дело снова в очереди, профиль уходит в `needs_information` — реквизиты
-    становятся доступны для правки, новые заявки закрыты до решения. При
-    компрометации (`compromise`) отзываются ключи интеграции и сессии сотрудников."""
     policy.require_operator_or_system(actor)
     organization_id = ids.decode("organization", organization_public_id)
     checked_reason = policy.require_reason(reason)
@@ -507,7 +493,6 @@ async def reopen_verification(
 
 
 async def _revoke_access(ctx: CommandContext, organization_id: uuid.UUID) -> dict[str, int]:
-    """Компрометация: ключи CRM и подписки отключаются, сессии сотрудников закрываются."""
     clients = list(
         (
             await ctx.session.execute(
@@ -552,15 +537,6 @@ _expiry_quarantine = Quarantine(base=timedelta(minutes=1), maximum=timedelta(hou
 
 
 async def expire_verifications(now: datetime) -> int:
-    """Цикл worker: снимает истёкшие проверки (`verification_cases.expires_at`).
-
-    Признак перестаёт отображаться как действующий сразу по истечении срока —
-    это делают представления (`queries.active_checks`); здесь состояние
-    доводится до базы: дело закрывается как `revoked`, организация снова в
-    очереди проверки, профиль исполнителя без действующих реквизитов или
-    представителя уходит в `needs_information` (ТЗ 6.5.1 п.6), рейтинг
-    пересчитывается, гарантийные полномочия с этим источником истекают.
-    """
     held_cases = _expiry_quarantine.held(_EXPIRY_CASES, now)
     held_warranty = _expiry_quarantine.held(_EXPIRY_WARRANTY, now)
     due_cases = await _due_ids(

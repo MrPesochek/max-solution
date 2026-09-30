@@ -230,7 +230,6 @@ async def test_cancel_before_and_after_acceptance(
 async def test_visit_window_uses_location_timezone(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Выбранные «9:00» на точке в Екатеринбурге — это 04:00 UTC, а не 9:00 UTC."""
     world = await rf.build(db_session, location_timezone="Asia/Yekaterinburg")
     await db_session.commit()
     fixed_now = datetime(2026, 6, 15, 6, 0, tzinfo=UTC)
@@ -354,7 +353,6 @@ async def test_cancel_after_acceptance_opens_dispute(
 async def test_force_cancel_after_silent_deadline(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Исполнитель молчит до срока ответа — кнопка прекращения есть и без спора."""
     world = await rf.build(db_session)
     await db_session.commit()
     await _submit_own_service_request(harness, world)

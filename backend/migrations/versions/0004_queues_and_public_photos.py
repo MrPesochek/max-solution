@@ -1,10 +1,4 @@
-"""аренда доставок, состояния blocked/skipped, last_used_at ключа, публикуемые фото карточки
-
-Revision ID: 0004
-Revises: 0003
-Create Date: 2026-09-20
-
-"""
+"""аренда доставок, состояния blocked/skipped, last_used_at ключа, публикуемые фото карточки"""
 
 from collections.abc import Sequence
 

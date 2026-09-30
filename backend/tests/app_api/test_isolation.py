@@ -73,7 +73,6 @@ async def test_foreign_objects_are_not_found(client: AsyncClient) -> None:
 
 
 async def test_foreign_organization_header_is_not_found(client: AsyncClient) -> None:
-    """A27/A30: знание идентификатора организации не даёт контекста в ней."""
     mine = await _org("Моя", "iso-hdr-mine", inn="7707083893")
     other = await _org("Чужая", "iso-hdr-other", inn="7707083893")
 
@@ -104,7 +103,6 @@ async def test_organization_context_is_required_for_org_data(client: AsyncClient
 async def test_preview_token_never_reaches_logs(
     client: AsyncClient, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """ТЗ 6.7: единственный токен в URL не попадает ни в журнал запросов, ни в ответ об ошибке."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s, name="Журнал")
         user = await factories.create_user(s, max_user_id="log-preview")
@@ -146,7 +144,6 @@ async def test_preview_accepts_token_in_body(client: AsyncClient, app: FastAPI) 
 
 
 async def test_dual_organization_context_is_chosen_by_membership(client: AsyncClient) -> None:
-    """ТЗ 3: две роли в одной организации — контекст задаёт X-Membership-Id."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s, name="Двойная")
         user = await factories.create_user(s, max_user_id="iso-dual")

@@ -1,10 +1,4 @@
-"""seed directories — пример города с районами, категории холодильного сегмента
-
-Revision ID: 0002
-Revises: 0001
-Create Date: 2026-09-19
-
-"""
+"""seed directories — пример города с районами, категории холодильного сегмента"""
 
 import json
 import uuid

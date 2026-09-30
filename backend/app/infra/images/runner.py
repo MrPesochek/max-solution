@@ -12,7 +12,7 @@ from app.infra.images.processor import ImageRejected, ProcessedImage, process_im
 try:
     import resource
 except ImportError:
-    resource = None  # type: ignore[assignment]
+    resource = None
 
 DEFAULT_TIMEOUT_SECONDS = 10.0
 DEFAULT_MEMORY_LIMIT_BYTES = 512 * 1024 * 1024
@@ -54,7 +54,7 @@ async def process_image_isolated(
     *,
     max_pixels: int,
     max_bytes: int,
-    timeout: float = DEFAULT_TIMEOUT_SECONDS,  # noqa: ASYNC109 — часть требуемого контракта функции
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
     memory_limit_bytes: int = DEFAULT_MEMORY_LIMIT_BYTES,
     worker: Worker = process_image,
 ) -> ProcessedImage:
@@ -90,7 +90,7 @@ async def process_image_isolated(
 
     status, payload = result
     if status == "ok":
-        return payload  # type: ignore[no-any-return]
+        return payload
     if status == "rejected":
         raise ImageRejected(str(payload))
     raise ImageRejected("decode_failed")

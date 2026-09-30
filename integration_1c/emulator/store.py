@@ -39,8 +39,6 @@ CREATE TABLE IF NOT EXISTS counters (
 
 
 class StoreError(Exception):
-    """Ошибка уровня 1С: неизвестное свойство, незаполненный реквизит при проведении."""
-
     def __init__(self, message: str, *, status_code: int = 400) -> None:
         super().__init__(message)
         self.message = message
@@ -218,7 +216,6 @@ def file_content(conn: sqlite3.Connection, file_ref: str) -> bytes | None:
 
 
 def seed(conn: sqlite3.Connection) -> None:
-    """Справочники демонстрационной базы; повторный запуск ничего не дублирует."""
     states = {s["Description"] for s in list_all(conn, STATES)}
     for name in SEED_STATES:
         if name not in states:

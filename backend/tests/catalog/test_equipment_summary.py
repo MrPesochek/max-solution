@@ -86,8 +86,6 @@ async def test_summary_skips_rejected_binding_and_prefers_confirmed() -> None:
 
 
 async def test_personal_contact_is_not_hidden_by_pending_binding() -> None:
-    """«Мой контакт» заказчик подтвердил сам — он важнее незавершённого запроса привязки,
-    но уступает подтверждённой привязке сервиса."""
     world = await factories.build_world(binding_status="pending")
     await trust.create_contact_binding(
         world.manager,

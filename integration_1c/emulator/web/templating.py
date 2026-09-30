@@ -9,7 +9,6 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 
 def _date(value: Any) -> str:
-    """Дата 1С `ГГГГ-ММ-ДДTчч:мм:сс` -> `ДД.ММ.ГГГГ чч:мм`; пустая дата 1С — прочерк."""
     text = str(value or "")
     if not text or text.startswith("0001-01-01"):
         return "—"

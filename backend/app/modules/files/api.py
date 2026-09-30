@@ -100,11 +100,6 @@ async def upload_attachment(
     stream: AsyncIterable[bytes],
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Права и лимиты — до записи; файл — вне транзакции; строка — командой.
-
-    `filename_hint` и `content_type_hint` доверенными не считаются: имя файла
-    генерирует сервер, тип определяется по сигнатуре (ТЗ 14.1.2).
-    """
     async with _read_session() as session:
         plan = await upload.prepare(session, actor, owner, purpose)
 
@@ -132,7 +127,6 @@ async def submit_portfolio_image(
     stream: AsyncIterable[bytes],
     idem: Idempotency | None = None,
 ) -> CommandResult:
-    """Галерея исполнителя: изображение уходит на модерацию и публикуется после неё."""
     return await upload_attachment(
         actor,
         owner=provider_profile_owner(),
@@ -157,9 +151,6 @@ async def attach_review_photos(
     *,
     confirm_sensitive: bool = False,
 ) -> list[uuid.UUID]:
-    """Вызывается модулем отзывов в его транзакции; возвращает id созданных копий.
-
-    Фото шильдика и документов (`request_sensitive`) — только с `confirm_sensitive`."""
     return await publication.attach_review_photos(
         ctx, review_id, attachment_ids, confirm_sensitive=confirm_sensitive
     )
@@ -191,7 +182,6 @@ async def get_attachment(actor: Actor, attachment_id: uuid.UUID) -> AttachmentVi
 
 
 async def list_for_request(actor: Actor, request_id: uuid.UUID) -> list[AttachmentView]:
-    """Список вложений заявки, доступных именно этому актору (A19)."""
     async with _read_session() as session:
         return await list_for_request_in(session, actor, request_id)
 
@@ -199,10 +189,6 @@ async def list_for_request(actor: Actor, request_id: uuid.UUID) -> list[Attachme
 async def list_for_request_in(
     session: AsyncSession, actor: Actor, request_id: uuid.UUID
 ) -> list[AttachmentView]:
-    """То же в сессии вызывающего: обработчик команды и чтение карточки не берут
-    второе соединение из пула и видят ещё не зафиксированные изменения своей транзакции.
-
-    Заявка, назначение и публичная карточка загружаются один раз на весь список."""
     context = await queries.request_access_context(session, request_id, actor)
     items: list[AttachmentView] = []
     for attachment in await queries.request_attachments(session, request_id):
@@ -213,7 +199,6 @@ async def list_for_request_in(
 
 
 async def list_for_equipment(actor: Actor, equipment_id: uuid.UUID) -> list[AttachmentView]:
-    """Список фото карточки оборудования, доступных именно этому актору."""
     async with _read_session() as session:
         items: list[AttachmentView] = []
         for attachment in await queries.equipment_attachments(session, equipment_id):
@@ -252,7 +237,6 @@ async def set_portfolio_caption(
 async def public_gallery_items(
     session: AsyncSession, provider_org_id: uuid.UUID
 ) -> list[GalleryItemView]:
-    """Опубликованные фото портфолио с подписями для публичного профиля."""
     return [
         GalleryItemView(id=ids.encode("attachment", value), caption=caption)
         for value, caption in await queries.published_portfolio_items(session, provider_org_id)
@@ -260,7 +244,6 @@ async def public_gallery_items(
 
 
 async def public_gallery(session: AsyncSession, provider_org_id: uuid.UUID) -> list[str]:
-    """Идентификаторы опубликованных фото портфолио для публичного профиля (ТЗ 6.4)."""
     return [
         ids.encode("attachment", value)
         for value in await queries.published_portfolio_ids(session, provider_org_id)
@@ -270,7 +253,6 @@ async def public_gallery(session: AsyncSession, provider_org_id: uuid.UUID) -> l
 async def open_attachment(
     actor: Actor, attachment_id: uuid.UUID, variant: str = queries.VARIANT_SAFE
 ) -> AttachmentContent:
-    """Выдача файла: только готовая копия и только тому, кому разрешает политика."""
     kind = queries.VARIANT_KINDS.get(variant)
     if kind is None:
         raise ValidationFailed("Доступны варианты safe и thumb", field="variant")
@@ -320,8 +302,6 @@ async def _visibility(
 
 
 async def _marketplace_visible(session: AsyncSession, actor: Actor, attachment: Attachment) -> bool:
-    """Подходящесть исполнителя биржи считает сам модуль заявок (та же логика, что A07) —
-    в той же сессии, без второго соединения из пула."""
     if attachment.visibility_class != VisibilityClass.PUBLIC_CARD or attachment.request_id is None:
         return False
     from app.modules.requests import api as requests_api

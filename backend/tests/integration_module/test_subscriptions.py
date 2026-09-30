@@ -83,7 +83,6 @@ async def test_unknown_event_type_rejected(db_session: AsyncSession) -> None:
 async def test_ssrf_unsafe_url_rejected(
     db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch, url: str
 ) -> None:
-    """A20: недопустимый webhook URL отклоняется при создании подписки."""
     monkeypatch.setenv("ALLOWED_PRIVATE_WEBHOOK_HOSTS", "")
     get_settings.cache_clear()
     org = await provider_org(db_session)
@@ -180,7 +179,6 @@ async def test_provider_admin_manages_subscriptions_via_user_api(
 
 
 async def test_key_manages_only_own_subscriptions(db_session: AsyncSession) -> None:
-    """L10: ключ с webhooks:manage не видит и не трогает подписки другого ключа организации."""
     org = await provider_org(db_session)
     admin = await provider_admin(db_session, org)
     client_a, _ = await factories.create_integration_client(db_session, org, name="A")

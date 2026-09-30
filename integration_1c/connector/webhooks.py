@@ -94,7 +94,6 @@ async def receive_platform_webhook(request: Request) -> Response:
 
 
 async def _read_limited(request: Request) -> bytes | None:
-    """Тело читается потоком: без Content-Length (chunked) лимит тоже соблюдается."""
     chunks: list[bytes] = []
     size = 0
     async for chunk in request.stream():
@@ -156,8 +155,6 @@ async def _process_with_retries(state: AppState, envelope: WebhookEnvelope) -> N
 
 
 def mark_failed(state: AppState, event_id: str, exc: Exception) -> None:
-    """Раунд повторов исчерпан: событие ждёт следующего раунда в recovery (с растущей
-    задержкой) или, если раунды кончились, получает `dead` и видно в `/status`."""
     settings = state.settings
     status = repo.mark_event_failed(
         state.conn,
@@ -172,7 +169,6 @@ def mark_failed(state: AppState, event_id: str, exc: Exception) -> None:
 
 
 async def drain_background_tasks(state: AppState, timeout_seconds: float = 5.0) -> None:
-    """Для тестов: дождаться завершения всех фоновых задач обработки событий."""
     try:
         async with asyncio.timeout(timeout_seconds):
             while state.background_tasks:

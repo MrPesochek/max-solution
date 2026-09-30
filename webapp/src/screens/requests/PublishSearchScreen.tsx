@@ -96,9 +96,6 @@ export function PublishSearchScreen() {
         .catch((e: unknown) => setPreviewError(e instanceof ApiError ? e.message : strings.common.unknownError));
     }, 300);
     return () => window.clearTimeout(timer);
-    // `preview` (объект мутации) намеренно не в зависимостях — он новый на каждый рендер,
-    // добавление вызвало бы бесконечный цикл пересоздания эффекта.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, initialised, description, districtId, selectedPhotoIds, confirmSensitive]);
 
   if (!activeMembership || !id) return null;

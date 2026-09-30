@@ -20,7 +20,7 @@ from tests.support import (
 pytestmark = pytest.mark.usefixtures("clean_db")
 
 
-def _data(provider_org_id, **overrides):  # type: ignore[no-untyped-def]
+def _data(provider_org_id, **overrides):
     payload = {
         "provider_organization_id": ids.encode("organization", provider_org_id),
         "guarantor_kind": "manufacturer",
@@ -34,7 +34,6 @@ def _data(provider_org_id, **overrides):  # type: ignore[no-untyped-def]
 
 
 async def test_parties_cannot_grant_themselves_warranty_authority() -> None:
-    """A33: ни исполнитель, ни заказчик не могут выдать себе полномочия."""
     provider = await make_provider("wa-self", status="active", accepting=True, verified=True)
     customer = await make_customer("wa-self-c")
 
@@ -93,7 +92,6 @@ async def test_operator_grants_authority_with_source_and_scope() -> None:
 
 
 async def test_warranty_binding_uses_authorized_source_and_is_not_transferred() -> None:
-    """A33: смена мастера не переносит гарантийные полномочия."""
     authorized = await make_provider("wa-auth", status="active", accepting=True, verified=True)
     other = await make_provider(
         "wa-other", status="active", accepting=True, verified=True, inn=OTHER_INN
@@ -120,7 +118,7 @@ async def test_warranty_binding_uses_authorized_source_and_is_not_transferred() 
     assert {row.status for row in rows} == {"revoked", "confirmed"}
 
 
-async def _bind(provider, customer, number: str, key: str):  # type: ignore[no-untyped-def]
+async def _bind(provider, customer, number: str, key: str):
     issued = await trust.create_binding_invitation(
         provider.admin,
         trust.BindingInvitationData(

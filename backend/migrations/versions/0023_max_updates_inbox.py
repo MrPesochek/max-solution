@@ -1,10 +1,4 @@
-"""durable inbox событий MAX: статусы, аренда, повторы; индексы уборки
-
-Revision ID: 0023
-Revises: 0022
-Create Date: 2026-09-30
-
-"""
+"""durable inbox событий MAX: статусы, аренда, повторы; индексы уборки"""
 
 from collections.abc import Sequence
 

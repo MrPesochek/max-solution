@@ -48,8 +48,6 @@ VAT = "included"
 
 @dataclass(frozen=True, slots=True)
 class Cast:
-    """Участники и оборудование сценариев."""
-
     manager: UserActor
     employee: UserActor
     bakery_manager: UserActor
@@ -62,8 +60,6 @@ class Cast:
 
 
 class _Clock:
-    """Местное время города стенда: окна выезда задаются «завтра 15:00», а не в UTC."""
-
     def __init__(self, timezone: str) -> None:
         self.tz = ZoneInfo(timezone)
         self.now = utcnow()
@@ -113,7 +109,6 @@ def _request_id(body: dict[str, object]) -> uuid.UUID:
 async def _own_service(
     actor: UserActor, equipment_id: uuid.UUID, symptom: str, *, urgency: str = "normal"
 ) -> tuple[uuid.UUID, uuid.UUID]:
-    """Черновик и отправка своему сервису: (заявка, назначение)."""
     result = await create_draft(
         actor,
         equipment_id=equipment_id,
@@ -167,11 +162,6 @@ async def _agreed_visit(
     start: datetime,
     end: datetime,
 ) -> None:
-    """Сервис принял заявку, руководитель согласовал выезд — `scheduled`.
-
-    Ядро не согласует уже прошедшее окно (ТЗ 8.1). Для выезда из истории стенда
-    согласуется ближайшее окно той же длины, затем оно переносится на заданное время.
-    """
     await accept_assignment(cast.provider_admin, request_id, assignment_id=assignment_id)
     past = end <= utcnow()
     agreed_start, agreed_end = (
@@ -255,7 +245,6 @@ async def _offer(
 
 
 async def _visit_to_approve(cast: Cast, clock: _Clock) -> None:
-    """«Согласуйте выезд»: сервис принял заявку и предложил выезд на завтра."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_1"],
@@ -277,7 +266,6 @@ async def _visit_to_approve(cast: Cast, clock: _Clock) -> None:
 
 
 async def _visit_changed(cast: Cast, clock: _Clock) -> None:
-    """«Условия изменились»: вторая версия предложения выезда с новой ценой."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_4"],
@@ -309,7 +297,6 @@ async def _visit_changed(cast: Cast, clock: _Clock) -> None:
 
 
 async def _search_with_offers(cast: Cast, clock: _Clock) -> None:
-    """Внешний поиск: три отклика, один «после осмотра», и вопрос кандидата."""
     result = await create_draft(
         cast.manager,
         equipment_id=cast.equipment["equipment_3"],
@@ -355,7 +342,6 @@ async def _search_with_offers(cast: Cast, clock: _Clock) -> None:
 
 
 async def _search_without_offers(cast: Cast, clock: _Clock) -> None:
-    """Поиск только открыт: откликов нет, исполнитель уточняет детали."""
     result = await create_draft(
         cast.manager,
         equipment_id=cast.equipment["equipment_9"],
@@ -374,7 +360,6 @@ async def _search_without_offers(cast: Cast, clock: _Clock) -> None:
 
 
 async def _repair_to_approve(cast: Cast, clock: _Clock) -> None:
-    """«Согласуйте ремонт»: мастер на месте, смета с позициями ждёт решения."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_6"],
@@ -401,7 +386,6 @@ async def _repair_to_approve(cast: Cast, clock: _Clock) -> None:
 
 
 async def _incoming_with_photos(cast: Cast, clock: _Clock) -> None:
-    """Входящая заявка своему сервису с фото — ждёт ответа исполнителя."""
     result = await create_draft(
         cast.manager,
         equipment_id=cast.equipment["equipment_10"],
@@ -417,7 +401,6 @@ async def _incoming_with_photos(cast: Cast, clock: _Clock) -> None:
 
 
 async def _incoming_from_bakery(cast: Cast, clock: _Clock) -> None:
-    """Срочная входящая от второго заказчика со своим договором."""
     await _own_service(
         cast.bakery_manager,
         cast.equipment["bakery_1"],
@@ -427,7 +410,6 @@ async def _incoming_from_bakery(cast: Cast, clock: _Clock) -> None:
 
 
 async def _incoming_clarification(cast: Cast, clock: _Clock) -> None:
-    """«Уточнение»: исполнитель задал вопрос до принятия, заказчик ещё не ответил."""
     request_id, assignment_id = await _own_service(
         cast.employee,
         cast.equipment["equipment_8"],
@@ -443,7 +425,6 @@ async def _incoming_clarification(cast: Cast, clock: _Clock) -> None:
 
 
 async def _visit_scheduled(cast: Cast, clock: _Clock) -> None:
-    """«Выезд согласован» на завтра — у исполнителя во вкладке «В работе»."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_11"],
@@ -461,7 +442,6 @@ async def _visit_scheduled(cast: Cast, clock: _Clock) -> None:
 
 
 async def _marketplace_in_progress(cast: Cast, clock: _Clock) -> None:
-    """Выбран внешний исполнитель с биржи, мастер уже работает."""
     result = await create_draft(
         cast.manager,
         equipment_id=cast.equipment["equipment_5"],
@@ -488,7 +468,6 @@ async def _marketplace_in_progress(cast: Cast, clock: _Clock) -> None:
 
 
 async def _completion_reported(cast: Cast, clock: _Clock) -> None:
-    """Отчёт мастера с фото «до» и «после» ждёт подтверждения руководителя."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_7"],
@@ -527,7 +506,6 @@ async def _completion_reported(cast: Cast, clock: _Clock) -> None:
 
 
 async def _closed_with_review(cast: Cast, clock: _Clock) -> None:
-    """Полный цикл до закрытия с опубликованным отзывом."""
     request_id, assignment_id = await _own_service(
         cast.manager,
         cast.equipment["equipment_2"],
@@ -594,7 +572,6 @@ async def _employee_draft(cast: Cast, clock: _Clock) -> None:
 
 
 async def _employee_approval(cast: Cast, clock: _Clock) -> None:
-    """Сотрудник отправил черновик руководителю на согласование."""
     result = await create_draft(
         cast.employee,
         equipment_id=cast.equipment["equipment_13"],

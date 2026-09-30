@@ -62,7 +62,6 @@ async def _customer_manager(
 
 
 async def _dual() -> tuple[Organization, Membership, Membership]:
-    """Организация с обеими ролями и руководитель с членством на каждой стороне."""
     org, customer = await _customer_manager()
     result = await identity.add_participation(
         _actor(customer),
@@ -128,7 +127,6 @@ async def test_add_participation_requires_manager_of_this_organization() -> None
 
 
 async def test_verified_inn_of_other_provider_blocks_provider_participation() -> None:
-    """ИНН-уникальность проверенного исполнителя сохраняется (ТЗ 6.5.3)."""
     async with db_session.transaction() as s:
         taken = await factories.create_organization(s, customer=False, provider=True, inn=VALID_INN)
         taken.details_verification_status = "verified"
@@ -337,7 +335,6 @@ async def test_update_organization_by_id_and_requisites_rules() -> None:
 
 
 async def test_organization_cannot_take_its_own_request() -> None:
-    """Самоназначение: собственная заявка не попадает на биржу своей же стороны исполнителя."""
     world = await req_factories.build_world()
     async with db_session.transaction() as s:
         customer = await s.get(Organization, world.customer_org_id)

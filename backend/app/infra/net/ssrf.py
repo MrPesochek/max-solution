@@ -40,7 +40,6 @@ def _is_forbidden(ip: _IpAddress) -> bool:
 
 
 def _is_always_forbidden(ip: _IpAddress) -> bool:
-    """Закрыто и для хостов из списка: метаданные облака и прочие не-адресаты."""
     if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
         return _is_always_forbidden(ip.ipv4_mapped)
     return bool(
@@ -136,8 +135,6 @@ def resolve_public_ips(host: str) -> list[str]:
 
 
 def resolve_listed_ips(host: str) -> list[str]:
-    """Хост из списка приватных: частные адреса допустимы, link-local, метаданные
-    облака и loopback — нет (имя не должно незаметно указывать на сам сервер)."""
     ips = _resolve_any(host)
     for raw_ip in ips:
         ip = ipaddress.ip_address(raw_ip)
@@ -163,15 +160,10 @@ async def post_pinned(
     *,
     body: bytes,
     headers: Mapping[str, str] | None = None,
-    timeout: float,  # noqa: ASYNC109 — часть требуемой сигнатуры post_pinned
+    timeout: float,
     private_hosts: PrivateHosts = (),
     max_response_bytes: int = 64 * 1024,
 ) -> PinnedResponse:
-    """`timeout` — общий дедлайн доставки: DNS, соединение и чтение ответа вместе.
-
-    Таймауты httpx действуют на каждую операцию отдельно, и медленный сервер,
-    отдающий ответ по байту, иначе держал бы доставку сколь угодно долго.
-    """
     try:
         async with asyncio.timeout(timeout):
             return await _post_pinned(
@@ -191,7 +183,7 @@ async def _post_pinned(
     *,
     body: bytes,
     headers: Mapping[str, str] | None,
-    timeout: float,  # noqa: ASYNC109 — таймаут отдельной операции httpx
+    timeout: float,
     private_hosts: PrivateHosts,
     max_response_bytes: int,
 ) -> PinnedResponse:

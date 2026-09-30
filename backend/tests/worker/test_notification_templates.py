@@ -100,7 +100,7 @@ async def test_visit_proposal_current_state_has_approve_reject(
     assert "версия 1" in message.text
     assert "15000" not in message.text
     assert message.attachments
-    buttons = [b for row in message.attachments[0].payload.buttons for b in row]  # type: ignore[union-attr]
+    buttons = [b for row in message.attachments[0].payload.buttons for b in row]
     assert {b.text for b in buttons} == {"Согласовать выезд (версия 1)", "Отклонить выезд"}
 
 
@@ -150,7 +150,7 @@ async def test_visit_proposal_outdated_state_has_no_buttons(
     )
     assert "неактуальны" in message.text
     assert message.attachments
-    buttons = [b for row in message.attachments[0].payload.buttons for b in row]  # type: ignore[union-attr]
+    buttons = [b for row in message.attachments[0].payload.buttons for b in row]
     assert {b.text for b in buttons} == {"Открыть"}
 
 
@@ -168,7 +168,7 @@ async def test_request_assigned_has_accept_decline_when_pending(
         recipient_user_id=world.dispatcher.user_id,
         now=_now(),
     )
-    buttons = [b for row in message.attachments[0].payload.buttons for b in row]  # type: ignore[union-attr]
+    buttons = [b for row in message.attachments[0].payload.buttons for b in row]
     assert {b.text for b in buttons} == {"Принять", "Отклонить"}
 
 
@@ -209,7 +209,7 @@ async def test_completion_reported_has_confirm_when_actual(
         recipient_user_id=world.manager.user_id,
         now=_now(),
     )
-    buttons = [b for row in message.attachments[0].payload.buttons for b in row]  # type: ignore[union-attr]
+    buttons = [b for row in message.attachments[0].payload.buttons for b in row]
     assert {b.text for b in buttons} == {"Подтвердить", "Проблема осталась"}
 
 
@@ -234,7 +234,6 @@ async def test_completion_reported_outdated_after_confirm(
 async def test_cancellation_notice_renders_its_own_cancellation(
     clean_db: None, db_session: AsyncSession
 ) -> None:
-    """Уведомление прежнему исполнителю — о его отмене, а не о следующей по заявке."""
     world = await req_factories.build_world()
     rival = await req_factories.build_rival_provider(world)
     accepted = await req_helpers.make_marketplace_accepted(world)

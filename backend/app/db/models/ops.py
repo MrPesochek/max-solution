@@ -7,9 +7,6 @@ from app.db.base import Base
 
 
 class WorkerHeartbeat(Base):
-    """Последний проход цикла worker. Строку пишет сам цикл, читают healthcheck
-    worker (`python -m app.worker.health`) и `/ops/status`."""
-
     __tablename__ = "worker_heartbeats"
 
     loop_name: Mapped[str] = mapped_column(Text, primary_key=True)

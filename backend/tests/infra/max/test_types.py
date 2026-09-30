@@ -39,7 +39,7 @@ def test_url_alias_fills_web_app(configured: Settings) -> None:
 
 def test_falls_back_to_link_without_bot_username(without_username: Settings) -> None:
     attachment = open_webapp_button("request", "req_1")
-    button = attachment.payload.buttons[0][0]  # type: ignore[union-attr]
+    button = attachment.payload.buttons[0][0]
     assert button.type == "link"
     assert button.url == "https://app.test/?screen=request&id=req_1"
 

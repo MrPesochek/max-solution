@@ -20,7 +20,6 @@ def require_operator(actor: Actor) -> OperatorActor:
 
 
 def require_operator_or_system(actor: Actor) -> OperatorActor | SystemActor:
-    """CLI действует от имени платформы; решения по существу остаются за оператором."""
     if isinstance(actor, OperatorActor | SystemActor):
         return actor
     raise Forbidden()
@@ -35,7 +34,6 @@ def require_provider_admin(actor: Actor) -> UserActor:
 
 
 def require_binding_actor(actor: Actor) -> UserActor | IntegrationActor:
-    """Сторона исполнителя: администратор/диспетчер либо ключ CRM с отдельным scope (ТЗ 6.7)."""
     if isinstance(actor, IntegrationActor):
         if BINDING_SCOPE not in actor.scopes:
             raise Forbidden(code="INSUFFICIENT_SCOPE", required_scope=BINDING_SCOPE)
@@ -48,7 +46,6 @@ def organization_of(actor: UserActor | IntegrationActor) -> object:
 
 
 def require_reason(value: str | None, field: str = "reason") -> str:
-    """Решение оператора и отказ стороны всегда содержат основание (A37)."""
     text = (value or "").strip()
     if not text:
         raise ValidationFailed("Укажите основание решения", field=field)

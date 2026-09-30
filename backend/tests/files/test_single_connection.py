@@ -20,7 +20,6 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 @pytest_asyncio.fixture
 async def single_connection(db_engine: AsyncEngine) -> AsyncIterator[AsyncEngine]:
-    """Пул из одного соединения: попытка взять второе падает через секунду."""
     engine = create_async_engine(db_engine.url, pool_size=1, max_overflow=0, pool_timeout=1)
     db_session.configure(engine)
     try:
@@ -85,7 +84,6 @@ async def test_provider_command_fits_one_connection(
 async def test_second_connection_inside_command_is_detected(
     world: World, single_connection: AsyncEngine
 ) -> None:
-    """Сам тест ловит нарушение: прежний путь с отдельной сессией не укладывается в пул."""
     draft = await request_helpers.make_marketplace_draft(world)
 
     async def handler(ctx: CommandContext) -> CommandResult:

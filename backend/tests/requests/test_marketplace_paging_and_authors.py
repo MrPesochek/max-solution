@@ -18,7 +18,6 @@ async def _publish(world: World, equipment_id: Any) -> dict[str, Any]:
 
 
 async def test_marketplace_pages_do_not_lose_cards(world: World) -> None:
-    """Страница заполнилась раньше, чем кончились кандидаты: курсор ведёт к остальным."""
     first = await _publish(world, world.equipment_id)
     second = await _publish(world, world.other_equipment_id)
 

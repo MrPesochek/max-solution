@@ -264,7 +264,6 @@ async def test_foreign_key_sees_nothing(client: AsyncClient) -> None:
 async def test_late_response_on_revoked_assignment_is_conflict(
     client: AsyncClient, app_client: AsyncClient
 ) -> None:
-    """A12: назначение отозвано руководителем — поздний ответ CRM отклоняется как устаревший."""
     world = await rf.build_world()
     crm_key = await _api_key(world.provider_org_id)
     manager_headers = await app_headers(world.manager)
@@ -359,7 +358,6 @@ async def test_idempotent_repeat_post(client: AsyncClient) -> None:
 
 
 async def test_request_mutation_requires_expected_version(client: AsyncClient) -> None:
-    """ТЗ 10.1, I8: изменение заявки без `expected_version` не принимается."""
     world = await rf.build_world()
     crm_key = await _api_key(world.provider_org_id)
     submitted = await helpers.make_submitted(world)

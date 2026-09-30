@@ -28,8 +28,6 @@ class ReceivedWebhook:
 
 @dataclass
 class Receiver:
-    """Локальный приёмник: запоминает запросы и отдаёт заранее заданные коды ответа."""
-
     url: str = ""
     received: list[ReceivedWebhook] = field(default_factory=list)
     statuses: deque[int] = field(default_factory=deque)
@@ -57,7 +55,7 @@ async def receiver() -> AsyncIterator[Receiver]:
     config = uvicorn.Config(app, host="127.0.0.1", port=0, log_level="error", lifespan="off")
     server = uvicorn.Server(config)
     task = asyncio.create_task(server.serve())
-    while not server.started:  # noqa: ASYNC110 — uvicorn.Server не даёт события «запущен»
+    while not server.started:
         await asyncio.sleep(0.01)
     port = server.servers[0].sockets[0].getsockname()[1]
     state.url = f"http://127.0.0.1:{port}/hooks"

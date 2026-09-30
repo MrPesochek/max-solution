@@ -130,8 +130,6 @@ async def reopen_verification(
     body: ReopenVerificationBody,
     idem_key: IdemKey,
 ) -> dict[str, Any]:
-    """ТЗ 6.5.3: смена реквизитов или представителя допущенного исполнителя —
-    повторная проверка; при компрометации ключи и сессии отзываются."""
     idem = make_idempotency(
         idem_key,
         f"POST /provider-profiles/{organization_id}/reopen-verification",
@@ -152,7 +150,6 @@ async def reopen_verification(
 async def list_supervised_assignments(
     operator: CurrentOperator,
 ) -> list[SupervisedAssignmentView]:
-    """Принятые работы заблокированных исполнителей — под контролем оператора (ТЗ 6.5.3)."""
     return await requests_api.supervised_assignments(operator)
 
 
@@ -163,7 +160,6 @@ async def list_deliveries(
     cursor: str | None = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> DeliveryPageView:
-    """Журнал доставок любой организации: техническая поддержка (ТЗ 3, 11.7)."""
     return await integration.list_deliveries(
         ids.decode("organization", organization_id), cursor=cursor, limit=limit
     )

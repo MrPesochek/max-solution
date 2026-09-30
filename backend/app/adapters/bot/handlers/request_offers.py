@@ -85,7 +85,6 @@ async def _offers_list(ctx: BotContext, claimed: ClaimedAction) -> None:
 async def _current_offer(
     ctx: BotContext, actor: UserActor, claimed: ClaimedAction, request_id: uuid.UUID
 ) -> tuple[requests_api.OfferView, requests_api.RequestCustomerView] | None:
-    """Оффер той же версии, что была на экране; иначе условия изменились."""
     view = await requests_api.get_request(actor, request_id)
     if not isinstance(view, requests_api.RequestCustomerView):
         return None

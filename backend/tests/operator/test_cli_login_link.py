@@ -18,7 +18,6 @@ CLI = SystemActor(cli.CLI_ACTOR_NAME)
 
 @pytest.fixture(autouse=True)
 def settings(monkeypatch: pytest.MonkeyPatch) -> Iterator[Settings]:
-    """Стенд проверки: демо-окружение с ботом (иначе ссылку негде погасить)."""
     yield from factories.apply_test_settings(
         monkeypatch,
         APP_ENV="demo",
@@ -153,7 +152,6 @@ async def test_only_cli_actor_may_issue(db_session: AsyncSession) -> None:
 
 
 async def test_retry_after_missing_seed(db_session: AsyncSession) -> None:
-    """Без сида — понятный отказ; после сида повтор той же команды выпускает ссылку."""
     with pytest.raises(NotFound):
         await identity.issue_demo_login_link(CLI, "employee")
 

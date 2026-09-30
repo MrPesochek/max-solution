@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-# Поведение scripts/deploy.sh на заглушке docker: коды выхода и история выкладок
-# при удачной выкладке, автооткате и ручном откате (docs/deploy.md, «Обновление и откат»).
-#
-#   bash scripts/tests/test_deploy.sh
-#
-# Docker, сеть и настоящий .env не нужны: скрипт копируется во временный каталог,
-# docker подменяется заглушкой в PATH. Здоровье сервисов задаётся по тегу образа.
 
 set -euo pipefail
 
@@ -16,9 +9,6 @@ trap 'rm -rf "$WORK"' EXIT
 FAILED=0
 PASSED=0
 
-# Заглушка docker: `compose up` запоминает тег из env-файла, `inspect` отвечает
-# unhealthy для тегов из STUB_UNHEALTHY; `compose up` падает для тегов из STUB_UP_FAIL;
-# `compose run ... --pending` печатает STUB_PENDING (список миграций новой версии).
 make_stub() {
     mkdir -p "$WORK/bin"
     cat >"$WORK/bin/docker" <<'STUB'
@@ -57,7 +47,6 @@ STUB
     chmod +x "$WORK/bin/docker"
 }
 
-# Новый стенд: текущий тег $1, история — остальные аргументы.
 setup() {
     local current="$1"
     shift
@@ -76,7 +65,6 @@ ENV
     echo "$current" >"$WORK/state/running"
 }
 
-# Запуск deploy.sh; код выхода — в STATUS, stderr — в $WORK/stderr.
 deploy() {
     STATUS=0
     PATH="$WORK/bin:$PATH" STUB_STATE="$WORK/state" SKIP_PUBLIC_CHECK=1 HEALTH_TIMEOUT=5 \

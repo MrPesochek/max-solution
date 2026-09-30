@@ -131,7 +131,6 @@ export function RequestWizard({
       setNoPhotoChoice(saved.choice);
       setNoPhotoOther(saved.otherText);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- разбор один раз после загрузки категорий
   }, [categories.isSuccess]);
   const symptomDescription = joinSymptoms(symptoms, details, presets);
 
@@ -510,7 +509,6 @@ export function RequestWizard({
                   {attachments.isError && (
                     <ErrorState error={attachments.error} onRetry={() => void attachments.refetch()} />
                   )}
-                  {/* Без шаблона категории обязательные фото не видны — сбой показываем, а не прячем. */}
                   {categories.isError && (
                     <ErrorState error={categories.error} onRetry={() => void categories.refetch()} />
                   )}
@@ -546,7 +544,6 @@ export function RequestWizard({
                 {t.ownServiceMissingHint}
               </Banner>
             )}
-            {/* Сервис техники не загрузился — получатель неизвестен, отправлять нельзя. */}
             {binding.isError && <ErrorState error={binding.error} onRetry={() => void binding.refetch()} />}
             {errorNote}
           </>

@@ -62,8 +62,6 @@ class Page[T]:
 
 @dataclass(frozen=True, slots=True)
 class RequestRow:
-    """Строка списка: заявка, её точка и текущее (или последнее) назначение."""
-
     request: RepairRequest
     location_name: str | None
     equipment_title: str | None
@@ -93,7 +91,6 @@ def decode_cursor(kind: str, cursor: str | None) -> uuid.UUID | None:
 
 
 async def lock_request(session: AsyncSession, request_id: uuid.UUID) -> RepairRequest | None:
-    """Корневая строка агрегата под `FOR UPDATE`; доступ проверяет политика сразу после."""
     stmt = select(RepairRequest).where(RepairRequest.id == request_id).with_for_update()
     return (await session.execute(stmt)).scalar_one_or_none()
 
@@ -125,7 +122,6 @@ async def last_assignment(session: AsyncSession, request_id: uuid.UUID) -> Assig
 async def last_assignments(
     session: AsyncSession, request_ids: Sequence[uuid.UUID]
 ) -> dict[uuid.UUID, Assignment]:
-    """`last_assignment` для страницы списка — одним запросом (DISTINCT ON)."""
     if not request_ids:
         return {}
     stmt = (
@@ -140,7 +136,6 @@ async def last_assignments(
 async def provider_assignment(
     session: AsyncSession, request_id: uuid.UUID, provider_org_id: uuid.UUID
 ) -> Assignment | None:
-    """Последнее назначение исполнителя по заявке — включая прекращённое."""
     stmt = (
         select(Assignment)
         .where(
@@ -252,12 +247,6 @@ async def get_cancellation(
 async def last_cancellation(
     session: AsyncSession, request_id: uuid.UUID, *, assignment_id: uuid.UUID | None = None
 ) -> CancellationRequest | None:
-    """Последняя отмена по назначению: исполнителю — по его, заказчику — по текущему.
-
-    Исполнитель не видит причину и ответ прежнего. Заказчику после смены исполнителя
-    старый (принятый, отозванный, спорный) запрос в карточке не нужен — он относится к
-    прекращённому назначению и скрывал бы отмену нового.
-    """
     stmt = select(CancellationRequest).where(CancellationRequest.request_id == request_id)
     if assignment_id is not None:
         stmt = stmt.where(CancellationRequest.assignment_id == assignment_id)
@@ -299,7 +288,6 @@ async def get_location(session: AsyncSession, location_id: uuid.UUID) -> Locatio
 
 
 async def card_place_names(session: AsyncSession, card: RequestPublicCard) -> dict[str, str | None]:
-    """Названия города и района публичной карточки; улица в карточку не попадает."""
     city = await session.get(City, card.city_id)
     district = await session.get(District, card.district_id) if card.district_id else None
     return {
@@ -319,7 +307,6 @@ async def get_public_card(session: AsyncSession, request_id: uuid.UUID) -> Reque
 async def open_public_cards(
     session: AsyncSession, *, after: uuid.UUID | None = None, limit: int = 100
 ) -> list[tuple[RepairRequest, RequestPublicCard]]:
-    """Открытые карточки заявок, которые всё ещё ищут исполнителя."""
     stmt = (
         select(RepairRequest, RequestPublicCard)
         .join(RequestPublicCard, RequestPublicCard.request_id == RepairRequest.id)
@@ -369,7 +356,6 @@ async def next_offer_version(
 
 
 async def published_attachment_ids(session: AsyncSession, request_id: uuid.UUID) -> list[str]:
-    """Публичные копии фото карточки — отдельные вложения класса `public_card`."""
     stmt = select(RequestPublicCard.published_attachment_ids).where(
         RequestPublicCard.request_id == request_id
     )
@@ -380,10 +366,6 @@ async def published_attachment_ids(session: AsyncSession, request_id: uuid.UUID)
 async def published_source_attachment_ids(
     session: AsyncSession, copy_ids: Sequence[uuid.UUID]
 ) -> list[uuid.UUID]:
-    """Фото заявки, с которых сняты публичные копии карточки (по `source_attachment_id`).
-
-    Копии отзываются при снятии карточки, но связь с исходным фото остаётся — по ней
-    повторная публикация начинается с прежнего выбора."""
     if not copy_ids:
         return []
     stmt = select(Attachment.id, Attachment.source_attachment_id).where(Attachment.id.in_(copy_ids))
@@ -550,9 +532,6 @@ def _title(equipment: Equipment) -> str | None:
 
 @dataclass(frozen=True, slots=True)
 class MessageChannel:
-    """Видимая часть переписки. Без организации — вся (заказчик); иначе приватный
-    тред организации и общий канал её назначения (None — общего канала не видно)."""
-
     provider_org_id: uuid.UUID | None = None
     assignment_id: uuid.UUID | None = None
 
@@ -571,13 +550,6 @@ async def message_page(
     limit: int | None = None,
     direction: MessageDirection = "forward",
 ) -> Page[Message]:
-    """Исполнителю видны общий канал его назначения и только собственный приватный тред.
-
-    `forward` — от старых к новым, курсор ведёт к более новым. `backward` — страница самых
-    свежих сообщений (или тех, что старше курсора), курсор ведёт к более ранним: так чат
-    открывается на последних сообщениях и подгружает историю вверх. Внутри страницы порядок
-    всегда хронологический.
-    """
     size = page_limit(limit)
     stmt = select(Message).where(_visible_messages(request_id, channel))
     boundary = decode_cursor("message", cursor)
@@ -654,7 +626,6 @@ async def unread_messages_count(
     *,
     channel: MessageChannel = WHOLE_CHANNEL,
 ) -> int:
-    """Непрочитанные — видимые участнику сообщения после его отметки, кроме своих."""
     stmt = (
         select(func.count())
         .select_from(Message)
@@ -689,8 +660,6 @@ async def last_visible_message_id(
 
 @dataclass(frozen=True, slots=True)
 class MessageCounters:
-    """Счётчики переписки строки списка: непрочитанное читателя и последнее сообщение."""
-
     unread: int = 0
     last_message_at: datetime | None = None
 
@@ -701,12 +670,6 @@ async def message_counters(
     *,
     membership_id: uuid.UUID | None,
 ) -> dict[tuple[uuid.UUID, uuid.UUID | None], MessageCounters]:
-    """`unread_messages_count` и `last_message_at` для страницы списка — одним запросом.
-
-    Ключ — (заявка, назначение канала). Каналы строк одной страницы принадлежат одной
-    стороне: у исполнителя организация общая, различается только назначение строки,
-    поэтому пары (заявка, назначение) передаются таблицей VALUES. Без `membership_id`
-    (интеграция) непрочитанное не считается."""
     if not channels:
         return {}
     provider_orgs = {channel.provider_org_id for _, channel in channels}
@@ -771,7 +734,6 @@ async def message_counters(
 async def approved_visit_windows(
     session: AsyncSession, assignment_ids: Sequence[uuid.UUID]
 ) -> dict[uuid.UUID, VisitProposal]:
-    """Последнее согласованное предложение выезда каждого назначения."""
     if not assignment_ids:
         return {}
     stmt = (
@@ -804,7 +766,6 @@ async def membership_names(
 async def own_review_ratings(
     session: AsyncSession, customer_org_id: uuid.UUID, request_ids: Sequence[uuid.UUID]
 ) -> dict[uuid.UUID, int]:
-    """Оценка из отзыва своей организации; при нескольких назначениях — последний отзыв."""
     if not request_ids:
         return {}
     stmt = (
@@ -822,7 +783,6 @@ async def own_review_ratings(
 
 
 async def approver_name(session: AsyncSession, customer_org_id: uuid.UUID) -> str | None:
-    """Кто опубликует черновик сотрудника: первый действующий руководитель организации."""
     stmt = (
         select(User.display_name)
         .join(Membership, Membership.user_id == User.id)
@@ -843,10 +803,6 @@ OFFER_EVENTS = ("OfferSubmitted", "OfferWithdrawn", "OfferExpired", "OfferSelect
 async def provider_visible_events(
     session: AsyncSession, request_id: uuid.UUID, assignment: Assignment
 ) -> ColumnElement[bool]:
-    """ТЗ 14: исполнителю — события с начала его назначения и о собственных откликах.
-
-    Подбор до назначения, отклики конкурентов и прежние исполнители ему не видны.
-    """
     start_id = (
         await session.execute(
             select(RequestEvent.id)
@@ -893,8 +849,6 @@ async def event_page(
 
 @dataclass(frozen=True, slots=True)
 class PendingApprovalRow:
-    """Один элемент агрегата «ждёт согласования менеджера»; сборка в представление — в views.py."""
-
     kind: str
     request: RepairRequest
     object_id: uuid.UUID | None = None
@@ -916,13 +870,6 @@ _PENDING_REQUEST_STATUS_KIND: dict[str, str] = {
 async def pending_approvals(
     scope: AccessScope, session: AsyncSession, *, manager: bool = True
 ) -> list[PendingApprovalRow]:
-    """Агрегат для GET /requests/pending-approvals (I10):
-
-    руководителю — черновики сотрудников на публикацию, ответы исполнителя
-    (визит/смета) в `pending` и ещё не истёкшие, спорные отмены и заявки, которым
-    нужно решение; и руководителю, и сотруднику (по его точкам) — вопросы
-    исполнителя без ответа («Нужен ваш ответ»).
-    """
     org_id = scope.organization_id
     rows: list[PendingApprovalRow] = [
         PendingApprovalRow(
@@ -1029,8 +976,6 @@ async def pending_approvals(
 
 @dataclass(frozen=True, slots=True)
 class PendingDecision:
-    """Что по заявке ждёт решения руководителя — для строки списка."""
-
     kind: str
     amount_minor: int | None = None
     currency: str | None = None
@@ -1048,8 +993,6 @@ _STATUS_DECISION_KIND: dict[str, str] = {
 async def pending_decisions(
     session: AsyncSession, requests: Sequence[RepairRequest]
 ) -> dict[uuid.UUID, PendingDecision]:
-    """Батч по странице списка: те же правила, что у агрегата `pending_approvals`,
-    плюс активные отклики биржи. По заявке — одно, самое срочное решение."""
     if not requests:
         return {}
     request_ids = tuple(request.id for request in requests)
@@ -1170,7 +1113,6 @@ async def active_offer_counts(
 async def last_thread_author_kinds(
     session: AsyncSession, request_ids: Sequence[uuid.UUID], provider_org_id: uuid.UUID
 ) -> dict[uuid.UUID, str]:
-    """Автор последнего сообщения приватного треда исполнителя по каждой заявке."""
     if not request_ids:
         return {}
     stmt = (
@@ -1188,11 +1130,6 @@ async def last_thread_author_kinds(
 async def unanswered_questions(
     scope: AccessScope, session: AsyncSession
 ) -> list[tuple[RepairRequest, Message]]:
-    """Заявки, где последнее сообщение канала — от исполнителя и заказчик ещё не ответил.
-
-    Канал — общий канал назначения либо приватный тред автора отклика, пока идёт
-    подбор. Сотруднику — только по его точкам (I10).
-    """
     last = (
         select(Message.id)
         .join(RepairRequest, RepairRequest.id == Message.request_id)

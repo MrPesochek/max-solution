@@ -14,7 +14,6 @@ from tests.fake_platform import make_envelope
 
 
 def _flaky_update(harness: Any, monkeypatch: Any, failures: int) -> dict[str, int]:
-    """PATCH документа в эмулятор 1С падает первые `failures` раз (1С недоступна)."""
     original = harness.state.onec.update
     calls = {"n": 0}
 
@@ -45,8 +44,6 @@ def _make_due(harness: Any, event_id: str) -> None:
 
 
 async def _linked_request(harness: Any, request_id: str) -> int:
-    """Заявка уже связана с документом 1С; возвращает применённую версию карточки
-    (запись external reference сама поднимает версию на платформе)."""
     harness.subscribe()
     harness.platform.add_request(request_id)
     await harness.deliver("request.assigned", request_id)

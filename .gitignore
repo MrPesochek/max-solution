@@ -9,12 +9,3 @@ node_modules/
 dist/
 var/
 .DS_Store
-
-/.agents/
-/.codex/
-/design/
-/docs/
-/webapp/docs/
-/technical-specification.md
-/design-specification.md
-/DATA-API.extended.yaml

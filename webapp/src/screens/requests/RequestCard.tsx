@@ -126,7 +126,6 @@ export function RequestCard({ request, role }: { request: RequestCustomer; role:
         defaultOpen={!visitOffer && view.historyOpen}
       />
 
-      {/* Один вход в переписку: строка — если кнопки «Написать» нет или есть непрочитанные. */}
       {hasMessages && (!actions.messageButton || (request.unread_messages_count ?? 0) > 0) && (
         <List>
           <ListRow

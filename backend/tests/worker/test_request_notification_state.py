@@ -87,7 +87,7 @@ async def test_en_route_is_skipped_after_mark_is_reset(
             self.sent += 1
 
     transport = _Transport()
-    await notification_dispatcher._send(job, transport)  # type: ignore[arg-type]
+    await notification_dispatcher._send(job, transport)
     assert transport.sent == 0
     async with db_session_module_transaction() as session:
         stored = await session.get(Notification, row.id)

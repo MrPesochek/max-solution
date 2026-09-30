@@ -65,7 +65,6 @@ async def test_revoked_key_is_unauthenticated(
 async def test_inactive_provider_profile_still_reads(
     client: AsyncClient, db_session: AsyncSession, status: str
 ) -> None:
-    """ТЗ 6.5.3: CRM сверяет состояние и без допуска; изменения решает ядро."""
     org = await factories.create_organization(db_session, customer=False, provider=True)
     await factories.create_provider_profile(db_session, org, status=status)
     _, key = await factories.create_integration_client(
@@ -147,7 +146,6 @@ async def test_openapi_is_served_separately(client: AsyncClient) -> None:
 async def test_failed_authentication_is_limited_by_ip(
     client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """L11: перебор ключей упирается в лимит неудачных попыток до проверки ключа."""
     org = await provider_org(db_session)
     _, key = await factories.create_integration_client(db_session, org)
     await db_session.commit()
@@ -169,7 +167,6 @@ async def test_failed_authentication_is_limited_by_ip(
 async def test_failed_authentication_has_a_higher_limit_per_ip(
     client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Перебор с разными префиксами упирается в общий порог адреса."""
     org = await provider_org(db_session)
     _, key = await factories.create_integration_client(db_session, org)
     await db_session.commit()
@@ -192,7 +189,6 @@ async def test_failed_authentication_has_a_higher_limit_per_ip(
 async def test_parallel_failures_do_not_bypass_the_limit(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Токен списывается до обращения к БД: одновременные попытки не проскакивают."""
     monkeypatch.setenv("INTEGRATION_AUTH_FAILURE_BURST", "2")
     monkeypatch.setenv("INTEGRATION_AUTH_FAILURE_RPS", "0.001")
     get_settings.cache_clear()

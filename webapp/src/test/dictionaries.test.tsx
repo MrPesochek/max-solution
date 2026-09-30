@@ -37,7 +37,7 @@ function withBinding(binding: Partial<EquipmentBindingSummary> | null): Pick<Equ
   };
 }
 
-describe('срочность — один словарь (GAP 10b)', () => {
+describe('срочность — один словарь', () => {
   it('мастер, «Изменить условия», карточка и исполнитель называют срочность одинаково', () => {
     for (const u of ['critical', 'urgent', 'normal'] as const) {
       const label = urgencyLabel(u);
@@ -52,7 +52,7 @@ describe('срочность — один словарь (GAP 10b)', () => {
   });
 });
 
-describe('роль диспетчер/мастер (Т-24)', () => {
+describe('роль диспетчер/мастер', () => {
   it('один словарь ролей: короткая, строчная и «вы …» не расходятся', () => {
     expect(strings.home.roleShort.provider_dispatcher).toBe('Диспетчер/мастер');
     expect(strings.orgPicker.roleLower.provider_dispatcher).toBe('диспетчер/мастер');
@@ -81,7 +81,7 @@ describe('имя техники — одно на все экраны', () => {
 });
 
 describe('сводка сервиса техники — одна для главной, мастера и «Техники»', () => {
-  it('ожидающая привязка — «ждёт подтверждения», а не «не привязан» (регресс главной)', () => {
+  it('ожидающая привязка — «ждёт подтверждения», а не «не привязан»', () => {
     const item = withBinding({ status: 'pending' });
     expect(bindingSummary(item)).toMatchObject({ kind: 'pending', tone: 'warn' });
     expect(bindingSummary(item).text).toBe('ХолодСервис · ждёт подтверждения сервиса');

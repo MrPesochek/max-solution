@@ -1,10 +1,4 @@
-"""адресат и параметры действия кнопки бота
-
-Revision ID: 0005
-Revises: 0004
-Create Date: 2026-09-20
-
-"""
+"""адресат и параметры действия кнопки бота"""
 
 from collections.abc import Sequence
 

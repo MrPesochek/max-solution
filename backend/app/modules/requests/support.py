@@ -80,7 +80,6 @@ MAX_TERMS_TEXT = 2000
 
 
 def aware(value: datetime | None, field: str) -> datetime | None:
-    """Время без часового пояса неоднозначно: 422, а не TypeError при сравнении."""
     if value is not None and value.utcoffset() is None:
         raise ValidationFailed("Укажите время с часовым поясом", field=field)
     return value
@@ -95,9 +94,6 @@ def terms_text(value: str | None, field: str) -> str | None:
 def visit_window(
     now: datetime, start: datetime | None, end: datetime | None, *, required: bool
 ) -> tuple[datetime | None, datetime | None]:
-    """ТЗ 8.1, I3: окно выезда — оба конца с часовым поясом, начало раньше конца,
-    конец ещё не наступил. Отклик может прийти без окна (`required=False`), тогда
-    заявка после подтверждения ждёт предложения выезда; предложение — только с окном."""
     start = aware(start, "visit_window_start")
     end = aware(end, "visit_window_end")
     if start is None and end is None and not required:
@@ -120,7 +116,6 @@ def visit_window(
 
 
 def visit_window_problem(now: datetime, start: datetime | None, end: datetime | None) -> str | None:
-    """Код, по которому сохранённое окно нельзя считать согласуемым; `None` — окно годно."""
     if start is None or end is None:
         return "VISIT_WINDOW_REQUIRED"
     if end <= now:
@@ -166,7 +161,6 @@ def priced_terms(
     default_seconds: int,
     max_seconds: int | None = None,
 ) -> tuple[Price, datetime]:
-    """Цена и срок действия предложения, отклика или сметы — по одним правилам (I3, E)."""
     price = validate_price(
         Price(
             data.amount_minor, data.currency, data.zero_cost_reason, vat_mode_value(data.vat_mode)
@@ -176,7 +170,6 @@ def priced_terms(
 
 
 async def ensure_provider_active(session: AsyncSession, provider_org_id: uuid.UUID) -> None:
-    """ТЗ 6.2 п. 4, 6.5.3: приостановленный или отклонённый исполнитель не получает заявки."""
     stmt = select(ProviderProfile.status).where(ProviderProfile.organization_id == provider_org_id)
     status = (await session.execute(stmt)).scalar_one_or_none()
     if status != ProviderProfileStatus.ACTIVE:
@@ -187,7 +180,6 @@ _STATUS_LOST = frozenset({ProviderProfileStatus.SUSPENDED, ProviderProfileStatus
 
 
 async def ensure_provider_not_suspended(session: AsyncSession, provider_org_id: uuid.UUID) -> None:
-    """Одно правило для Web App, бота и CRM: чтение и `/events` остаются доступны."""
     stmt = select(ProviderProfile.status).where(ProviderProfile.organization_id == provider_org_id)
     status = (await session.execute(stmt)).scalar_one_or_none()
     if status in _STATUS_LOST:
@@ -198,7 +190,6 @@ async def ensure_provider_not_suspended(session: AsyncSession, provider_org_id: 
 
 
 async def flush_unique(ctx: CommandContext) -> None:
-    """Нарушение инварианта уникальности при гонке — 409, а не 500."""
     try:
         await ctx.session.flush()
     except IntegrityError as exc:
@@ -264,12 +255,6 @@ def audit(ctx: CommandContext, command: C, request: RepairRequest, **details: ob
 async def supersede_children(
     ctx: CommandContext, request: RepairRequest, *, keep_approved: bool = False
 ) -> None:
-    """D23: ожидающие предложения, сметы и отклики не переживают выход из работы.
-
-    Вызывается при каждом переходе в `completion_reported`, `closed`, `cancelled` и
-    при прекращении назначения. `keep_approved` — согласованный выезд остаётся в
-    истории (завершение работ), при прекращении назначения он тоже снимается.
-    """
     proposal_states = (VisitProposalStatus.PENDING,) if keep_approved else SUPERSEDABLE
     await ctx.session.execute(
         update(VisitProposal)
@@ -294,7 +279,6 @@ async def supersede_children(
 
 
 async def fix_snapshots(ctx: CommandContext, request: RepairRequest) -> None:
-    """I26: снимок оборудования и точки фиксируется при первой отправке и не переписывается."""
     if request.equipment_snapshot and request.location_snapshot:
         return
     pair = await queries.equipment_with_category(ctx.session, request.equipment_id)
@@ -306,11 +290,6 @@ async def fix_snapshots(ctx: CommandContext, request: RepairRequest) -> None:
 
 
 def ensure_proposal_not_due(proposal: VisitProposal, now: datetime) -> None:
-    """Правило 4 guide: истёкшее считается истёкшим независимо от sweeper.
-
-    Сам переход `pending → expired` фиксирует `expire_request_children` отдельной
-    транзакцией до команды: изменение внутри отклонённой команды откатилось бы.
-    """
     if proposal.status == VisitProposalStatus.PENDING and proposal.valid_until <= now:
         raise Conflict("Срок предложения истёк", code="PROPOSAL_EXPIRED")
 
@@ -327,7 +306,6 @@ async def unread_for(
     *,
     channel: queries.MessageChannel = queries.WHOLE_CHANNEL,
 ) -> int | None:
-    """Счётчик непрочитанного есть только у участника-пользователя, не у интеграции."""
     if not isinstance(actor, UserActor):
         return None
     return await queries.unread_messages_count(
@@ -440,8 +418,6 @@ async def message_views_for(
     *,
     assignment_id: uuid.UUID | None = None,
 ) -> list[views.MessageView]:
-    """`assignment_id` — назначение читателя-исполнителя: от его раскрытия зависит,
-    видны ли ему имена сотрудников заказчика."""
     disclosed = False
     if side == "provider" and assignment_id is not None:
         assignment = await queries.get_assignment(session, assignment_id)

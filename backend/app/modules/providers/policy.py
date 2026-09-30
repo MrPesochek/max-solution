@@ -39,7 +39,6 @@ def check_submittable(status: str) -> None:
 
 
 def check_accepting_allowed(status: str) -> None:
-    """Переключатель «принимаю новые заявки» доступен только допущенному профилю (ТЗ 6.2.4)."""
     if status != ProviderProfileStatus.ACTIVE:
         raise InvalidTransition("Приём заявок доступен только допущенному профилю")
 

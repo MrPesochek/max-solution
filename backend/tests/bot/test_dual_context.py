@@ -40,8 +40,6 @@ async def test_switching_side_within_one_organization(
 async def _dual_manager_notification(
     harness: BotHarness, db_session: AsyncSession
 ) -> tuple[str, int, uuid.UUID]:
-    """Руководитель заказчика с ролью исполнителя в той же организации; в чате
-    активна роль исполнителя, а уведомление о выезде адресовано руководителю."""
     from app.worker import notification_templates as templates
 
     world = await rf.build(db_session)
@@ -83,7 +81,7 @@ async def _dual_manager_notification(
         now=request.updated_at,
     )
     await db_session.commit()
-    approve = message.attachments[0].payload.buttons[0][0].payload  # type: ignore[union-attr]
+    approve = message.attachments[0].payload.buttons[0][0].payload
     return str(approve), uid, manager_membership
 
 

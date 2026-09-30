@@ -11,8 +11,6 @@ _LOCAL_PLATFORM_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "api"})
 
 
 class Settings(BaseSettings):
-    """Настройки коннектора 1С. Всё — из окружения, секретов в коде нет (ТЗ 12)."""
-
     model_config = SettingsConfigDict(env_prefix="CONNECTOR_", env_file=".env", extra="ignore")
 
     platform_api_base_url: str = "http://localhost:8000/api/v1"

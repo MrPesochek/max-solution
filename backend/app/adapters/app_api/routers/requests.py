@@ -117,7 +117,6 @@ async def list_requests(
 
 @router.get("/pending-approvals", response_model=list[PendingApprovalItemView])
 async def pending_approvals(actor: OrgActor) -> list[PendingApprovalItemView]:
-    """Только руководитель заказчика (I10); до `/{request_id}` — иначе перехватит его."""
     return await requests_api.pending_approvals(actor)
 
 
@@ -198,7 +197,6 @@ async def list_offer_messages(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     direction: MessageDirectionQuery = "forward",
 ) -> Page[MessageView]:
-    """S3.5: вопросы автора отклика и ответы заказчика; видят только они."""
     items, next_cursor = await requests_api.list_dialog_messages(
         actor,
         _rid(request_id),
@@ -234,7 +232,6 @@ async def post_offer_message(
 
 @router.post("/{request_id}/messages/read", response_model=MessagesReadView)
 async def mark_messages_read(actor: OrgActor, request_id: str) -> dict[str, Any]:
-    """Прочитано до последнего видимого сообщения; повтор безопасен без Idempotency-Key."""
     result = await requests_api.mark_messages_read(actor, _rid(request_id))
     return result.body
 
@@ -376,7 +373,6 @@ async def revoke_assignment(
 async def preview_public_card(
     actor: OrgActor, request_id: str, body: RequestPublicCardPreviewBody
 ) -> PublicCardPreviewView:
-    """Чтение с параметрами: ничего не публикует и не требует идемпотентности."""
     return await requests_api.preview_public_card(
         actor, _rid(request_id), data=_public_card_input(body)
     )
@@ -650,7 +646,6 @@ async def decline(
 async def withdraw(
     actor: OrgActor, request_id: str, body: AssignmentWithdrawBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """D2: отказ исполнителя после принятия назначения."""
     idem = make_idempotency(idem_key, _action("withdraw", request_id), body.model_dump(mode="json"))
     result = await requests_api.withdraw_assignment(
         actor,
@@ -748,7 +743,6 @@ async def start_work(
 async def mark_en_route(
     actor: OrgActor, request_id: str, body: AssignmentMarkEnRouteBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Мастер выехал: статус заявки не меняется, в назначении появляется `en_route_at`."""
     idem = make_idempotency(
         idem_key, _action("mark-en-route", request_id), body.model_dump(mode="json")
     )

@@ -2,8 +2,6 @@ from app.infra.max.throttle import MaxThrottle
 
 
 class FakeClock:
-    """Управляемое время: sleep не ждёт по-настоящему, а сразу продвигает часы."""
-
     def __init__(self, start: float = 0.0) -> None:
         self.t = start
         self.sleeps: list[float] = []

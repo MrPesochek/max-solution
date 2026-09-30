@@ -39,19 +39,6 @@ class DeliveryJob:
 
 
 async def assign_feed_seq(now: datetime, *, batch: int | None = None) -> int:
-    """Присваивает `feed_seq` событиям без номера, по одному счётчику на получателя.
-
-    Один диспетчер на кластер (`pg_advisory_xact_lock`), поэтому номера идут подряд
-    и курсор `/events` не имеет пропусков.
-
-    Порядок нумерации — порядок обнаружения, а не порядок `id`. Транзакция с меньшим
-    `id` может зафиксироваться позже соседней, и тогда её событие получит больший
-    `feed_seq`. Это осознанный выбор: потребителю по ТЗ 11 (п. 3) события и так
-    приходят не по порядку, он сверяет `resource_version`; от курсора ему нужны
-    монотонность и беспропускность, и то и другое здесь соблюдается. Альтернатива —
-    ждать N секунд перед нумерацией — добавляет задержку первой доставки (NFR 15:
-    p95 ≤ 5 с) и всё равно не даёт гарантии при долгой транзакции.
-    """
     limit = batch or get_settings().feed_dispatch_batch
     async with db_session.transaction() as session:
         await session.execute(select(func.pg_advisory_xact_lock(FEED_LOCK_KEY)))
@@ -93,14 +80,6 @@ async def assign_feed_seq(now: datetime, *, batch: int | None = None) -> int:
 
 
 async def enqueue_deliveries(now: datetime, *, batch: int | None = None) -> int:
-    """Создаёт `webhook_deliveries` для активных подписок получателя.
-
-    Идемпотентность — уникальный индекс «событие × подписка» и `INSERT … ON
-    CONFLICT DO NOTHING`: конкурентная постановка безопасна на уровне БД без
-    advisory-блокировки, поэтому её здесь больше нет (`NOT EXISTS` в выборке
-    остаётся — иначе один и тот же уже поставленный хвост событий перевыбирался
-    бы на каждом тике диспетчера).
-    """
     settings = get_settings()
     limit = batch or settings.webhook_enqueue_batch
     window = timedelta(seconds=settings.webhook_retry_window_seconds)
@@ -170,12 +149,6 @@ async def enqueue_deliveries(now: datetime, *, batch: int | None = None) -> int:
 
 
 async def lease_deliveries(now: datetime, *, batch: int | None = None) -> list[DeliveryJob]:
-    """Забирает пачку заданий и резервирует их полем `lease_until`.
-
-    Аренда отдельна от `next_attempt_at`: строки не заблокированы на время
-    HTTP-запроса, а зависшее задание умершего экземпляра освобождается по
-    истечении аренды, а не по сроку следующего планового повтора (A22).
-    """
     settings = get_settings()
     limit = batch or settings.webhook_send_batch
     lease = timedelta(seconds=settings.webhook_lease_seconds)

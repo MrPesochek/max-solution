@@ -23,10 +23,6 @@ async def on_bot_started(event: BotStarted, ctx: BotContext) -> None:
 
 
 async def on_bot_stopped(event: BotStopped, ctx: BotContext) -> None:
-    """Бот остановлен пользователем: уведомления ему больше не уходят (D32).
-
-    Признак уже снят при подготовке контекста; здесь остаётся закрыть диалог.
-    """
     ctx.conversation.reset_dialog()
     await ctx.save()
 
@@ -71,12 +67,6 @@ async def _start(ctx: BotContext, payload: str | None) -> None:
 
 
 def _input_value(event: MessageCreated) -> str | None:
-    """Текст сообщения, телефон из контакта или пустая строка при фото без подписи.
-
-    Пустая (не `None`) строка для фото — намеренно: диалог должен получить
-    управление и разобрать вложение сам (`ctx.event`), а не считать сообщение
-    пустым и промолчать в ответ (S1: фото по шаблону присылают без подписи).
-    """
     body = event.message.body
     if body is None:
         return None

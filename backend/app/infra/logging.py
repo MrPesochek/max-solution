@@ -34,7 +34,7 @@ def _redact(value: Any) -> Any:
 def mask_sensitive(
     logger: object, method_name: str, event_dict: structlog.types.EventDict
 ) -> structlog.types.EventDict:
-    return _redact(event_dict)  # type: ignore[no-any-return]
+    return _redact(event_dict)
 
 
 def configure_logging(env: str) -> None:

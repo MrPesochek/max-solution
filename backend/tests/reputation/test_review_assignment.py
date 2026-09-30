@@ -29,7 +29,6 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 
 async def _switch_provider(world: World) -> World:
-    """Привязка оборудования переходит к другому сервису."""
     rival = await req_factories.build_rival_provider(world)
     async with db_session.transaction() as session:
         binding = await session.get(ServiceBinding, world.binding_id)
@@ -99,8 +98,6 @@ async def _run_to_completion(world: World, request: dict[str, Any]) -> dict[str,
 
 
 async def test_review_goes_to_assignment_that_worked_not_to_withdrawn_one(world: World) -> None:
-    """Первый исполнитель отказался до начала работ — отзыв о ремонте получает
-    второй, реально выполнивший работы; первое назначение явно выбрать нельзя."""
     accepted = await h.make_accepted(world)
     first_assignment = h.assignment_id(accepted)
     withdrawn = (
@@ -144,8 +141,6 @@ async def test_review_goes_to_assignment_that_worked_not_to_withdrawn_one(world:
 
 
 async def test_started_then_replaced_provider_gets_admission_review(world: World) -> None:
-    """Работы начаты, затем исполнителя сменили: отзыв о плохом результате идёт
-    к начавшему работы назначению через допуск модератора, а не к новому."""
     in_progress = await h.make_in_progress(world)
     first_assignment = h.assignment_id(in_progress)
     pending = (
@@ -199,7 +194,7 @@ async def test_concurrent_first_review_creates_one_row(world: World) -> None:
         return_exceptions=True,
     )
     assert all(not isinstance(o, BaseException) for o in outcomes), outcomes
-    assert sorted(o.status for o in outcomes) == [200, 201]  # type: ignore[union-attr]
+    assert sorted(o.status for o in outcomes) == [200, 201]
     async with db_session.transaction() as session:
         rows = list((await session.execute(select(Review))).scalars())
     assert len(rows) == 1
@@ -230,7 +225,6 @@ async def test_duplicate_review_insert_is_conflict_not_500(
 
 
 async def test_employee_of_other_location_does_not_see_review(world: World) -> None:
-    """L6: сотрудник видит отзыв только по заявкам своих точек."""
     completed = await h.make_completion_reported(world)
     await reputation.submit_review(
         world.manager, h.rid(completed), reputation.ReviewSubmitData(rating=5), idem=idem("loc")
@@ -248,7 +242,6 @@ def _complaint(subject: str, target: str) -> reputation.ComplaintCreateData:
 
 
 async def test_complaint_requires_visible_target(world: World, other_world: World) -> None:
-    """L9: жаловаться можно только на то, что заявитель видит."""
     completed = await h.make_completion_reported(world)
     review = (
         await reputation.submit_review(
@@ -345,8 +338,6 @@ async def test_no_show_complaint_points_to_assignment_with_agreed_visit(world: W
 
 
 async def test_no_show_after_marketplace_offer_with_visit_terms(world: World) -> None:
-    """T22: резерв с полным откликом подтверждается сразу с выездом — события
-    VisitAgreed нет, но адресат жалобы на неявку всё равно известен."""
     published = await h.make_published(world)
     offer = (
         await requests_api.submit_offer(

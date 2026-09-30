@@ -37,11 +37,6 @@ def _chunks(upload: UploadFile) -> AsyncIterator[bytes]:
 
 
 async def upload_fingerprint(upload: UploadFile) -> dict[str, Any]:
-    """Отпечаток содержимого для ключа идемпотентности: другой файл под тем же
-    ключом — конфликт, а не повтор прежнего результата (ТЗ 10.1).
-
-    Starlette уже принял файл целиком во временный файл, поэтому хеш считается
-    отдельным проходом, а затем чтение начинается с начала."""
     digest = hashlib.sha256()
     size = 0
     while chunk := await upload.read(CHUNK):
@@ -52,7 +47,6 @@ async def upload_fingerprint(upload: UploadFile) -> dict[str, Any]:
 
 
 def _guard_length(request: Request) -> None:
-    """Явно заявленный размер отсекается до чтения тела."""
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > get_settings().max_upload_bytes + CHUNK:
         raise files.FileTooLarge()
@@ -201,7 +195,6 @@ class PortfolioCaptionBody(BaseModel):
 async def update_portfolio_caption(
     actor: OrgActor, attachment_id: str, body: PortfolioCaptionBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Подпись к фото портфолио; новая подпись уходит на модерацию вместе с фото."""
     idem = make_idempotency(
         idem_key, f"PATCH /provider-profile/portfolio/{attachment_id}", body.model_dump()
     )
@@ -245,7 +238,6 @@ async def upload_verification_evidence(
 
 
 def content_response(content: files.AttachmentContent) -> StreamingResponse:
-    """Заголовки выдачи: браузер не додумывает тип и не кэширует приватный файл."""
     return StreamingResponse(
         content.stream,
         media_type=content.mime_type,

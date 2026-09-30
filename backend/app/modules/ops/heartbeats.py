@@ -16,7 +16,6 @@ _ERROR = "error"
 
 
 def stale_after_seconds(interval_seconds: float, settings: Settings) -> int:
-    """Порог «цикл завис»: без успешного прохода дольше этого — сбой."""
     return math.ceil(
         interval_seconds * settings.worker_heartbeat_interval_multiplier
         + settings.worker_heartbeat_grace_seconds
@@ -40,7 +39,6 @@ class LoopHeartbeat:
 
     @property
     def failing(self) -> bool:
-        """Последний записанный проход закончился ошибкой."""
         if self.last_error_at is None:
             return False
         return self.last_success_at is None or self.last_error_at > self.last_success_at
@@ -83,12 +81,6 @@ def _missing(name: str, threshold: int) -> LoopHeartbeat:
 async def load_heartbeats(
     now: datetime, required: Mapping[str, int] | None = None
 ) -> list[LoopHeartbeat]:
-    """Состояние циклов на момент `now`.
-
-    `required` — обязательные циклы и их пороги (healthcheck считает их из своих
-    настроек): отсутствующая строка — сбой, порог берётся из `required`. Без него —
-    все записанные строки с порогом, который записал worker.
-    """
     async with db_session.transaction() as session:
         rows = {
             row.loop_name: row for row in (await session.execute(select(WorkerHeartbeat))).scalars()
@@ -104,9 +96,6 @@ async def load_heartbeats(
 
 @dataclass(slots=True)
 class HeartbeatWriter:
-    """Пишет heartbeat циклов. Ошибку записи вызывающий только журналирует: без БД
-    цикл всё равно не работает, а healthcheck увидит отсутствие свежей строки."""
-
     thresholds: dict[str, int]
     write_seconds: float
     _written_at: dict[str, float] = field(default_factory=dict)
@@ -124,8 +113,6 @@ class HeartbeatWriter:
         )
 
     async def register(self, now: datetime) -> None:
-        """Старт процесса: строки текущих циклов, строки снятых с реестра — удаляются
-        (иначе цикл, выключенный настройкой, навсегда считался бы зависшим)."""
         async with db_session.transaction() as session:
             await session.execute(
                 delete(WorkerHeartbeat).where(

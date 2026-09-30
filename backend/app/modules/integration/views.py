@@ -65,13 +65,11 @@ _DATA_DESCRIPTION = (
     "договорном объёме без токена приглашения; `marketplace.request.*` — только "
     'публичная карточка биржи; `ping` — `{"test": true}`. Поля могут добавляться; '
     "при сомнении читайте актуальный ресурс по `resource_id` и сравнивайте "
-    "`resource_version` (ТЗ 11, п. 3)."
+    "`resource_version`."
 )
 
 
 class EventEnvelopeView(BaseModel):
-    """Конверт события (ТЗ 11). Один и тот же для тела вебхука и ленты /events."""
-
     schema_version: str
     event_id: str
     type: Annotated[
@@ -121,8 +119,6 @@ class DeliveryPageView(BaseModel):
 
 
 class IntegrationWebhookBriefView(BaseModel):
-    """Подписка в сводке — без секрета подписи."""
-
     id: str
     url: str
     status: str
@@ -137,11 +133,6 @@ class IntegrationDeliveriesStatsView(BaseModel):
 
 
 class IntegrationSummaryView(BaseModel):
-    """Сводка экрана «Интеграция» (ТЗ 6.7): состояние подключения и доставки за сутки.
-
-    `connected` — у организации есть действующий ключ CRM; `webhook` — последняя
-    активная подписка (если активных нет — последняя отключённая)."""
-
     connected: bool
     api_keys_active: int
     last_key_used_at: datetime | None = None

@@ -40,26 +40,13 @@ SUPERSEDED = "superseded"
 
 
 class ReplyNotDelivered(Exception):
-    """MAX временно не принял ответ бота: событие нужно повторить."""
+    pass
 
 
 _handler_error: ContextVar[BaseException | None] = ContextVar("bot_handler_error", default=None)
 
 
 def update_key(event: UpdateUnion) -> str:
-    """Устойчивый ключ дедупликации события.
-
-    Единого `update_id` MAX не даёт (см. `docs/research/max-platform.md`), поэтому
-    ключ берётся из того, что уникально у самого события:
-
-    * `message_created` — `mid` сообщения: он присваивается один раз на сообщение;
-    * `message_edited` — `mid` плюс метка времени правки: правок у сообщения много;
-    * `message_callback` — `callback_id`: он выдаётся на каждое нажатие;
-    * `message_removed` — id удалённого сообщения;
-    * остальные события своего id не имеют — берём тип, чат, пользователя и
-      метку времени в миллисекундах: повтор доставки несёт те же значения;
-    * если структура события незнакома — хеш канонического JSON.
-    """
     if isinstance(event, MessageCreated):
         body = event.message.body
         if body is not None and body.mid:
@@ -94,8 +81,6 @@ class Outcome:
 
 @dataclass(slots=True)
 class Attempt:
-    """Текущая попытка обработки события: номер, журнал ответов, снимок диалога."""
-
     key: str
     number: int
     previous_replies: list[dict[str, Any]]
@@ -109,11 +94,6 @@ class Attempt:
     undelivered: bool = False
 
     def replayed(self, fingerprint: str) -> dict[str, Any] | None:
-        """Ответ, уже доставленный прошлой попыткой на том же месте, или None.
-
-        Сверка идёт по порядку: пока повтор отправляет то же, что и прошлая
-        попытка, ответы пропускаются; с первого расхождения всё уходит заново.
-        """
         index = len(self.replies)
         if (
             not self.diverged
@@ -133,7 +113,6 @@ class Attempt:
         await self._store(replies=list(self.replies))
 
     async def remember_failed(self, fingerprint: str) -> None:
-        """Недоставленный ответ занимает своё место в журнале: порядок при повторе тот же."""
         self.undelivered = True
         self.replies.append({"fp": fingerprint, "failed": True})
         await self._store(replies=list(self.replies))
@@ -162,12 +141,6 @@ def current_attempt() -> Attempt | None:
 
 
 def event_idempotency(operation: str, body: Any) -> Idempotency | None:
-    """Ключ команды от самого события: у обработчика нет ни кнопки, ни итогового шага.
-
-    Порядковый номер отличает несколько одинаковых команд одного события; при
-    повторе (диалог восстановлен, шаги те же) номера совпадают. Вне обработки
-    события — None: команда идёт без ключа, как раньше.
-    """
     attempt = _attempt.get()
     if attempt is None:
         return None
@@ -207,12 +180,6 @@ def _comparable(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 def _moved_since_received(state: ConversationState, attempt: Attempt) -> bool:
-    """Диалог записан после получения события — значит, его двигало другое событие.
-
-    Диалог, который ни одно событие ещё не сохраняло (в контексте нет ключа
-    события), двигать было некому: строку только что создал сам этот вызов —
-    например, первый /start пользователя, восстановленный worker.
-    """
     if conversations.UPDATE_KEY not in state.context:
         return False
     if state.updated_at is None or attempt.received_at is None:
@@ -221,16 +188,6 @@ def _moved_since_received(state: ConversationState, attempt: Attempt) -> bool:
 
 
 async def bind_conversation(state: ConversationState) -> bool:
-    """Первая попытка запоминает диалог; повтор возвращает его в то же состояние.
-
-    Без этого повтор увидел бы диалог, уже сдвинутый прошлой попыткой, и отдал
-    бы ответ пользователя не тому шагу. Возврат делается, только если диалог с тех
-    пор никто, кроме этого же события, не менял.
-
-    False — диалог с первой попытки изменило другое событие (пользователь отменил
-    шаг, начал заново, ответил на следующий вопрос). Событие устарело, обработчик
-    вызывать нельзя: его текст достался бы шагу, к которому не относится.
-    """
     attempt = _attempt.get()
     if attempt is None:
         return True
@@ -267,13 +224,6 @@ def _fingerprint(*parts: Any) -> str:
 
 
 class InboxTransport:
-    """Транспорт обработчиков: ответ, уже доставленный прошлой попыткой, не шлётся снова.
-
-    В журнал попадает только отпечаток (адресат и текст под хешем) — тексты
-    ответов в `max_updates` не хранятся. Кнопки в отпечаток не входят: коды
-    `bot_actions` при повторе выпускаются новые, а прежние кнопки остаются рабочими.
-    """
-
     def __init__(self, inner: MaxTransport) -> None:
         self._inner = inner
 
@@ -341,13 +291,6 @@ class InboxTransport:
 
 
 async def record(event: UpdateUnion, now: datetime | None = None) -> bool:
-    """Фиксирует событие как `received`. False — такой ключ уже есть.
-
-    Полное событие хранится только для личного диалога и только до успешной
-    обработки: по нему worker повторяет обработку, и оно нужно для разбора сбоя.
-    Групповые события бот не обрабатывает, их тексты и контакты третьих лиц не
-    сохраняются — для дедупликации хватает ключа (ТЗ 12, 14).
-    """
     payload: dict[str, Any] = event.model_dump(mode="json") if is_personal_dialog(event) else {}
     stmt = (
         pg_insert(MaxUpdate)
@@ -366,11 +309,6 @@ async def record(event: UpdateUnion, now: datetime | None = None) -> bool:
 
 
 async def acquire(key: str, now: datetime, *, fresh: bool = True) -> Attempt | None:
-    """Забирает событие в обработку. None — обработано, мертво или в чужой аренде.
-
-    `fresh=False` — событие в inbox уже лежало (повтор доставки или восстановление):
-    даже первая попытка тогда не вправе считать текущий диалог исходным.
-    """
     settings = get_settings()
     stmt = (
         sql_update(MaxUpdate)
@@ -422,7 +360,6 @@ def retry_delay(attempt: int) -> timedelta:
 
 
 async def complete(attempt: Attempt, error: BaseException | None, now: datetime) -> None:
-    """Итог попытки. Отметка только своей аренды: чужую попытку не перетираем."""
     values: dict[str, Any] = {"lease_until": None}
     if attempt.superseded:
         error = None
@@ -461,11 +398,6 @@ async def complete(attempt: Attempt, error: BaseException | None, now: datetime)
 
 
 async def run_attempt(attempt: Attempt, call: Callable[[], Awaitable[Any]]) -> BaseException | None:
-    """Выполняет обработчик в контексте попытки. Возвращает ошибку обработчика.
-
-    Остановка процесса (`BaseException`) не перехватывается: событие остаётся в
-    аренде и после её истечения достаётся worker.
-    """
     attempt_token = _attempt.set(attempt)
     update_token = conversations.current_update.set(attempt.key)
     error_token = _handler_error.set(None)
@@ -492,7 +424,6 @@ async def run_attempt(attempt: Attempt, call: Callable[[], Awaitable[Any]]) -> B
 async def process(
     dispatcher: Dispatcher, event: UpdateUnion, *, now: datetime | None = None
 ) -> Outcome:
-    """Фиксация → аренда → обработка → отметка результата."""
     now = now or utcnow()
     key = update_key(event)
     fresh = await record(event, now)
@@ -507,13 +438,10 @@ async def process(
 
 
 async def capture_error(event: ErrorEvent) -> None:
-    """Обработчик ошибок диспетчера: сбой обработчика не теряется в журнале."""
     _handler_error.set(event.exception)
 
 
 class DedupMiddleware(BaseMiddleware):
-    """Тот же inbox для polling: там события приносит цикл библиотеки."""
-
     async def __call__(
         self,
         handler: HandlerCallable,

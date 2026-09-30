@@ -87,7 +87,6 @@ async def list_marketplace_messages(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     direction: MessageDirectionQuery = "forward",
 ) -> Page[MessageView]:
-    """Свой тред вопросов по публичной карточке (S3.5)."""
     items, next_cursor = await requests_api.list_dialog_messages(
         actor,
         ids.decode("request", request_id),

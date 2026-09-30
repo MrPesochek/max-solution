@@ -70,12 +70,6 @@ MAX_ITEM_FIELD_LENGTH = 500
 
 @dataclass(slots=True)
 class BindingInvitationItem:
-    """Позиция оборудования по договору так, как её знает сервис.
-
-    Идентификатора оборудования заказчика у сервиса нет — только описание,
-    модель и серийный номер из договора; сопоставляет позицию руководитель
-    заказчика при принятии."""
-
     description: str
     serial_number: str | None = None
     model: str | None = None
@@ -97,8 +91,6 @@ class BindingInvitationData:
 
 @dataclass(slots=True)
 class BindingItemMatch:
-    """Позиция приглашения (по индексу) ↔ карточка оборудования заказчика."""
-
     item_index: int
     equipment_id: str
 
@@ -133,7 +125,6 @@ def _optional_text(value: str | None, field_name: str) -> str | None:
 
 
 def _invitation_items(data: BindingInvitationData) -> list[dict[str, str | None]]:
-    """ТЗ 6.6.2 п.2: приглашение несёт перечень оборудования по договору."""
     raw = list(data.equipment_items) + [
         BindingInvitationItem(description=d) for d in data.equipment_descriptions
     ]
@@ -162,7 +153,6 @@ def _invitation_items(data: BindingInvitationData) -> list[dict[str, str | None]
 
 
 def _invitation_items_of(invitation: Invitation) -> list[dict[str, str | None]]:
-    """Позиции приглашения; у выпущенных до перечня позиций — только описания."""
     return [item.model_dump(exclude={"index"}) for item in invitation_item_views(invitation)]
 
 
@@ -227,9 +217,6 @@ async def _customer_equipment(
 async def create_binding_invitation(
     actor: Actor, data: BindingInvitationData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.6.2: клиента, которого ещё нет на платформе, тоже можно пригласить —
-    договор и привязка материализуются только при принятии приглашения его
-    менеджером, а до этого момента реквизиты лежат в `binding_details`."""
     issuer = policy.require_binding_actor(actor)
     basis = _check_basis(data.basis)
     contract_number = policy.require_text(
@@ -398,10 +385,6 @@ async def revoke_binding_invitation(
 async def decline_binding_invitation(
     actor: Actor, token: str, reason: str | None, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Отказ руководителя заказчика от приглашения: сервис видит состояние `declined`.
-
-    Отказывается только адресат (та же сверка, что при принятии, A32); повторный
-    отказ той же организации ничего не меняет и отвечает текущим состоянием."""
     manager = policy.require_customer_manager(actor)
     token_hash = hash_token(token)
     checked_reason = _optional_text(reason, "reason")
@@ -463,8 +446,6 @@ def _parse_date(value: object) -> date | None:
 async def accept_binding_invitation(
     actor: Actor, token: str, matches: list[BindingItemMatch], *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.6.2 п.4–5: руководитель сопоставляет каждую позицию приглашения со своим
-    оборудованием; подтверждается ровно этот перечень и ничего сверх него."""
     manager = policy.require_customer_manager(actor)
     token_hash = hash_token(token)
     chosen = _decode_matches(matches)
@@ -625,9 +606,6 @@ def _decode_matches(matches: list[BindingItemMatch]) -> list[tuple[int, uuid.UUI
 async def _ensure_intended_recipient(
     ctx: CommandContext, invitation: Invitation, customer: Organization
 ) -> None:
-    """ТЗ 6.6.2 п.4: сервер сверяет приглашение с организацией заказчика.
-
-    Все отказы одинаковы и ничего не говорят о настоящем адресате (A32)."""
     if not await intended_recipient(ctx.session, invitation, customer):
         raise invitation_invalid()
 
@@ -718,7 +696,6 @@ _LIVE_BINDING_INDEX = "ux_service_bindings_live_equipment_provider"
 async def _announce(
     ctx: CommandContext, bindings: list[ServiceBinding], contract_number: str | None
 ) -> None:
-    """Событие исполнителю и уведомления сторонам (D18); токенов в полезной нагрузке нет."""
     for binding in bindings:
         if binding.provider_org_id is None:
             continue
@@ -744,7 +721,6 @@ async def _announce(
 async def request_binding(
     actor: Actor, data: BindingRequestData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.6.3: заказчик знает номер договора. Ответ всегда одинаково нейтрален."""
     manager = policy.require_customer_manager(actor)
     provider_org_id = ids.decode("organization", data.provider_organization_id)
     basis = _check_basis(data.basis)
@@ -813,11 +789,6 @@ async def request_binding(
 
 
 def request_attempts(provider_org_id: uuid.UUID, cutoff: datetime) -> Select[tuple[int]]:
-    """Счёт попыток по получателю для индекса `ix_audit_entries_binding_request` (0008).
-
-    Ключ JSON и действие — литералами, а не параметрами: asyncpg готовит запрос,
-    и в общем плане `details ->> $1` не совпадает с выражением индекса, а
-    `action = $2` не доказывает его условие `WHERE action = '...'`."""
     return (
         select(func.count())
         .select_from(AuditEntry)
@@ -833,18 +804,6 @@ def request_attempts(provider_org_id: uuid.UUID, cutoff: datetime) -> Select[tup
 async def _check_request_rate(
     ctx: CommandContext, manager: UserActor, provider_org_id: uuid.UUID
 ) -> int:
-    """ТЗ 6.6.3: 5 попыток за 15 минут на пару «пользователь — получатель» и на пару
-    «организация — получатель», плюс общий, заметно более высокий порог на получателя.
-
-    Лимит пары, а не получателя целиком: иначе один перебирающий номера аккаунт
-    закрыл бы запросы всем клиентам сервиса. Подсчёт и запись попытки идут в одной
-    транзакции под advisory-блокировкой получателя — параллельные запросы не
-    проскакивают мимо лимита.
-
-    Возвращает, сколько попыток останется у пользователя и его организации после
-    текущей. Считаются все попытки, а не только совпавшие договоры, поэтому число
-    ничего не говорит о существовании договора (A31).
-    """
     await advisory_xact_lock(ctx.session, f"service_binding.request:{provider_org_id}")
     settings = get_settings()
     cutoff = ctx.now - timedelta(seconds=settings.binding_request_window_seconds)
@@ -876,8 +835,6 @@ async def _check_request_rate(
 async def _retry_after(
     ctx: CommandContext, scope: str, stmt: Select[tuple[int]], window: int
 ) -> int:
-    """Когда самая старая попытка в окне выйдет из него. Для общего порога сервиса —
-    всё окно: время чужих попыток заказчику не раскрывается."""
     if scope == "provider":
         return window
     oldest = await ctx.session.scalar(stmt.with_only_columns(func.min(AuditEntry.occurred_at)))
@@ -912,7 +869,6 @@ async def _journal_rejected_request(
 async def create_contact_binding(
     actor: Actor, data: ContactBindingData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.6.4 «Мой контакт»: сохранённый контакт не становится подтверждённой связью."""
     manager = policy.require_customer_manager(actor)
     equipment_id = ids.decode("equipment", data.equipment_id)
     contact_name = policy.require_text(data.contact_name, "contact_name", "Укажите контакт")
@@ -1027,7 +983,6 @@ async def _notify_customer(ctx: CommandContext, binding: ServiceBinding) -> None
 async def revoke_binding(
     actor: Actor, binding_public_id: str, reason: str, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Расторжение любой из сторон или оператором; полномочия не переносятся (I25)."""
     binding_id = ids.decode("service_binding", binding_public_id)
     checked_reason = policy.require_reason(reason)
     party = _revoking_party(actor)

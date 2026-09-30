@@ -124,7 +124,6 @@ async def test_invitation_accept_creates_confirmed_binding() -> None:
 
 
 async def test_invitation_waits_for_customer_verification() -> None:
-    """ТЗ 6.6.2 п.4: неподтверждённая организация заказчика ждёт проверки."""
     provider, customer = await _pair("inv-wait", customer_verified=False)
     token, _ = await _invite(provider, "inv-wait-1")
     result = await trust.accept_binding_invitation(
@@ -174,7 +173,6 @@ async def test_invitation_only_for_active_provider_and_manager() -> None:
 
 
 async def test_foreign_recipient_cannot_accept_and_token_survives() -> None:
-    """A32: пересланное чужое приглашение не создаёт доступ и не гасится."""
     provider, customer = await _pair("inv-fwd")
     stranger = await make_customer("inv-fwd-x", inn=OTHER_INN)
     token, _ = await _invite(provider, "inv-fwd-1")
@@ -189,7 +187,6 @@ async def test_foreign_recipient_cannot_accept_and_token_survives() -> None:
 
 
 async def test_token_types_are_not_interchangeable() -> None:
-    """A32: приглашение сотрудника и приглашение привязки — разные типы токена."""
     provider, customer = await _pair("inv-type")
     binding_token, _ = await _invite(provider, "inv-type-1")
     async with db_session.transaction() as s:
@@ -211,8 +208,6 @@ async def test_token_types_are_not_interchangeable() -> None:
 
 
 async def test_preview_details_only_for_addressee_manager_while_pending() -> None:
-    """ТЗ 6.6.2: договор, позиции и серийные номера — только руководителю
-    организации-адресата и только пока приглашение ждёт ответа."""
     provider, customer = await _pair("inv-pv")
     stranger = await make_customer("inv-pv-x", inn=OTHER_INN, verified=True)
     issued = await trust.create_binding_invitation(
@@ -271,7 +266,6 @@ async def test_revoked_invitation_does_not_work() -> None:
 
 
 async def test_concurrent_accept_consumes_token_once() -> None:
-    """A32/I15: конкурирующие подтверждения расходуют токен ровно один раз."""
     provider, customer = await _pair("inv-race")
     token, _ = await _invite(provider, "inv-race-1")
     equipment = _one(customer)
@@ -292,7 +286,6 @@ async def test_concurrent_accept_consumes_token_once() -> None:
 
 
 async def test_binding_request_answer_is_identical_for_unknown_contract() -> None:
-    """A31: ответ побайтно одинаков независимо от существования договора."""
     provider, customer = await _pair("req-neutral")
     async with db_session.transaction() as s:
         provider_org = await s.get(Organization, provider.organization_id)
@@ -334,7 +327,6 @@ async def test_binding_request_answer_is_identical_for_unknown_contract() -> Non
 
 
 async def test_binding_request_does_not_reveal_foreign_data() -> None:
-    """A03/A31: знание номера договора и серийника не открывает чужие данные."""
     provider, customer = await _pair("req-secret")
     other = await make_customer("req-secret-o", inn=OTHER_INN)
     provider_id = ids.encode("organization", provider.organization_id)
@@ -396,7 +388,6 @@ async def test_provider_confirms_or_rejects_request() -> None:
 
 
 async def test_foreign_provider_cannot_touch_binding() -> None:
-    """A03: чужой исполнитель не может присвоить оборудование."""
     provider, customer = await _pair("req-foreign")
     stranger = await make_provider(
         "req-foreign-x", status="active", accepting=True, verified=False, inn=None
@@ -424,7 +415,6 @@ async def test_foreign_provider_cannot_touch_binding() -> None:
 
 
 async def test_binding_request_rate_limit() -> None:
-    """ТЗ 6.6.3: 5 попыток за 15 минут; подозрительная попытка попадает в аудит."""
     provider, customer = await _pair("req-rate")
     provider_id = ids.encode("organization", provider.organization_id)
     equipment_id = _equipment_id(customer)
@@ -466,7 +456,6 @@ async def test_binding_request_rate_limit() -> None:
 
 
 async def test_personal_contact_is_never_confirmed() -> None:
-    """ТЗ 6.6.4/A03: сохранённый контакт обозначен честно и не попадает в каталог."""
     customer = await make_customer("contact")
     result = await trust.create_contact_binding(
         customer.manager,
@@ -504,9 +493,6 @@ async def test_either_side_revokes_binding() -> None:
 
 
 async def test_contract_number_is_claimed_by_first_acceptance() -> None:
-    """Номер договора закрепляется за заказчиком в момент принятия приглашения,
-    а не в момент его выпуска — до принятия исполнитель может выписать
-    приглашение с тем же номером кому угодно."""
     provider = await make_provider("ctr-x", status="active", accepting=True, verified=True)
     first = await make_customer("ctr-x-1")
     second = await make_customer("ctr-x-2", inn=OTHER_INN, verified=True)
@@ -527,8 +513,6 @@ async def test_contract_number_is_claimed_by_first_acceptance() -> None:
 
 
 async def test_client_registers_after_receiving_invitation() -> None:
-    """ТЗ 6.6.2: приглашение можно выписать клиенту, которого ещё нет на платформе —
-    он принимает его сам, зарегистрировавшись позже."""
     provider = await make_provider("inv-new", status="active", accepting=True, verified=True)
     issued = await trust.create_binding_invitation(
         provider.admin,
@@ -568,8 +552,6 @@ async def test_client_registers_after_receiving_invitation() -> None:
 
 
 async def test_accept_with_mismatched_inn_is_refused_and_token_survives() -> None:
-    """ТЗ 6.6.2 п.4: сервер сверяет ИНН принимающей организации с заявленным —
-    чужая организация приглашение не гасит и ничего о настоящем адресате не узнаёт."""
     provider = await make_provider("inv-mismatch", status="active", accepting=True, verified=True)
     customer = await make_customer("inv-mismatch-c", verified=True)
     token, _ = await _invite(provider, "inv-mismatch-1", customer_inn=OTHER_INN, number="Д-202")
@@ -609,8 +591,6 @@ async def _set_serial(equipment_id: object, serial: str) -> None:
 
 
 async def test_invitation_confirms_exactly_listed_equipment() -> None:
-    """ТЗ 6.6.2 п.2: приглашение несёт перечень оборудования; подтверждается ровно
-    он, привязка на другое оборудование заказчика не распространяется."""
     provider, customer = await _pair("inv-items")
     second = await add_equipment(customer)
     extra = await add_equipment(customer)
@@ -686,8 +666,6 @@ async def test_invitation_requires_equipment_list() -> None:
 
 
 async def test_invitation_is_not_captured_by_unverified_namesake() -> None:
-    """L2: адресат — только проверенная организация с этим ИНН; непроверенная
-    организация с тем же ИНН приглашение не гасит, а токен остаётся рабочим."""
     provider = await make_provider("inv-squat", status="active", accepting=True, verified=True)
     squatter = await make_customer("inv-squat-s", verified=False)
     owner = await make_customer("inv-squat-o", verified=True)
@@ -720,7 +698,7 @@ async def test_verified_owner_registered_after_issue_wins_over_namesake() -> Non
     assert result.body["items"][0]["status"] == "confirmed"
 
 
-def _request(provider: ProviderFixture, customer: CustomerFixture, number: str):  # type: ignore[no-untyped-def]
+def _request(provider: ProviderFixture, customer: CustomerFixture, number: str):
     return trust.BindingRequestData(
         provider_organization_id=ids.encode("organization", provider.organization_id),
         contract_number=number,
@@ -729,8 +707,6 @@ def _request(provider: ProviderFixture, customer: CustomerFixture, number: str):
 
 
 async def test_binding_request_limit_is_per_pair_not_per_provider() -> None:
-    """ТЗ 6.6.3: перебор одного заказчика не закрывает запросы другим клиентам сервиса;
-    второй руководитель той же организации упирается в лимит организации."""
     provider, attacker = await _pair("req-pair")
     victim = await make_customer("req-pair-v", inn=OTHER_INN)
     for attempt in range(5):
@@ -818,7 +794,6 @@ async def test_concurrent_binding_requests_do_not_overshoot_limit() -> None:
 
 
 async def test_serial_number_hidden_after_rejection() -> None:
-    """L7: после отказа или расторжения исполнитель не видит серийный номер."""
     provider, customer = await _pair("serial-hide")
     await _set_serial(customer.equipment_id, "SN-SECRET")
     await trust.request_binding(
@@ -838,9 +813,6 @@ async def test_serial_number_hidden_after_rejection() -> None:
 
 
 async def test_request_rate_query_uses_expression_index() -> None:
-    """Условие совпадает с частичным индексом 0008 и в общем плане подготовленного
-    запроса: asyncpg готовит каждый запрос, и после нескольких выполнений
-    PostgreSQL вправе перейти на общий план с параметрами вместо значений."""
     from app.modules.trust.bindings import request_attempts
 
     stmt = request_attempts(uuid.uuid4(), utcnow() - timedelta(minutes=15))

@@ -84,7 +84,6 @@ async def run_once(now: datetime) -> int:
 
 
 async def _scrub_failed_updates(cutoff: datetime, batch: int) -> int:
-    """Неуспешные события MAX: ключ и причина остаются, содержимое — нет (ТЗ 12, 14)."""
     ids = (
         select(MaxUpdate.id)
         .where(

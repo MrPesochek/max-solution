@@ -29,7 +29,7 @@ done
 cd "$ROOT"
 command -v docker >/dev/null || fail "нет docker"
 docker compose version >/dev/null 2>&1 || fail "нет docker compose v2"
-[ -f "$ENV_FILE" ] || fail "нет $ENV_FILE (cp .env.prod.example .env, docs/deploy.md)"
+[ -f "$ENV_FILE" ] || fail "нет $ENV_FILE (cp .env.prod.example .env)"
 
 env_value() {
     grep -E "^$1=" "$ENV_FILE" | tail -n1 | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//' || true
@@ -118,15 +118,14 @@ rollback_to() {
     info "Откат на $target"
     echo "Схема БД не откатывается: $target запускается на схеме версии $schema_tag" \
         "(migrate новых миграций не ждёт, БД новее кода допустима)."
-    echo "Откат допустим только на теги, чья схема обратно совместима с текущей" \
-        "(docs/deploy.md «Обновление и откат», backend/migrations/README.md);" \
+    echo "Откат допустим только на теги, чья схема обратно совместима с текущей;" \
         "иначе — восстановление из дампа (scripts/restore.sh)."
     if start_tag "$target" && wait_healthy; then
         echo "Стенд работает на предыдущем теге $target."
         return 0
     fi
-    echo "ОШИБКА: и после отката на $target стенд не здоров — docker compose logs," \
-        "docs/deploy.md «Обновление и откат» и «Восстановление»." >&2
+    echo "ОШИБКА: и после отката на $target стенд не здоров — смотрите docker compose logs" \
+        "и при необходимости восстановите дамп (scripts/restore.sh)." >&2
     return 1
 }
 

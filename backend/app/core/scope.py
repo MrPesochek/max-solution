@@ -7,12 +7,6 @@ from app.core.errors import Forbidden
 
 @dataclass(frozen=True, slots=True)
 class AccessScope:
-    """Обязательный фильтр арендатора для любой выборки.
-
-    Репозитории принимают его позиционным аргументом: выборку данных организации
-    нельзя написать, не указав, от чьего имени она делается.
-    """
-
     organization_id: uuid.UUID
     side: Side
     location_ids: frozenset[uuid.UUID] | None = None

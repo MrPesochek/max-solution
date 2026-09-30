@@ -1,0 +1,107 @@
+x-demo-backend-env: &demo-backend-env
+  APP_ENV: ${APP_ENV:-local}
+  DATABASE_URL: postgresql+asyncpg://repair:${POSTGRES_PASSWORD:-repair}@postgres:5432/repair
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+  MAX_UPDATES_MODE: "off"
+  SECRETS_ENCRYPTION_KEY: ${SECRETS_ENCRYPTION_KEY:-}
+  ALLOWED_PRIVATE_WEBHOOK_HOSTS: onec-connector:8083
+  DEMO_LOGIN_ENABLED: ${DEMO_LOGIN_ENABLED:-true}
+  DEMO_SHOWCASE_ENABLED: ${DEMO_SHOWCASE_ENABLED:-false}
+  MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-10485760}
+  FILE_STORAGE_PATH: /data/files
+
+services:
+  api:
+    environment:
+      ALLOWED_PRIVATE_WEBHOOK_HOSTS: onec-connector:8083
+
+  worker:
+    environment:
+      ALLOWED_PRIVATE_WEBHOOK_HOSTS: onec-connector:8083
+
+  init-keys:
+    build: ./backend
+    user: root
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown 10001:10001 /data/keys && chmod 0755 /data/keys"]
+    volumes:
+      - keys:/data/keys
+
+  seed:
+    build: ./backend
+    entrypoint: ["/bin/sh", "/deploy/with-secrets.sh"]
+    command: ["python", "-m", "app.demo.seed"]
+    environment:
+      <<: *demo-backend-env
+      CONNECTOR_API_KEY: ${CONNECTOR_API_KEY:-}
+      CONNECTOR_API_KEY_FILE: /data/keys/connector.key
+    volumes:
+      - files:/data/files
+      - keys:/data/keys
+      - ./deploy/with-secrets.sh:/deploy/with-secrets.sh:ro
+      - secrets:/data/secrets:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      init-secrets:
+        condition: service_completed_successfully
+      init-keys:
+        condition: service_completed_successfully
+
+  onec-emulator:
+    build:
+      context: ./integration_1c
+      target: emulator
+    environment:
+      ONEC_EMULATOR_ODATA_PASSWORD: ${ONEC_ODATA_PASSWORD:-odata-demo}
+      ONEC_EMULATOR_UI_PASSWORD: ${ONEC_UI_PASSWORD:-demo}
+      ONEC_EMULATOR_SESSION_SECRET: ${ONEC_SESSION_SECRET:-change-me-session-secret}
+      ONEC_EMULATOR_ALLOW_DEFAULTS: ${ONEC_ALLOW_DEFAULTS:-true}
+    volumes:
+      - emulatordata:/app/data
+    ports:
+      - "${ONEC_EMULATOR_BIND:-127.0.0.1}:${ONEC_EMULATOR_PORT:-8082}:8082"
+
+  onec-connector:
+    build:
+      context: ./integration_1c
+      target: connector
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ -z "$${CONNECTOR_PLATFORM_API_KEY:-}" ] && [ -s /data/keys/connector.key ]; then
+          CONNECTOR_PLATFORM_API_KEY="$$(cat /data/keys/connector.key)"
+          export CONNECTOR_PLATFORM_API_KEY
+        fi
+        exec uvicorn connector.main:app --host 0.0.0.0 --port 8083 --no-access-log
+    environment:
+      CONNECTOR_PLATFORM_API_BASE_URL: http://api:8000/api/v1
+      CONNECTOR_PLATFORM_API_KEY: ${CONNECTOR_API_KEY:-}
+      CONNECTOR_PLATFORM_ALLOW_HTTP: "true"
+      CONNECTOR_PUBLIC_BASE_URL: http://onec-connector:8083
+      CONNECTOR_ONEC_ODATA_URL: http://onec-emulator:8082/unf_demo/odata/standard.odata
+      CONNECTOR_ONEC_USERNAME: odata
+      CONNECTOR_ONEC_PASSWORD: ${ONEC_ODATA_PASSWORD:-odata-demo}
+      CONNECTOR_ONEC_ALLOW_HTTP: "true"
+      CONNECTOR_PROFILE: unf
+      CONNECTOR_POLL_INTERVAL_SECONDS: ${CONNECTOR_POLL_INTERVAL_SECONDS:-5}
+    volumes:
+      - connectordata:/app/data
+      - keys:/data/keys:ro
+    networks:
+      default:
+        ipv4_address: 172.30.57.20
+    ports:
+      - "${CONNECTOR_BIND:-127.0.0.1}:${CONNECTOR_PORT:-8083}:8083"
+    depends_on:
+      api:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+      onec-emulator:
+        condition: service_healthy
+
+volumes:
+  keys:
+  emulatordata:
+  connectordata:

@@ -16,7 +16,7 @@ async function openCustomerStaff(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByRole('heading', { level: 1, name: 'Сотрудники' });
 }
 
-describe('A27: исключение сотрудника и отклонение заявки на вступление', () => {
+describe('исключение сотрудника и отклонение заявки на вступление', () => {
   it('руководитель заказчика исключает сотрудника после подтверждения', async () => {
     const user = userEvent.setup();
     renderApp();

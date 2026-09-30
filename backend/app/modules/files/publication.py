@@ -30,7 +30,6 @@ async def publish_to_public_card(
     *,
     confirm_sensitive: bool = False,
 ) -> list[uuid.UUID]:
-    """Создаёт публичные копии выбранных фото заявки и возвращает их идентификаторы."""
     await revoke_public_card_copies(ctx, request.id)
     if not attachment_ids:
         return []
@@ -65,7 +64,6 @@ async def publish_to_public_card(
 
 
 async def revoke_public_card_copies(ctx: CommandContext, request_id: uuid.UUID) -> int:
-    """Снятие карточки с публикации: копии помечаются отозванными и больше не отдаются."""
     stmt = select(Attachment).where(
         Attachment.request_id == request_id,
         Attachment.visibility_class == VisibilityClass.PUBLIC_CARD,
@@ -93,11 +91,6 @@ async def attach_review_photos(
     *,
     confirm_sensitive: bool = False,
 ) -> list[uuid.UUID]:
-    """ТЗ 8.3.2: заказчик выбирает фото для отзыва; галерея заявки не переносится целиком.
-
-    Вызывается из команды отзыва в её транзакции: копии публикуются только
-    после модерации, повторная отправка отзыва заменяет прежний набор.
-    """
     review = await ctx.session.get(Review, review_id)
     if review is None:
         raise NotFound()

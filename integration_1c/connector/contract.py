@@ -14,14 +14,10 @@ class ErrorBody(BaseModel):
 
 
 class ErrorEnvelope(BaseModel):
-    """Формат ошибки платформы (ТЗ 10.3)."""
-
     error: ErrorBody
 
 
 class Page(BaseModel):
-    """Курсорная страница списка (ТЗ 10.1): `{items, next_cursor}`, без `has_more`."""
-
     items: list[dict[str, Any]]
     next_cursor: str | None = None
 
@@ -60,8 +56,6 @@ SUBSCRIBED_EVENTS: frozenset[WebhookEventType] = REQUEST_EVENTS | {"assignment.r
 
 
 class WebhookEnvelope(BaseModel):
-    """Конверт исходящего события платформы (ТЗ 11, пример конверта)."""
-
     schema_version: str
     event_id: str
     type: WebhookEventType
@@ -73,8 +67,6 @@ class WebhookEnvelope(BaseModel):
 
 
 class MoneyAmount(BaseModel):
-    """`PriceView`: `amount_minor=None` — цена неизвестна, `is_known` вычисляется платформой."""
-
     amount_minor: int | None = None
     currency: str | None = None
     vat_mode: str | None = None
@@ -83,8 +75,6 @@ class MoneyAmount(BaseModel):
 
 
 class EquipmentSnapshot(BaseModel):
-    """`EquipmentView` — снимок на момент отправки заявки."""
-
     id: str | None = None
     category_id: str | None = None
     category_name: str | None = None
@@ -95,8 +85,6 @@ class EquipmentSnapshot(BaseModel):
 
 
 class LocationSnapshot(BaseModel):
-    """`LocationView`. До раскрытия назначения `name`/`address`/контакты скрыты (I7)."""
-
     id: str | None = None
     name: str | None = None
     city_id: str | None = None
@@ -115,8 +103,6 @@ class FieldWorker(BaseModel):
 
 
 class Assignment(BaseModel):
-    """`AssignmentView`."""
-
     id: str
     request_id: str
     provider_organization_id: str
@@ -138,8 +124,6 @@ class Assignment(BaseModel):
 
 
 class VisitProposal(BaseModel):
-    """`VisitProposalView`."""
-
     id: str
     assignment_id: str
     version: int
@@ -157,15 +141,11 @@ class VisitProposal(BaseModel):
 
 
 class RepairQuoteItem(BaseModel):
-    """Позиция сметы; сумма позиций равна `price.amount_minor`."""
-
     title: str
     amount_minor: int
 
 
 class RepairQuote(BaseModel):
-    """`RepairQuoteView`."""
-
     id: str
     assignment_id: str
     version: int
@@ -180,8 +160,6 @@ class RepairQuote(BaseModel):
 
 
 class CancellationRequest(BaseModel):
-    """`CancellationRequestView`."""
-
     id: str
     assignment_id: str
     target: Literal["cancel_request", "change_provider"]
@@ -197,13 +175,6 @@ class CancellationRequest(BaseModel):
 
 
 class RequestAttachment(BaseModel):
-    """`AttachmentView` (`backend/app/modules/files/views.py`) — вложение заявки.
-
-    `processing_state`: `quarantined` (только что загружено, ещё не проверено),
-    `ready` (можно скачивать и показывать), `rejected` (не прошло проверку,
-    `rejected_reason` — публичная причина). `visibility_class = request_sensitive`
-    помечает чувствительные фото (например, шильдик с данными оборудования)."""
-
     model_config = ConfigDict(extra="allow")
 
     id: str
@@ -224,8 +195,6 @@ class RequestAttachment(BaseModel):
 
 
 class MessageItem(BaseModel):
-    """`MessageView`."""
-
     id: str
     request_id: str
     author_kind: str
@@ -235,12 +204,6 @@ class MessageItem(BaseModel):
 
 
 class RequestCard(BaseModel):
-    """Карточка заявки, доступная компании (`GET /requests/{id}` — `RequestProviderView`).
-
-    Переписка (`GET /requests/{id}/messages`) и история (только в `/app-api/v1`) в эту
-    карточку не входят — это отдельные маршруты, а не встроенные списки.
-    """
-
     model_config = ConfigDict(extra="allow")
 
     id: str
@@ -266,15 +229,11 @@ class RequestCard(BaseModel):
 
 
 class FormerAssignmentCard(BaseModel):
-    """`RequestFormerProviderView`: назначение прекращено, содержимое заявки не отдаётся."""
-
     request_id: str
     assignment: Assignment
 
 
 class RequestListItem(BaseModel):
-    """`RequestListItemView` — элемент `GET /requests`."""
-
     model_config = ConfigDict(extra="allow")
 
     id: str
@@ -306,17 +265,12 @@ class DeclineRequest(BaseModel):
 
 
 class WithdrawAssignmentRequest(BaseModel):
-    """D2: отказ исполнителя после принятия назначения."""
-
     assignment_id: str
     reason: str = Field(min_length=1, max_length=2000)
     expected_version: int | None = None
 
 
 class MessageCreateRequest(BaseModel):
-    """`POST /requests/{id}/messages`: тело заявки не поддерживает вложения — это
-    отдельный маршрут `POST /requests/{id}/attachments` (multipart, см. `platform_client`)."""
-
     body: str = Field(min_length=1, max_length=4000)
     assignment_id: str | None = None
     expected_version: int | None = None
@@ -343,8 +297,6 @@ class RepairQuoteItemBody(BaseModel):
 
 
 class RepairQuoteCreateRequest(BaseModel):
-    """Сумма позиций равна `amount_minor`; без суммы её считает платформа."""
-
     assignment_id: str
     description_of_work: str = Field(min_length=1, max_length=4000)
     items: list[RepairQuoteItemBody] | None = Field(default=None, max_length=50)
@@ -368,8 +320,6 @@ class CompleteRequest(BaseModel):
 
 
 class CancellationResponseRequest(BaseModel):
-    """`POST /requests/{id}/cancellation-response`: `decline` требует причины."""
-
     assignment_id: str
     cancellation_id: str
     decision: Literal["accept", "decline"]
@@ -391,8 +341,6 @@ class WebhookSubscriptionResponse(BaseModel):
 
 
 class WebhookSubscriptionItem(BaseModel):
-    """Подписка в списке `GET /webhook-subscriptions` — без секрета."""
-
     id: str
     url: str
     status: str
@@ -406,16 +354,12 @@ class WebhookSubscriptionsPage(BaseModel):
 
 
 class EventsPage(BaseModel):
-    """`GET /events` — восстановление ленты после курсора (ТЗ 11, п.8)."""
-
     events: list[WebhookEnvelope]
     next_cursor: str | None = None
     has_more: bool = False
 
 
 class MeResponse(BaseModel):
-    """`GET /me` — организация интеграции и разрешения ключа (ТЗ 10.2)."""
-
     organization_id: str
     organization_name: str
     client_id: str

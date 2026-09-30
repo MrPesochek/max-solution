@@ -44,7 +44,6 @@ def login_csrf_token(secret: str, nonce: str) -> str:
 
 
 def csrf_token_for(request: Request) -> str:
-    """Токен для скрытого поля формы в шаблонах."""
     secret = _settings(request).session_secret
     session_cookie = request.cookies.get(SESSION_COOKIE)
     if session_cookie and security.verify_session_cookie(secret, session_cookie):

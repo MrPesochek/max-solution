@@ -65,7 +65,6 @@ export function InWorkList({ query }: { query: CursorList<RequestListItem> }) {
   return (
     <>
       {jobs}
-      {/* Очередь приходит страницами с сервера: остальное — по кнопке, а не молча обрезано. */}
       {query.hasNextPage && (
         <List>
           <ListRow

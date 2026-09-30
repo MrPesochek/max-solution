@@ -85,7 +85,6 @@ export function EquipmentBindingsSection({
 }) {
   const visible = bindings
     .filter((b) => b.status !== 'revoked')
-    // Подтверждённый сервис первым, личный контакт — последним.
     .sort((a, b) => rank(a) - rank(b));
   const state = serviceState(bindings);
 

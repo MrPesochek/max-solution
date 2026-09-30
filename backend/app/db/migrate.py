@@ -20,7 +20,6 @@ def build_config() -> Config:
 
 
 async def _state(database_url: str, heads: set[str]) -> tuple[bool, set[str]]:
-    """(головы кода применены, содержимое alembic_version); пустая БД — (False, set())."""
     engine = create_async_engine(database_url)
     try:
         async with engine.connect() as connection:
@@ -46,7 +45,6 @@ def _load_state(config: Config, heads: set[str]) -> tuple[bool, set[str]]:
 
 
 def run(config: Config) -> bool:
-    """Доводит схему до головы кода. Возвращает True, если миграции запускались."""
     heads = schema_revisions.head_revisions(config)
     applied, current = _load_state(config, heads)
     if applied:
@@ -57,7 +55,6 @@ def run(config: Config) -> bool:
 
 
 def pending(config: Config) -> list[str]:
-    """Строки «ревизия: описание» для миграций, которые применил бы run()."""
     heads = schema_revisions.head_revisions(config)
     applied, current = _load_state(config, heads)
     if applied:

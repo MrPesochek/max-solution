@@ -42,7 +42,7 @@ function captureActionBodies(action: string): unknown[] {
   return bodies;
 }
 
-describe('S2 из карточки заявки: публикация → отклики → сравнение → выбор', () => {
+describe('поиск из карточки заявки: публикация → отклики → сравнение → выбор', () => {
   it('карточка показывает число исполнителей, предложения и ведёт к выбору', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const request = await publishedRequest(manager, 'Bosch', 'Витрина не охлаждает');

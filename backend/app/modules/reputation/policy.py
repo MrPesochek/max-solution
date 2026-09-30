@@ -7,7 +7,6 @@ REVIEWS_WRITE = "reviews:write"
 
 
 def require_customer_manager(actor: Actor) -> UserActor:
-    """Автор отзыва — только руководитель организации-заказчика (D25, ТЗ 8.3.1)."""
     return require_roles(actor, MembershipRole.CUSTOMER_MANAGER)
 
 
@@ -38,7 +37,6 @@ def require_reviews_write(actor: IntegrationActor) -> None:
 
 
 def require_reason(value: str | None, field: str = "reason") -> str:
-    """Решение оператора по отклонению/удалению/жалобе всегда содержит основание (A37)."""
     text = (value or "").strip()
     if not text:
         raise ValidationFailed("Укажите основание решения", field=field)

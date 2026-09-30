@@ -1,4 +1,3 @@
-# В образ попадают только pyproject.toml, uv.lock, alembic.ini, migrations/ и app/.
 .venv
 **/__pycache__
 *.pyc

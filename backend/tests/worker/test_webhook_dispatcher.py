@@ -78,7 +78,6 @@ async def test_successful_delivery_is_signed(db_session: AsyncSession, receiver:
 async def test_wrong_secret_is_rejected_by_receiver(
     db_session: AsyncSession, receiver: Receiver
 ) -> None:
-    """A20: получатель отвергает подпись, рассчитанную другим секретом."""
     await _prepare(db_session, receiver)
     await webhook_dispatcher.run_once(utcnow())
     got = receiver.received[0]
@@ -158,8 +157,6 @@ async def test_retry_window_exhausted(db_session: AsyncSession, receiver: Receiv
 async def test_unreachable_receiver_then_recovery_delivers_once(
     db_session: AsyncSession, receiver: Receiver
 ) -> None:
-    """A18: пока CRM недоступна, событие остаётся в очереди; после восстановления
-    оно доставляется, и логически — ровно один раз (один event_id)."""
     _, _, _, event = await _prepare(db_session, receiver)
     receiver.respond_with(503, 503)
 
@@ -245,7 +242,6 @@ async def test_foreign_organization_subscription_is_not_used(
 async def test_restart_picks_up_queued_and_stale_lease(
     db_session: AsyncSession, receiver: Receiver
 ) -> None:
-    """A22: новый экземпляр цикла подхватывает очередь, зависшая аренда освобождается."""
     await _prepare(db_session, receiver)
     await integration.enqueue_deliveries(utcnow())
 

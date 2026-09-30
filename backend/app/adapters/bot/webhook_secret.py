@@ -32,14 +32,11 @@ _DATETIME_FIELDS = ("subscribed_at", "switched_at", "rotation_started_at")
 
 
 def fingerprint(secret: str) -> str:
-    """Отпечаток секрета для сравнения: по нему секрет не восстановить."""
     return hmac.new(_FINGERPRINT_LABEL, secret.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
 class SubscriptionState:
-    """Что мы знаем о подписке MAX. Пустое состояние — подписки с отпечатком ещё не было."""
-
     url: str | None = None
     secret_fp: str | None = None
     subscribed_at: datetime | None = None
@@ -92,19 +89,12 @@ async def _store(session: AsyncSession, state: SubscriptionState) -> None:
 
 @asynccontextmanager
 async def subscription_lock() -> AsyncIterator[AsyncSession]:
-    """Одна переподписка на кластер: api и worker могут проверять подписку одновременно."""
     async with db_session.transaction() as session:
         await advisory_xact_lock(session, _LOCK_KEY)
         yield session
 
 
 async def mark_rotation_started(url: str, secret_fp: str) -> SubscriptionState:
-    """Фиксирует начало ротации отдельной транзакцией до обращения к MAX.
-
-    Так окно для старого секрета видно маршруту в соседнем процессе, пока идёт
-    переподписка, и отсчитывается от первого обнаружения, а не от каждого
-    перезапуска.
-    """
     async with subscription_lock() as session:
         state = await load_state(session)
         if state.matches(url, secret_fp) or state.pending_fp == secret_fp:
@@ -134,7 +124,6 @@ async def save_subscribed(
 
 
 async def previous_secret_allowed(runtime: BotRuntime) -> bool:
-    """Открыто ли окно ротации для `MAX_WEBHOOK_SECRET_PREVIOUS`."""
     settings = get_settings()
     state = await load_state()
     now = utcnow()
@@ -167,7 +156,6 @@ async def previous_secret_allowed(runtime: BotRuntime) -> bool:
 
 
 async def secret_ok(runtime: BotRuntime, provided: str | None) -> bool:
-    """Проверка заголовка `X-Max-Bot-Api-Secret`; сравнения — за постоянное время."""
     if not runtime.secret:
         return get_settings().app_env == "test"
     if provided is None:

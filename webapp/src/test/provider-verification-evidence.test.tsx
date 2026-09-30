@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
 import { loginAsDemo, renderApp } from './testUtils';
 
-describe('проверка исполнителя: документы-доказательства (ТЗ 6.5.2)', () => {
+describe('проверка исполнителя: документы-доказательства', () => {
   it('администратор прикладывает документ, и его id уходит в attachment_refs вместе с заметкой', async () => {
     let submitted: { note?: string; attachment_refs?: string[] } | null = null;
     server.use(

@@ -46,8 +46,6 @@ class MembershipView(BaseModel):
 
 
 class MemberView(BaseModel):
-    """Участник в списке сотрудников организации."""
-
     id: str
     user: UserView
     role: str
@@ -82,8 +80,6 @@ class InvitationIssuedView(InvitationView):
 
 
 class InvitationPreviewView(BaseModel):
-    """Сведения приглашения — только пока оно действует; иначе только состояние."""
-
     organization_name: str | None
     role: str | None
     expires_at: datetime | None
@@ -93,8 +89,6 @@ class InvitationPreviewView(BaseModel):
 
 
 class InvitationPreviewForBotView(InvitationPreviewView):
-    """Предпросмотр для бота: к нему добавлен id, чтобы приём шёл без хранения токена."""
-
     id: str
 
 
@@ -175,7 +169,6 @@ def to_member_view(
 
 
 def invitation_state(invitation: Invitation, now: datetime) -> str:
-    """Состояние наружу: active/expired/revoked/used (в БД — pending/accepted/revoked/expired)."""
     if invitation.status == InvitationState.ACCEPTED:
         return "used"
     if invitation.status == InvitationState.REVOKED:

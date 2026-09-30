@@ -41,13 +41,6 @@ async def run_once(now: datetime, *, transport: MaxTransport | None = None) -> i
 
 
 async def lease(now: datetime, *, batch: int | None = None) -> list[NotificationJob]:
-    """Берёт пачку в работу; получателям без запущенного бота уведомление не уходит (D32).
-
-    Аренда — отдельное поле `lease_until`: `next_attempt_at` по-прежнему значит
-    «когда планировать следующую попытку» и не смешивается с «когда истекает
-    резервирование задания», иначе зависший экземпляр держал бы задание до
-    следующего запланированного повтора, а не до истечения аренды.
-    """
     settings = get_settings()
     limit = batch or settings.notification_send_batch
     lease_window = timedelta(seconds=settings.notification_lease_seconds)
@@ -132,7 +125,6 @@ async def _send(job: NotificationJob, transport: MaxTransport) -> None:
 
 
 async def skip(job: NotificationJob, reason: str) -> None:
-    """Шаблон решил не отправлять: состояние, о котором уведомление, уже в прошлом."""
     async with db_session.transaction() as session:
         notification = await lock_by_id(session, Notification, job.notification_id)
         notification.lease_until = None

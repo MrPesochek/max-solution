@@ -23,8 +23,6 @@ _MAX_UPDATE_PENDING = ("received", "processing", "failed")
 
 @dataclass(frozen=True, slots=True)
 class Alarm:
-    """Причина degraded; `code` — машиночитаемый, по нему алертит лог-агент."""
-
     code: str
     message: str
     details: dict[str, Any] = field(default_factory=dict)
@@ -383,7 +381,6 @@ async def collect_status(now: datetime, settings: Settings) -> OpsStatus:
 
 
 def render_prometheus(status: OpsStatus) -> str:
-    """Тот же срез в текстовом формате Prometheus (без клиентской библиотеки)."""
     lines: list[str] = []
 
     def metric(name: str, kind: str, help_text: str, samples: list[tuple[str, float]]) -> None:

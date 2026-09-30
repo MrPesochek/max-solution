@@ -83,8 +83,6 @@ class OrganizationCreateData:
 
 @dataclass(slots=True)
 class OrganizationUpdateData:
-    """`UNSET` — поле не передано (не меняется); `None` — явная очистка nullable-поля."""
-
     name: str | UnsetType | None = UNSET
     contact_name: str | UnsetType | None = UNSET
     representative_position: str | UnsetType | None = UNSET
@@ -208,12 +206,6 @@ async def add_participation(
     *,
     idem: Idempotency | None,
 ) -> CommandResult:
-    """Второй тип участия той же организации (ТЗ 3).
-
-    Руководитель получает отдельное членство новой стороны: контексты и полномочия
-    заказчика и исполнителя не смешиваются. Профиль исполнителя начинается с
-    черновика и проходит проверку как обычно.
-    """
     manager = policy.require_org_manager(actor)
     kind = policy.check_organization_kind(data.kind)
     if kind == "provider" and data.provider_kind not in {k.value for k in ProviderKind}:
@@ -316,8 +308,6 @@ async def update_organization(
     idem: Idempotency | None,
     organization_id: uuid.UUID | None = None,
 ) -> CommandResult:
-    """Профиль организации. Смена отображаемого имени не трогает репутацию — она
-    привязана к организации, а не к названию (ТЗ 6.5.3)."""
     manager = policy.require_org_manager(actor)
     if data.name is None:
         raise ValidationFailed("Укажите название организации", field="name")
@@ -371,7 +361,6 @@ async def update_organization(
 
 
 async def _require_reverification(ctx: CommandContext, org: Organization) -> None:
-    """ТЗ 6.5.3: смена реквизитов требует повторной проверки — прежний признак снят."""
     from app.modules.providers import api as providers
 
     org.details_verification_status = VerificationStatus.UNVERIFIED.value
@@ -657,10 +646,6 @@ async def revoke_invitation(
 
 
 def _invitation_invalid(reason: str | None = None) -> Conflict:
-    """Единая ошибка: причина наружу не раскрывается, кроме истечения срока (A32).
-
-    Чужое именное приглашение отвечает так же, как отозванное или использованное:
-    по ответу не понять, кому оно выдано."""
     if reason == "expired":
         return Conflict(
             "Срок действия приглашения истёк", code="INVITATION_INVALID", reason="expired"
@@ -669,9 +654,6 @@ def _invitation_invalid(reason: str | None = None) -> Conflict:
 
 
 class _ForeignRecipient(Exception):
-    """Именное приглашение предъявил не адресат: транзакция приёма откатывается,
-    приглашение не расходуется, о попытке узнаёт приглашающий."""
-
     def __init__(self, invitation_id: uuid.UUID) -> None:
         super().__init__(invitation_id)
         self.invitation_id = invitation_id
@@ -684,20 +666,12 @@ async def accept_invitation(actor: Actor, token: str, *, idem: Idempotency | Non
 async def accept_invitation_by_id(
     actor: Actor, invitation_id: uuid.UUID, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Приём приглашения, уже предъявленного токеном (бот: предпросмотр → кнопка «Принять»).
-
-    Токен проверен при предпросмотре и повторно нигде не хранится; право нажать
-    кнопку подтверждает одноразовая строка `bot_actions`, привязанная к адресату.
-    Правила погашения и все ошибки — те же, что при приёме по токену.
-    """
     return await _accept_invitation(actor, Invitation.id == invitation_id, idem=idem)
 
 
 async def _accept_invitation(
     actor: Actor, match: ColumnElement[bool], *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.5.4, 6.7: именное приглашение принимает только адресат, и доступ открывается
-    сразу; приглашение без адресата даёт членство `pending` до решения руководителя."""
     user_id = policy.user_id_of(actor)
 
     async def handler(ctx: CommandContext) -> CommandResult:
@@ -820,7 +794,6 @@ async def _explain_failed_claim(ctx: CommandContext, match: ColumnElement[bool])
 async def _side_approvers(
     ctx: CommandContext, organization_id: uuid.UUID, side: Side
 ) -> list[tuple[uuid.UUID, uuid.UUID]]:
-    """Действующие руководители стороны: (membership_id, user_id)."""
     rows = await ctx.session.execute(
         select(Membership.id, Membership.user_id).where(
             Membership.organization_id == organization_id,
@@ -834,10 +807,6 @@ async def _side_approvers(
 async def _report_foreign_attempt(
     actor: Actor, user_id: uuid.UUID, invitation_id: uuid.UUID
 ) -> None:
-    """Попытка принять чужое именное приглашение: запись в журнал и, один раз на
-    пользователя, уведомление приглашающему (или руководителям стороны, если его уже нет).
-
-    Отдельная транзакция: транзакция приёма откатилась вместе с ключом идемпотентности."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         invitation = await ctx.session.get(Invitation, invitation_id)
@@ -925,10 +894,6 @@ class AccessRequestData:
 async def request_access(
     actor: Actor, data: AccessRequestData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """«Запросить доступ» с экрана «Нет доступа»: уведомление руководителям своей стороны.
-
-    Ответ одинаков при любой точке: чужая или несуществующая точка в уведомление не
-    попадает, и по ответу нельзя понять, есть ли она. Заявку запрос не принимает."""
     if not isinstance(actor, UserActor):
         raise NotFound()
     note = (data.note or "").strip() or None

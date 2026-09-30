@@ -52,8 +52,6 @@ PURPOSE_REVIEW_PHOTO = "review_photo"
 
 @dataclass(frozen=True, slots=True)
 class UploadPlan:
-    """Что и куда будет записано — вычислено до касания хранилища."""
-
     owner_kind: str
     visibility_class: str
     purpose: str | None
@@ -86,9 +84,6 @@ async def prepare(
 async def ensure_provider_may_change(
     session: AsyncSession, actor: Actor, *, message_id: uuid.UUID | None = None
 ) -> None:
-    """ТЗ 6.5.3: заблокированному исполнителю остаётся только переписка по принятым
-    назначениям. Вложение к такому сообщению допустимо, остальные изменения — нет.
-    Правило то же, что в модуле заявок, для Web App, бота и CRM."""
     provider_org_id = _provider_org(actor)
     if provider_org_id is None:
         return
@@ -130,9 +125,6 @@ async def _prepare(
 
 
 async def _ensure_message_author(session: AsyncSession, actor: Actor, message: Message) -> None:
-    """Файл прикладывается только к своему сообщению и только в видимом автору канале:
-    к чужой реплике, приватному треду другого исполнителя или переписке прежнего
-    назначения — нельзя."""
     if isinstance(actor, UserActor):
         own = message.author_membership_id == actor.membership_id
     elif isinstance(actor, IntegrationActor):
@@ -190,7 +182,6 @@ async def _plan_request(
 async def ensure_request_participant(
     session: AsyncSession, actor: Actor, request: RepairRequest
 ) -> None:
-    """Участник своей стороны: заказчик по точке либо исполнитель с активным назначением."""
     if isinstance(actor, UserActor) and actor.side == "customer":
         if actor.organization_id != request.customer_org_id:
             raise NotFound()
@@ -236,7 +227,6 @@ async def ensure_equipment_photo_limit(session: AsyncSession, equipment_id: uuid
 
 
 def visibility_for_slot(template: list[dict[str, object]], slot: str | None) -> str:
-    """Класс чувствительности берётся из шаблона категории (D13); по умолчанию приватный."""
     if slot:
         for entry in template:
             if entry.get("code") == slot:
@@ -252,7 +242,6 @@ def visibility_for_slot(template: list[dict[str, object]], slot: str | None) -> 
 async def _plan_equipment(
     session: AsyncSession, actor: Actor, equipment_id: uuid.UUID, slot: str | None
 ) -> UploadPlan:
-    """Загружает менеджер заказчика либо сотрудник в своей точке (не исполнитель)."""
     equipment = await session.get(Equipment, equipment_id)
     if equipment is None or not isinstance(actor, UserActor) or actor.side != "customer":
         raise NotFound()

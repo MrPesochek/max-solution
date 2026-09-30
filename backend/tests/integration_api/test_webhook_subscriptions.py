@@ -14,7 +14,7 @@ pytestmark = pytest.mark.asyncio
 
 
 async def _key(db_session: AsyncSession, **kwargs: object) -> str:
-    org = await provider_org(db_session, **kwargs)  # type: ignore[arg-type]
+    org = await provider_org(db_session, **kwargs)
     _, key = await factories.create_integration_client(db_session, org)
     await db_session.commit()
     return key

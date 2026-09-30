@@ -13,7 +13,6 @@ export function LinkRow({ label, value }: { label: string; value: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // буфер обмена недоступен — ссылку можно скопировать вручную из поля
     }
   };
   return (

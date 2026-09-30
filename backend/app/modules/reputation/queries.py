@@ -70,12 +70,6 @@ def _paginate[T](
 async def _assignment_marks(
     session: AsyncSession, request: RepairRequest
 ) -> list[tuple[Assignment, set[str]]]:
-    """Назначения заявки (старые первыми) и этапы, пройденные при каждом из них.
-
-    Одновременно активно не больше одного назначения (I1), поэтому событие журнала
-    относится к последнему назначению, созданному до него. Порядок берётся по
-    `uuidv7`-идентификаторам: и назначения, и события получают их от базы.
-    """
     assignments = list(
         (
             await session.execute(
@@ -115,7 +109,6 @@ async def _assignment_marks(
 
 
 async def review_targets(session: AsyncSession, request: RepairRequest) -> list[ReviewTarget]:
-    """Назначения, о которых можно оставить отзыв, — новые первыми (ТЗ 8.3.1)."""
     targets = []
     for assignment, marks in await _assignment_marks(session, request):
         mode = classify_assignment(assignment.state, marks)
@@ -134,9 +127,6 @@ async def review_targets(session: AsyncSession, request: RepairRequest) -> list[
 async def pick_review_target(
     session: AsyncSession, request: RepairRequest, assignment_id: uuid.UUID | None = None
 ) -> ReviewTarget | None:
-    """Без явного назначения — последнее реально работавшее. Явно указанное
-    назначение должно само давать право на отзыв: отказавшийся или отозванный до
-    начала работ исполнитель отзыва о ремонте не получает."""
     targets = await review_targets(session, request)
     if assignment_id is None:
         return targets[0] if targets else None
@@ -144,7 +134,6 @@ async def pick_review_target(
 
 
 async def no_show_assignment(session: AsyncSession, request: RepairRequest) -> Assignment | None:
-    """Назначение, при котором был согласован выезд, — адресат жалобы на неявку."""
     for assignment, marks in reversed(await _assignment_marks(session, request)):
         if EVENT_VISIT_AGREED in marks:
             return assignment
@@ -154,7 +143,6 @@ async def no_show_assignment(session: AsyncSession, request: RepairRequest) -> A
 async def find_review(
     session: AsyncSession, assignment_id: uuid.UUID, customer_org_id: uuid.UUID
 ) -> Review | None:
-    """Один отзыв организации на одно назначение (ТЗ 8.3.1, I18)."""
     return (
         await session.execute(
             select(Review).where(
@@ -189,8 +177,6 @@ async def review_reply(session: AsyncSession, review_id: uuid.UUID) -> ReviewRep
 async def photo_attachment_ids(
     session: AsyncSession, review_id: uuid.UUID, *, published_only: bool = False
 ) -> list[str]:
-    """Копии фото отзыва делает модуль files (`attach_review_photos`); каждая копия
-    проходит его собственную публикационную модерацию (`Attachment.moderation_case_id`)."""
     stmt = select(Attachment.id).where(Attachment.review_id == review_id)
     if published_only:
         stmt = stmt.join(ModerationCase, ModerationCase.id == Attachment.moderation_case_id).where(
@@ -201,7 +187,6 @@ async def photo_attachment_ids(
 
 
 def ensure_customer_request(actor: Actor, request: RepairRequest | None) -> UserActor:
-    """Заявка своей организации и — для сотрудника — своей точки, иначе `NotFound`."""
     if not isinstance(actor, UserActor) or actor.side != "customer":
         raise Forbidden()
     if request is None or request.customer_org_id != actor.organization_id:
@@ -266,10 +251,6 @@ class _ReviewPageRow:
 async def _load_review_page(
     session: AsyncSession, reviews: Sequence[Review]
 ) -> dict[uuid.UUID, _ReviewPageRow]:
-    """Всё для страницы отзывов — четырьмя запросами на страницу, а не на отзыв.
-
-    Правила видимости те же, что у одиночных запросов: последняя опубликованная
-    версия и только опубликованные фото."""
     review_ids = [review.id for review in reviews]
     if not review_ids:
         return {}
@@ -330,8 +311,6 @@ async def _load_review_page(
 async def list_published_reviews(
     provider_org_id: uuid.UUID, *, cursor: uuid.UUID | None = None, limit: int = DEFAULT_LIMIT
 ) -> tuple[list[PublicReviewView], uuid.UUID | None]:
-    """Только отзывы, у которых есть опубликованная версия; более новая
-    непромодерированная правка автора наружу не видна (ТЗ 8.3.2)."""
     has_published = (
         select(ReviewVersion.id)
         .where(
@@ -369,8 +348,6 @@ async def list_published_reviews(
 async def list_my_reviews(
     actor: Actor, *, cursor: uuid.UUID | None = None, limit: int = DEFAULT_LIMIT
 ) -> tuple[list[ProviderReviewView], uuid.UUID | None]:
-    """`GET /reviews/mine`: опубликованные отзывы о своей компании для экрана
-    «Ответ на отзыв и жалоба». Только сторона исполнителя, только своя организация."""
     if not isinstance(actor, UserActor) or actor.side != "provider":
         raise Forbidden("Отзывы о компании видит сторона исполнителя")
     has_published = (
@@ -446,7 +423,6 @@ async def list_my_reviews(
 async def list_reviews_for_provider(
     actor: IntegrationActor, *, cursor: uuid.UUID | None = None, limit: int = DEFAULT_LIMIT
 ) -> tuple[list[PublicReviewView], uuid.UUID | None]:
-    """`GET /reviews` интеграционного API: опубликованные отзывы своей компании."""
     policy.require_reviews_read(actor)
     return await list_published_reviews(actor.organization_id, cursor=cursor, limit=limit)
 
@@ -577,7 +553,6 @@ async def list_moderation_case_queue(
     cursor: uuid.UUID | None = None,
     limit: int = DEFAULT_LIMIT,
 ) -> tuple[list[ModerationCaseOperatorView], uuid.UUID | None]:
-    """`kind` — вид дела из `evidence.kind`: `appeal` (обжалование) или вид жалобы."""
     policy.require_operator(actor)
     async with db_session.transaction() as session:
         stmt = select(ModerationCase).order_by(ModerationCase.id).limit(limit + 1)
@@ -626,7 +601,6 @@ async def open_profile_appeal(
 async def open_review_appeal(
     session: AsyncSession, review_id: uuid.UUID, filer_org_id: uuid.UUID
 ) -> ModerationCase | None:
-    """Открытое обжалование отзыва от этой стороны — не больше одного."""
     stmt = select(ModerationCase).where(
         ModerationCase.subject_type == ModerationSubjectType.REVIEW.value,
         ModerationCase.review_id == review_id,
@@ -640,7 +614,6 @@ async def open_review_appeal(
 async def get_profile_appeal(
     session: AsyncSession, provider_profile_id: uuid.UUID
 ) -> ProfileAppealView | None:
-    """Последнее обжалование профиля — для статуса в собственном профиле исполнителя."""
     case = (
         await session.execute(_profile_appeals(provider_profile_id).limit(1))
     ).scalar_one_or_none()

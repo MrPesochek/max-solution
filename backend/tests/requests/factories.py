@@ -134,7 +134,6 @@ async def create_provider_matching(
     district_id: uuid.UUID | None = None,
     brands: tuple[str, ...] = (),
 ) -> None:
-    """Специализация, территория и (необязательно) ограничение по брендам."""
     session.add(
         ProviderCategory(provider_org_id=provider_org.id, equipment_category_id=category_id)
     )
@@ -203,8 +202,6 @@ async def create_integration_client(
 
 @dataclass(slots=True)
 class World:
-    """Заказчик с точкой, оборудованием и подтверждённой привязкой к исполнителю."""
-
     customer_org_id: uuid.UUID
     provider_org_id: uuid.UUID
     location_id: uuid.UUID
@@ -342,12 +339,10 @@ async def build_world(
 
 
 async def build_foreign_world() -> World:
-    """Вторая пара «заказчик — исполнитель»: другая категория, подбор их не сводит."""
     return await build_world(category_index=1)
 
 
 async def build_rival_provider(world: World) -> World:
-    """Второй исполнитель с тем же профилем подбора, что и основной."""
     async with db_session.transaction() as session:
         provider = await create_org(session, name="Сервис-Плюс", is_provider=True)
         await create_provider_profile(session, provider)

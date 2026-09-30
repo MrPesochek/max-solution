@@ -22,8 +22,6 @@ async def explain_failed_claim(
     kind: InvitationKind,
     now: datetime,
 ) -> Conflict:
-    """Почему атомарное погашение не сработало. Срок оценивается по `now`,
-    независимо от того, успел ли sweeper перевести строку в `expired`."""
     row = (await session.execute(select(Invitation).where(match))).scalar_one_or_none()
     if row is None or row.kind != kind:
         return invitation_invalid()

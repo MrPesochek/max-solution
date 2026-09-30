@@ -64,7 +64,6 @@ async def test_a34_one_review_per_organization_second_manager_edits(world: World
 
 
 async def test_cannot_review_arbitrary_provider(world: World) -> None:
-    """Исполнитель определяется сервером по назначению: клиент не выбирает его."""
     completed = await h.make_completion_reported(world)
     result = (
         await reputation.submit_review(

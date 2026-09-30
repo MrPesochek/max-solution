@@ -21,8 +21,6 @@ EXTENSION_BY_MIME = {
 
 
 class AttachmentView(BaseModel):
-    """Состояние и размеры вложения; ключ хранилища и имя файла пользователя не отдаются."""
-
     id: str
     owner_kind: str
     request_id: str | None = None
@@ -42,16 +40,12 @@ class AttachmentView(BaseModel):
 
 
 class GalleryItemView(BaseModel):
-    """Опубликованное фото портфолио с подписью, прошедшей модерацию вместе с ним."""
-
     id: str
     caption: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class AttachmentContent:
-    """Метаданные выдачи и поток байт. Имя файла — серверное (ТЗ 14.1.2)."""
-
     attachment_id: uuid.UUID
     filename: str
     mime_type: str

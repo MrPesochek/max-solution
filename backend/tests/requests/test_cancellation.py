@@ -207,7 +207,6 @@ async def test_cancel_draft_only_by_author_or_manager(world: World) -> None:
 
 
 async def _colleague(world: World) -> UserActor:
-    """Второй сотрудник той же точки — не автор черновика."""
     async with db_session.transaction() as session:
         org = await session.get(Organization, world.customer_org_id)
         assert org is not None
@@ -242,7 +241,6 @@ async def test_terminal_request_rejects_changes(world: World) -> None:
 
 
 async def test_request_cancellable_again_after_withdrawal(world: World) -> None:
-    """Отозванный запрос остаётся в карточке историей и не мешает новому (S6/A15)."""
     accepted = await h.make_accepted(world)
     pending = (
         await api.request_cancellation(

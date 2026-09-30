@@ -11,9 +11,9 @@ from maxapi.types.updates import UpdateUnion
 from maxapi.types.updates.message_callback import MessageCallback
 from maxapi.types.updates.message_created import MessageCreated
 
-from app.adapters.bot import scenarios, texts, updates  # noqa: F401 — регистрирует сценарии
+from app.adapters.bot import scenarios, texts, updates
 from app.adapters.bot.context import build_context, chat_id_of, is_personal_dialog
-from app.adapters.bot.handlers import (  # noqa: F401 — регистрируют пункты меню и действия
+from app.adapters.bot.handlers import (
     app_link,
     callbacks,
     commands,
@@ -46,8 +46,6 @@ log = structlog.get_logger("bot")
 
 
 class ContextMiddleware(BaseMiddleware):
-    """Готовит `BotContext` до обработчика: пользователь, доступность бота, диалог."""
-
     def __init__(self, transport: MaxTransport) -> None:
         self._transport = transport
 
@@ -70,7 +68,6 @@ class ContextMiddleware(BaseMiddleware):
         return await handler(event_object, data)
 
     async def _decline_group(self, event: UpdateUnion) -> None:
-        """В группе — короткий ответ без данных; пользователь и диалог не заводятся."""
         try:
             if isinstance(event, MessageCreated):
                 sender = event.message.sender

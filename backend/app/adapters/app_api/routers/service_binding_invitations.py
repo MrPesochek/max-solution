@@ -79,10 +79,6 @@ class BindingInvitationPreviewBody(BaseModel):
 async def preview_invitation_by_body(
     actor: CurrentActor, body: BindingInvitationPreviewBody
 ) -> BindingInvitationPreviewView:
-    """Предпросмотр ничего не расходует (A32); токен в теле — не попадает в журналы URL.
-
-    Договор и позиции — только руководителю организации-адресата (контекст —
-    X-Membership-Id) и только пока приглашение ждёт ответа."""
     return await trust.preview_binding_invitation(body.token, actor)
 
 
@@ -90,9 +86,6 @@ async def preview_invitation_by_body(
 async def preview_invitation(
     actor: CurrentActor, token: Annotated[str, Query(min_length=8, max_length=512)]
 ) -> BindingInvitationPreviewView:
-    """Устарело: токен в query оседает в журналах прокси.
-
-    Используйте POST /service-binding-invitations/preview."""
     return await trust.preview_binding_invitation(token, actor)
 
 
@@ -128,7 +121,6 @@ class BindingInvitationDeclineBody(BaseModel):
 async def decline_invitation(
     actor: CurrentActor, body: BindingInvitationDeclineBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Отказ заказчика; повторный отказ отвечает тем же состоянием."""
     idem = make_idempotency(
         idem_key,
         "POST /service-binding-invitations/decline",

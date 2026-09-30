@@ -33,8 +33,6 @@ def bot_settings(monkeypatch: pytest.MonkeyPatch) -> Iterator[Settings]:
 
 @dataclass
 class BotHarness:
-    """Собранный бот с фейковым транспортом и подачей событий как из вебхука."""
-
     runtime: BotRuntime
     transport: FakeMaxTransport
 
@@ -68,14 +66,12 @@ class BotHarness:
         raise AssertionError(f"кнопка {text!r} не найдена")
 
     def payload_starting(self, prefix: str, index: int = -1) -> str:
-        """Кнопка по началу подписи: в подписи согласования есть номер версии."""
         for button in self.buttons(index):
             if str(button.text).startswith(prefix):
                 return str(button.payload)
         raise AssertionError(f"кнопка «{prefix}…» не найдена")
 
     def find_payload(self, text: str) -> str:
-        """Кнопка с такой подписью в любом из отправленных сообщений (последнее — первым)."""
         for index in range(len(self.transport.sent_messages) - 1, -1, -1):
             for button in self.buttons(index):
                 if str(button.text).startswith(text):
@@ -88,7 +84,6 @@ class BotHarness:
 
 
 def build_harness(transport: FakeMaxTransport | None = None) -> BotHarness:
-    """Новые объекты бота на той же БД — как перезапуск приложения."""
     sender = transport or FakeMaxTransport()
     bot = Bot(token=BOT_TOKEN, auto_requests=False)
     dispatcher = Dispatcher(router_id="test")
@@ -97,7 +92,7 @@ def build_harness(transport: FakeMaxTransport | None = None) -> BotHarness:
     runtime = BotRuntime(
         bot=bot,
         dispatcher=dispatcher,
-        transport=sender,  # type: ignore[arg-type]
+        transport=sender,
         mode="webhook",
         webhook_url="https://example.test/max/webhook",
         secret=WEBHOOK_SECRET,

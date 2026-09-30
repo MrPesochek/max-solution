@@ -25,8 +25,6 @@ from app.modules.files.api import AttachmentView
 
 
 class PriceView(BaseModel):
-    """`amount_minor=None` — цена неизвестна и согласованной не считается (I3)."""
-
     amount_minor: int | None = None
     currency: str | None = None
     vat_mode: str | None = None
@@ -63,11 +61,6 @@ class FieldWorkerView(BaseModel):
 
 
 class ProviderSummaryRatingView(BaseModel):
-    """Сводка исполнителя в карточке заказчика: проверки и рейтинг (ТЗ 8.3.3).
-
-    При менее чем трёх уникальных организациях-оценщиках `rating` пуст,
-    а `rating_label` — «Мало отзывов»."""
-
     id: str
     display_name: str
     verification_marks: list[str] = []
@@ -166,16 +159,12 @@ class MessageView(BaseModel):
 
 
 class MessagesReadView(BaseModel):
-    """Ответ на отметку прочтения переписки заявки."""
-
     request_id: str
     last_read_message_id: str | None = None
     unread_messages_count: int
 
 
 class RequestEventView(BaseModel):
-    """Лента экрана «История»: событие, смена статуса и ссылки на объекты."""
-
     id: str
     occurred_at: datetime
     event_type: str
@@ -187,12 +176,6 @@ class RequestEventView(BaseModel):
 
 
 class DeliveryStatusView(BaseModel):
-    """Доставка назначения в CRM исполнителя (ТЗ 8.2) — отдельно от его принятия.
-
-    `none` + `channel="app"` — у исполнителя нет CRM, заявка приходит в бот и
-    мини-приложение. Технические подробности ошибок CRM сюда не попадают.
-    """
-
     state: Literal["queued", "delivered", "retrying", "failed", "none"]
     channel: Literal["crm", "app"]
     delivered_at: datetime | None = None
@@ -201,8 +184,6 @@ class DeliveryStatusView(BaseModel):
 
 
 class CompletionReportView(BaseModel):
-    """Отчёт мастера о завершении: итог, описание и фото «до/после»."""
-
     outcome: str | None = None
     summary: str | None = None
     reported_at: datetime | None = None
@@ -275,20 +256,11 @@ class RequestProviderView(BaseModel):
 
 
 class RequestFormerProviderView(BaseModel):
-    """ТЗ 14: у прекращённого исполнителя остаётся запись о назначении без содержимого заявки."""
-
     request_id: str
     assignment: AssignmentView
 
 
 class RequestPublicCardView(BaseModel):
-    """Публичная карточка внешнего поиска — белый список (ТЗ 9, S2.4, I7).
-
-    Точный адрес, телефон, серийный номер, гарантийные документы и история
-    обслуживания сюда не попадают: карточка собирается из выбранных полей, а не
-    вычёркиванием из полной заявки.
-    """
-
     request_id: str
     request_number: int
     equipment_category_id: str
@@ -309,17 +281,12 @@ class RequestPublicCardView(BaseModel):
 
 
 class MarketplaceListItemView(RequestPublicCardView):
-    """Строка биржи: карточка плюс число уже поданных откликов (без их содержания)
-    и состояние своего треда вопросов — свой вопрос без ответа или ответ заказчика."""
-
     offers_count: int = 0
     has_open_question: bool = False
     has_clarification: bool = False
 
 
 class OfferProviderView(BaseModel):
-    """Краткая карточка исполнителя при показе оффера заказчику."""
-
     id: str
     display_name: str
     verification_marks: list[str]
@@ -347,8 +314,6 @@ class OfferView(BaseModel):
 
 
 class SearchStateView(BaseModel):
-    """Итог публикации: что раскрыто и скольким исполнителям ушла карточка."""
-
     published: bool
     matched_providers: int
     search_expires_at: datetime | None = None
@@ -357,8 +322,6 @@ class SearchStateView(BaseModel):
 
 
 class ExistingBindingView(BaseModel):
-    """ТЗ S2.2: для оборудования со своим сервисом показывается действующая привязка."""
-
     service_binding_id: str
     provider_organization_id: str | None = None
     provider_name: str | None = None
@@ -366,8 +329,6 @@ class ExistingBindingView(BaseModel):
 
 
 class PublicCardPreviewView(BaseModel):
-    """Экран раскрытия перед публикацией (ТЗ 14, п. 2)."""
-
     public_card: RequestPublicCardView
     withheld_fields: list[str]
     matched_providers: int
@@ -391,8 +352,6 @@ PendingDecisionKind = Literal[
 
 
 class PendingDecisionView(BaseModel):
-    """Что по заявке ждёт решения руководителя: сумма, срок ответа, число откликов."""
-
     kind: PendingDecisionKind
     amount_minor: int | None = None
     currency: str | None = None
@@ -459,8 +418,6 @@ class PendingApprovalObjectView(BaseModel):
 
 
 class PendingApprovalItemView(BaseModel):
-    """Один элемент агрегата «ждёт согласования менеджера» (GET /requests/pending-approvals)."""
-
     kind: PendingApprovalKind
     request: PendingApprovalRequestView
     object: PendingApprovalObjectView | None = None
@@ -486,7 +443,6 @@ def price_view(
 
 
 def equipment_snapshot(equipment: Equipment, category: EquipmentCategory | None) -> dict[str, Any]:
-    """Снимок оборудования на момент отправки (ТЗ 10.1, I26)."""
     return {
         "id": ids.encode("equipment", equipment.id),
         "category_id": ids.encode("category", equipment.equipment_category_id),
@@ -914,7 +870,6 @@ def to_provider_view(
     completion_report: CompletionReportView | None = None,
     customer_org_name: str | None = None,
 ) -> RequestProviderView:
-    """Срез заявки для исполнителя; до раскрытия скрыты адрес, контакты и серийный номер."""
     equipment = _snapshot_equipment(request)
     location = _snapshot_location(request)
     if not disclose:

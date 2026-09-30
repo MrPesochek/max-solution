@@ -64,7 +64,7 @@ async def test_summary_without_secrets(client: AsyncClient) -> None:
     secret = created.json()["secret"]
 
     now = utcnow()
-    org = provider.organization_id  # type: ignore[attr-defined]
+    org = provider.organization_id
     subscription_id = ids.decode("webhook_subscription", created.json()["id"])
     async with db_session.transaction() as session:
         for state in ("delivered", "failed", "retrying"):

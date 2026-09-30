@@ -6,8 +6,6 @@ from app.infra.config import get_settings
 
 @dataclass(frozen=True, slots=True)
 class Price:
-    """amount_minor=None — цена неизвестна; 0 — явно бесплатно и требует основания."""
-
     amount_minor: int | None
     currency: str | None
     zero_cost_reason: str | None = None
@@ -37,7 +35,6 @@ PRICE_PENDING = "стоимость уточняется"
 
 
 def format_money(amount_minor: int, currency: str | None = None) -> str:
-    """«1 500 ₽», «1 500,50 ₽»: копейки только если они есть, без float."""
     sign = "-" if amount_minor < 0 else ""
     whole, fraction = divmod(abs(amount_minor), 100)
     rubles = f"{whole:,}".replace(",", THOUSANDS_SEPARATOR)
@@ -49,7 +46,6 @@ def format_money(amount_minor: int, currency: str | None = None) -> str:
 def format_price(
     amount_minor: int | None, currency: str | None = None, zero_cost_reason: str | None = None
 ) -> str:
-    """Цена для текста: неизвестная не выдаётся за ноль, ноль всегда с основанием."""
     if amount_minor is None:
         return PRICE_PENDING
     money = format_money(amount_minor, currency)

@@ -59,11 +59,6 @@ class AuditEntry(IdMixin, CreatedAtMixin, Base):
 
 
 class SettingsKv(Base):
-    """Служебное состояние платформы по ключу (например, отпечаток секрета подписки MAX).
-
-    Не настройки окружения: сюда пишет само приложение то, что нужно пережить перезапуск
-    и увидеть из соседнего процесса (api и worker)."""
-
     __tablename__ = "settings_kv"
 
     key: Mapped[str] = mapped_column(Text, primary_key=True)

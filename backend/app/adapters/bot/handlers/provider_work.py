@@ -205,7 +205,6 @@ async def send_work_card(ctx: BotContext, view: requests_api.RequestProviderView
 
 
 async def _target(ctx: BotContext, claimed: ClaimedAction) -> tuple[uuid.UUID, uuid.UUID] | None:
-    """Заявка и назначение из кнопки карточки."""
     if claimed.object_id is None or claimed.request_id is None:
         await ctx.reply(texts.ACTION_OUTDATED)
         return None

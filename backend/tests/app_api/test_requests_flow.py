@@ -371,7 +371,6 @@ async def test_idempotent_create_draft_replay(client: AsyncClient) -> None:
 
 
 async def test_price_approval_ignores_client_supplied_amount(client: AsyncClient) -> None:
-    """ТЗ 10.4: одобрение цены принимает только id и версию, сумма — с сервера."""
     world = await factories.build_world()
     manager_headers = await app_headers(world.manager)
     dispatcher_headers = await app_headers(world.dispatcher)
@@ -408,7 +407,6 @@ async def test_price_approval_ignores_client_supplied_amount(client: AsyncClient
 
 
 async def test_pending_approvals_endpoint(client: AsyncClient) -> None:
-    """Литеральный путь регистрирован раньше `/{request_id}` — иначе перехватит его."""
     world = await factories.build_world()
     draft = await helpers.make_submitted(world)
     await client.post(
@@ -437,8 +435,6 @@ async def test_pending_approvals_endpoint(client: AsyncClient) -> None:
 
 
 async def test_patch_draft_null_semantics(client: AsyncClient) -> None:
-    """ТЗ 10.4: отсутствующее поле не меняется, явный `null` очищает `error_code`,
-    явный `null` для `equipment_id` (NOT NULL) — 422."""
     world = await factories.build_world()
     headers = await app_headers(world.employee)
 

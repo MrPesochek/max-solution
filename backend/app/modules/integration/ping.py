@@ -41,9 +41,6 @@ async def send_test(
     event_type: str | None = None,
     idem: Idempotency | None = None,
 ) -> WebhookTestResultView:
-    """Идемпотентность — двухфазная: ключ занимается до сетевого вызова, результат
-    дописывается после. Повтор того же ключа возвращает сохранённый итог и не
-    отправляет запрос в CRM второй раз; пока первая попытка идёт — `in_progress`."""
     access = policy.webhook_access(actor)
     subscription_id = ids.decode("webhook_subscription", subscription_public_id)
     kind = event_type or policy.PING_EVENT_TYPE

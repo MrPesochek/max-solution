@@ -55,9 +55,6 @@ class OutgoingMessage:
 
 @dataclass(frozen=True, slots=True)
 class Recipient:
-    """Адресат уведомления: кнопка исполняется от его членства, а не от того,
-    которое окажется активным в диалоге (у человека их может быть два)."""
-
     user_id: uuid.UUID
     membership_id: uuid.UUID | None = None
 
@@ -499,7 +496,6 @@ async def _completion_reminder(
 async def _request_assigned_stateful(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Переопределяет простой шаблон того же типа: здесь есть кнопки принять/отклонить."""
     request_public_id = _public_id(payload, "request_id")
     assignment_public_id = _public_id(payload, "assignment_id")
     base_text = "Новая заявка на ремонт: нужен ответ исполнителя"
@@ -585,7 +581,6 @@ async def _cancellation_requested(
 async def _cancellation_reminder(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Срок ответа истёк: те же кнопки, что в исходном запросе, если он ещё открыт."""
     message = await _cancellation_requested(session, payload, recipient, now)
     request = await _request_from(session, payload)
     text = f"Напоминание: заказчик ждёт ответа на запрос отмены. {message.text}"
@@ -598,7 +593,6 @@ async def _cancellation_reminder(
 async def _cancellation_no_response(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Руководителю: исполнитель молчит, решение можно принять самому (ТЗ S6)."""
     base = _request_message(
         "Исполнитель не ответил на запрос отмены в срок. "
         "Можно прекратить работы самостоятельно — в карточке заявки.",
@@ -621,8 +615,6 @@ async def _cancellation_no_response(
 async def _own_cancellation(
     session: AsyncSession, request_id: uuid.UUID, payload: dict[str, Any]
 ) -> CancellationRequest | None:
-    """Отмена, о которой это уведомление, и только по назначению адресата:
-    прежнему исполнителю чужая причина не показывается."""
     cancellation_public_id = _public_id(payload, "cancellation_id")
     assignment_public_id = _public_id(payload, "assignment_id")
     if assignment_public_id is None:
@@ -672,10 +664,6 @@ async def _message_created(
 
 
 def request_header(request: RepairRequest) -> str:
-    """«№<номер> · <категория>»: по уведомлению видно, о какой заявке речь.
-
-    Только категория — она есть и в публичной карточке: исполнитель до выбора
-    не узнаёт из уведомления больше, чем из самой карточки."""
     category = (request.equipment_snapshot or {}).get("category_name")
     return f"№{request.request_number}" + (f" · {category}" if category else "")
 
@@ -699,8 +687,6 @@ def _with_header(request: RepairRequest, message: OutgoingMessage) -> OutgoingMe
 async def _field_worker_en_route(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """K-08: отметку выезда снимают перенос окна и смена мастера. Если к отправке
-    её уже нет (или стоит другая), «Мастер выехал» было бы неправдой — не шлём."""
     base = _request_message("Мастер выехал к вам", payload)
     request = await _request_from(session, payload)
     if request is None:
@@ -728,7 +714,6 @@ async def _field_worker_en_route(
 async def _returned_to_draft(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Комментарий руководителя обязателен (T7) — без него сотрудник не знает, что исправить."""
     request = await _request_from(session, payload)
     if request is None:
         return _request_message("Заявку вернули на доработку", payload)
@@ -754,7 +739,6 @@ async def _returned_to_draft(
 async def _own_service_no_answer(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """S4: сервис молчит — руководителю контакт сервиса и путь к внешнему поиску."""
     request = await _request_from(session, payload)
     base_text = "Ваш сервис долго не отвечает на заявку"
     if request is None:
@@ -792,7 +776,6 @@ async def _own_service_no_answer(
 async def _access_requested(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """K-21: кто просит, к какой точке и зачем — иначе руководителю нечего решать."""
     lines = ["Сотрудник просит открыть ему доступ"]
     membership_public_id = _public_id(payload, "membership_id")
     if membership_public_id is not None:
@@ -818,7 +801,6 @@ async def _access_requested(
 async def _membership_pending_approval(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Принято приглашение без адресата: доступ откроется только после решения руководителя."""
     name: str | None = None
     membership_public_id = _public_id(payload, "membership_id")
     if membership_public_id is not None:
@@ -842,7 +824,6 @@ async def _membership_pending_approval(
 async def _invitation_foreign_attempt(
     session: AsyncSession, payload: dict[str, Any], recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """ТЗ 6.7: именное приглашение пытался принять не адресат — ссылку, похоже, переслали."""
     lines = ["Именное приглашение попробовали принять с чужого аккаунта MAX"]
     user_public_id = _public_id(payload, "user_id")
     if user_public_id is not None:
@@ -899,10 +880,6 @@ async def render(
 async def _bind_open_app_buttons(
     session: AsyncSession, message: OutgoingMessage, recipient: Recipient, now: datetime
 ) -> OutgoingMessage:
-    """Режим link: кнопка «Открыть» уведомления — действие адресата в `bot_actions`.
-
-    По нажатию бот выпускает ссылку входа (D-S3); пересланной кнопкой чужой не воспользуется.
-    """
     settings = get_settings()
     if settings.max_webapp_mode != "link" or not message.attachments:
         return message

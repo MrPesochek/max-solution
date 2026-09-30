@@ -26,13 +26,11 @@ from app.infra.config import get_settings
 
 log = structlog.get_logger(__name__)
 
-SECRET_MASK = "***"  # noqa: S105 — маска, не секрет
+SECRET_MASK = "***"
 INVITATION_SECRET_FIELDS = ("token", "webapp_link", "bot_link")
 
 
 class IdempotentSecretNotReplayable(Conflict):
-    """Повтор команды, чей ответ содержал одноразовый секрет: сам секрет не хранится."""
-
     code = "IDEMPOTENT_SECRET_NOT_REPLAYABLE"
     default_message = (
         "Запрос уже выполнен; секрет показывается только один раз и повторно не выдаётся"
@@ -106,7 +104,6 @@ class CommandContext:
         resource_version: int | None,
         payload: dict[str, Any],
     ) -> None:
-        """Событие для CRM получателя. payload — уже разрешённое получателю представление."""
         self.session.add(
             IntegrationEvent(
                 event_type=event_type,
@@ -129,7 +126,6 @@ class CommandContext:
         organization_id: uuid.UUID | None = None,
         request_id: uuid.UUID | None = None,
     ) -> None:
-        """Уведомление в MAX. В payload только ссылки на объекты, текст рендерится при отправке."""
         self.session.add(
             Notification(
                 recipient_user_id=user_id,
@@ -156,8 +152,6 @@ async def run_command(
     idempotency: Idempotency | None = None,
     action: str | None = None,
 ) -> CommandResult:
-    """`action` — имя действия для записи аудита об отказе; без него берётся
-    операция ключа идемпотентности, а уже потом имя обработчика."""
     now = utcnow()
     try:
         async with db_session.transaction() as session:

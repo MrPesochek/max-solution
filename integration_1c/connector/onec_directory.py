@@ -9,7 +9,7 @@ from connector.profile import FieldRef, Profile
 
 
 class ProfileMismatchError(Exception):
-    """В базе нет объекта, на который ссылается профиль (состояние, доп. реквизит)."""
+    pass
 
 
 class Directory:
@@ -41,8 +41,6 @@ class Directory:
         return states.get(str(value))
 
     async def state_value(self, name: str) -> str:
-        """Значение реквизита состояния для записи: GUID элемента справочника либо
-        строка перечисления."""
         if self.profile.state.catalog is None:
             return name
         for attempt in range(2):
@@ -94,8 +92,6 @@ class Directory:
     async def build_patch(
         self, doc: dict[str, Any] | None, values: dict[FieldRef, str]
     ) -> dict[str, Any]:
-        """Тело PATCH: реквизиты как есть, дополнительные реквизиты — вся табличная
-        часть (1С заменяет её целиком), строки чужих свойств сохраняются."""
         body: dict[str, Any] = {}
         spec = self.profile.additional_attributes
         rows = [dict(r) for r in (doc or {}).get(spec.table) or []]
@@ -182,7 +178,6 @@ class Directory:
 
 
 def parse_onec_datetime(value: Any, profile: Profile) -> datetime | None:
-    """Дата 1С без зоны — местное время базы; пустая дата 1С — `0001-01-01T00:00:00`."""
     if not value or str(value).startswith("0001-01-01"):
         return None
     parsed = datetime.fromisoformat(str(value))
@@ -201,7 +196,6 @@ def default_window_end(start: datetime, profile: Profile) -> datetime:
 
 
 def amount_to_minor(value: Any) -> int | None:
-    """Суммы 1С — десятичные рубли (`1500` или `1500.5`); в платформу — копейки."""
     if value is None or value == "":
         return None
     minor = (Decimal(str(value)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)

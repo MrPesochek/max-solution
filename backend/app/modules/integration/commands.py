@@ -94,9 +94,6 @@ async def _notify_org_admins(
 
 
 async def _ensure_provider_may_change(ctx: CommandContext, organization_id: uuid.UUID) -> None:
-    """ТЗ 6.5.3: заблокированный исполнитель не выпускает ключи и не настраивает
-    вебхуки — правило то же, что для заявок в Web App, боте и CRM. Отзыв ключа и
-    отключение подписки остаются: они только сужают доступ."""
     from app.modules.requests import api as requests_api
 
     await requests_api.ensure_provider_not_suspended(ctx.session, organization_id)
@@ -201,8 +198,6 @@ async def revoke_api_key(
 async def rotate_api_key(
     actor: Actor, client_public_id: str, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Ключ меняется на месте: подписки остаются за тем же клиентом,
-    прежний ключ перестаёт работать сразу после фиксации."""
     admin = policy.require_provider_admin(actor)
     client_id = ids.decode("integration_client", client_public_id)
     issued = issue_api_key()
@@ -236,8 +231,6 @@ async def rotate_api_key(
 async def _resolve_client_id(
     ctx: CommandContext, access: policy.WebhookAccess, client_public_id: str | None
 ) -> uuid.UUID:
-    """Ключ интеграции подписки. Администратор может не указывать ключ, если
-    действующий ключ у организации один."""
     if access.integration_client_id is not None:
         return access.integration_client_id
     stmt = select(IntegrationClient).where(
@@ -343,7 +336,6 @@ async def delete_subscription(
 async def enable_subscription(
     actor: Actor, subscription_public_id: str, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Повторное включение: адрес проверяется заново, ключ подписки должен действовать."""
     access = policy.webhook_access(actor)
     subscription_id = ids.decode("webhook_subscription", subscription_public_id)
 
@@ -408,7 +400,6 @@ async def rotate_subscription_secret(
 async def redeliver(
     actor: Actor, delivery_public_id: str, *, idem: Idempotency | None = None
 ) -> CommandResult:
-    """A16/A18: `event_id` сохраняется, попытка получает новый `delivery_id` при отправке."""
     access = policy.delivery_access(actor)
     delivery_id = ids.decode("delivery", delivery_public_id)
     window = timedelta(seconds=get_settings().webhook_retry_window_seconds)

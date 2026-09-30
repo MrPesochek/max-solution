@@ -18,7 +18,7 @@ from app.adapters.http.ratelimit import (
 )
 from app.db import session as db_session_module
 from app.db.base import Base
-from app.db.models import *  # noqa: F403 — регистрирует все модели в Base.metadata
+from app.db.models import *
 
 os.environ.setdefault("APP_ENV", "test")
 
@@ -67,7 +67,6 @@ def _reset_auth_limiter() -> None:
 
 @pytest_asyncio.fixture(scope="session")
 async def db_engine() -> AsyncIterator[AsyncEngine]:
-    """Уникальная тестовая БД на сервере из TEST_DATABASE_SERVER_URL, с применёнными миграциями."""
     server_url = _server_url()
     db_name = f"test_{uuid.uuid4().hex[:16]}"
     database_url = f"{server_url}/{db_name}"
@@ -88,7 +87,6 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
 
 @pytest_asyncio.fixture
 async def clean_db(db_engine: AsyncEngine) -> AsyncIterator[None]:
-    """Очищает все таблицы, кроме справочников, после теста (TRUNCATE ... CASCADE)."""
     yield
     table_names = [name for name in Base.metadata.tables if name not in _REFERENCE_TABLES]
     if not table_names:
@@ -100,7 +98,5 @@ async def clean_db(db_engine: AsyncEngine) -> AsyncIterator[None]:
 
 @pytest_asyncio.fixture
 async def db_session(db_engine: AsyncEngine, clean_db: None) -> AsyncIterator[AsyncSession]:
-    """Сессия для прямых обращений теста к БД. Приложение открывает свои транзакции
-    отдельно, через app.db.session.transaction() — эта сессия с ними не связана."""
     async with db_session_module.get_sessionmaker()() as session:
         yield session

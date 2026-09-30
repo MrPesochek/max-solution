@@ -66,7 +66,7 @@ describe('каталог и публичный профиль исполните
     expect(screen.getByRole('button', { name: 'Пожаловаться на отзыв' })).toBeInTheDocument();
   });
 
-  it('работы в профиле — gallery_items с подписями (11c, K-18)', async () => {
+  it('работы в профиле — gallery_items с подписями', async () => {
     const orgId = demoSeed.demoActiveProvider.id;
     const captioned = seedPendingPortfolioAttachment(orgId);
     const plain = seedPendingPortfolioAttachment(orgId);
@@ -84,7 +84,7 @@ describe('каталог и публичный профиль исполните
     expect(screen.queryByText('Исполнитель ещё не добавил фотографии работ')).not.toBeInTheDocument();
   });
 
-  it('поиск по названию в моке — как на сервере: начало слова, знаки не мешают (K-10)', () => {
+  it('поиск по названию в моке — как на сервере: начало слова, знаки не мешают', () => {
     const names = (q: string) => listProviderCatalog({ q }).items.map((p) => p.name);
     expect(names('Холод')).toContain('Сервис-Холод Плюс');
     expect(names('Сервис-Холод')).toContain('Сервис-Холод Плюс');

@@ -1,10 +1,4 @@
-"""schema_revisions: журнал применённых ревизий для отката образов
-
-Revision ID: 0024
-Revises: 0023
-Create Date: 2026-09-30
-
-"""
+"""schema_revisions: журнал применённых ревизий для отката образов"""
 
 from collections.abc import Sequence
 

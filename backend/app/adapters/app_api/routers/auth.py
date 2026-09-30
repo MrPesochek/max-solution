@@ -38,7 +38,6 @@ async def login_with_max(body: InitDataLogin) -> AuthResponse:
     "/auth/link", response_model=LinkAuthResponse, dependencies=[Depends(limit_auth_attempts)]
 )
 async def login_with_link(body: LinkLogin) -> LinkAuthResponse:
-    """Вход по одноразовой ссылке из бота (D-S3): токен только в теле запроса."""
     result = await identity.login_with_link(body.token)
     issued = result.issued
     return LinkAuthResponse(

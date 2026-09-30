@@ -1,59 +1,14 @@
--- ============================================================================
--- B2B-сервис ремонта оборудования в MAX — черновик схемы PostgreSQL 18
--- ============================================================================
--- Источники: technical-specification.md v0.6 (разделы 3, 6, 8, 9, 10-11, 14)
---            docs/architecture/00-decisions.md (разделы B, C/D1-D19, D, E)
---
--- Соглашения (00-decisions.md, раздел B):
---   * id uuid primary key default uuidv7() — нативная функция PostgreSQL 18.
---   * created_at timestamptz not null default now(); updated_at — где агрегат
---     мутирует после создания (поддерживается приложением, без триггеров —
---     триггеры сознательно не добавлены в этот черновик, см. 03-data-model.md).
---   * Перечисления — text + CHECK, не PG enum (проще миграции).
---   * Деньги: *_amount_minor bigint NULL + currency char(3); NULL = цена
---     неизвестна, 0 = явно бесплатно (обязателен zero_cost_reason).
---     В пилоте currency ограничена 'RUB' [Δ D-currency].
---   * Токены/ключи — только SHA-256 хеш (bytea) + несекретный префикс для
---     поиска/отображения. Секрет вебхука — bytea, зашифрован на уровне
---     приложения (ключ из окружения), т.к. нужен в открытом виде для HMAC.
---   * Мультиарендность: у каждой таблицы с данными арендатора — явная колонка
---     организации-владельца, кроме чисто дочерних таблиц агрегата «Заявка»
---     (repair_requests + offers/visit_proposals/repair_quotes/
---     cancellation_requests), где стороне-заказчику достаточно request_id.
---     Assignments и offers — исключение из исключения: они сами являются
---     единственным источником provider_org_id для стороны-исполнителя
---     (у repair_requests такой колонки нет), поэтому provider_org_id на них
---     — не денормализация для удобства, а обязательные данные.
---
--- Порядок создания таблиц: строго соответствует порядку модулей задания.
--- Там, где это делает FK ссылкой "вперёд" (на таблицу, создаваемую позже),
--- колонка объявляется БЕЗ inline REFERENCES, а FK добавляется отдельным
--- ALTER TABLE сразу после CREATE TABLE целевой таблицы — с комментарием
--- "-- отложенный FK". Всего 6 таких случаев, все перечислены в
--- 03-data-model.md. Индекс на такую колонку создаётся вместе с ALTER TABLE.
--- ============================================================================
-
-
--- ============================================================================
--- MODULE: IDENTITY (users, organizations, memberships, membership_locations,
---                    platform_roles, sessions, invitations)
--- ============================================================================
-
 CREATE TABLE users (
     id                  uuid primary key default uuidv7(),
     max_user_id         text not null,
     display_name        text not null,
-    bot_available       boolean not null default false, -- D32: бот запущен и не заблокирован
+    bot_available       boolean not null default false,
     bot_started_at      timestamptz,
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now(),
     constraint ux_users_max_user_id unique (max_user_id)
 );
 
--- Organization: и заказчик, и исполнитель — участие независимое (ТЗ 3: "одна
--- организация может быть заказчиком и исполнителем"). Верификация реквизитов
--- и представителя — статусы верхнего уровня, денормализованные из последнего
--- решения verification_cases (модуль trust), для быстрых проверок доступа.
 CREATE TABLE organizations (
     id                              uuid primary key default uuidv7(),
     is_customer                     boolean not null default false,
@@ -78,9 +33,6 @@ CREATE TABLE organizations (
     constraint ck_organizations_representative_status check (representative_verification_status in ('unverified', 'pending', 'verified', 'rejected'))
 );
 
--- ТЗ 6.5.3: "один подтверждённый профиль на одну юридическую идентичность".
--- Черновики/на проверке с совпадающим ИНН допустимы (спор решает оператор,
--- ТЗ 6.5.3), уникальность действует только для уже подтверждённого исполнителя.
 CREATE UNIQUE INDEX ux_organizations_verified_provider_inn
     ON organizations (inn_normalized)
     WHERE is_provider AND details_verification_status = 'verified' AND inn_normalized IS NOT NULL;
@@ -105,9 +57,6 @@ CREATE INDEX ix_memberships_organization_id ON memberships (organization_id);
 CREATE INDEX ix_memberships_user_id ON memberships (user_id);
 CREATE INDEX ix_memberships_invited_by ON memberships (invited_by_membership_id);
 
--- Доступные сотруднику точки (ТЗ 3: "по умолчанию сотрудник видит заявки
--- разрешённых ему точек"). location_id ссылается на customer.locations,
--- создаваемую позже — FK отложен (см. модуль CUSTOMER).
 CREATE TABLE membership_locations (
     id              uuid primary key default uuidv7(),
     membership_id   uuid not null references memberships (id),
@@ -118,7 +67,6 @@ CREATE TABLE membership_locations (
 
 CREATE INDEX ix_membership_locations_membership_id ON membership_locations (membership_id);
 
--- Платформенная роль оператора (D14): не привязана к организации.
 CREATE TABLE platform_roles (
     id                  uuid primary key default uuidv7(),
     user_id             uuid not null references users (id),
@@ -133,8 +81,6 @@ CREATE TABLE platform_roles (
 CREATE UNIQUE INDEX ux_platform_roles_active ON platform_roles (user_id, role) WHERE revoked_at IS NULL;
 CREATE INDEX ix_platform_roles_user_id ON platform_roles (user_id);
 
--- Сессия Web App (D16): непрозрачный bearer-токен, только хеш в БД.
--- Сроки — раздел E решений: 12ч абсолютная, 2ч простоя (last_seen_at).
 CREATE TABLE sessions (
     id                          uuid primary key default uuidv7(),
     user_id                     uuid not null references users (id),
@@ -156,13 +102,6 @@ CREATE INDEX ix_sessions_user_id ON sessions (user_id);
 CREATE INDEX ix_sessions_active_membership_id ON sessions (active_membership_id);
 CREATE INDEX ix_sessions_expires_at ON sessions (expires_at) WHERE revoked_at IS NULL;
 
--- Приглашения (ТЗ 6.7): два типа — сотрудника (membership) и на привязку
--- договора (service_binding). Полный токен не хранится — только хеш и
--- несекретный префикс (для показа "инв...a91f" в UI администратора).
--- location_ids/equipment_ids — предложенный набор объектов, без FK на
--- отдельные строки (это "предложение", валидируется при принятии).
--- service_contract_id ссылается на trust.service_contracts, создаваемую
--- позже — FK отложен (см. модуль TRUST).
 CREATE TABLE invitations (
     id                          uuid primary key default uuidv7(),
     kind                        text not null,
@@ -193,11 +132,6 @@ CREATE INDEX ix_invitations_target_organization_id ON invitations (target_organi
 CREATE INDEX ix_invitations_created_by ON invitations (created_by_membership_id);
 CREATE INDEX ix_invitations_expires_at ON invitations (expires_at) WHERE status = 'pending';
 
-
--- ============================================================================
--- MODULE: DIRECTORIES (cities, districts, equipment_categories)
--- ============================================================================
-
 CREATE TABLE cities (
     id          uuid primary key default uuidv7(),
     name        text not null,
@@ -216,8 +150,6 @@ CREATE TABLE districts (
 
 CREATE INDEX ix_districts_city_id ON districts (city_id);
 
--- D13: шаблон фото по категории — слоты со своим кодом/подписью/
--- обязательностью/классом чувствительности.
 CREATE TABLE equipment_categories (
     id              uuid primary key default uuidv7(),
     code            text not null,
@@ -227,11 +159,6 @@ CREATE TABLE equipment_categories (
     updated_at      timestamptz not null default now(),
     constraint ux_equipment_categories_code unique (code)
 );
-
-
--- ============================================================================
--- MODULE: CUSTOMER (locations, equipment)
--- ============================================================================
 
 CREATE TABLE locations (
     id                  uuid primary key default uuidv7(),
@@ -251,7 +178,6 @@ CREATE INDEX ix_locations_customer_org_id ON locations (customer_org_id);
 CREATE INDEX ix_locations_city_id ON locations (city_id);
 CREATE INDEX ix_locations_district_id ON locations (district_id);
 
--- Отложенный FK: membership_locations.location_id -> locations(id).
 ALTER TABLE membership_locations
     ADD CONSTRAINT fk_membership_locations_location
     FOREIGN KEY (location_id) REFERENCES locations (id);
@@ -275,14 +201,6 @@ CREATE INDEX ix_equipment_customer_org_id ON equipment (customer_org_id);
 CREATE INDEX ix_equipment_location_id ON equipment (location_id);
 CREATE INDEX ix_equipment_category_id ON equipment (equipment_category_id);
 
-
--- ============================================================================
--- MODULE: PROVIDER (provider_profiles, provider_categories,
---                    provider_service_areas, provider_brand_restrictions)
--- ============================================================================
-
--- ТЗ 6.5.1: состояния draft/pending_review/needs_information/active/
--- suspended/rejected. Один профиль на организацию-исполнителя.
 CREATE TABLE provider_profiles (
     id                      uuid primary key default uuidv7(),
     organization_id         uuid not null references organizations (id),
@@ -300,8 +218,6 @@ CREATE TABLE provider_profiles (
     constraint ck_provider_profiles_status check (status in ('draft', 'pending_review', 'needs_information', 'active', 'suspended', 'rejected'))
 );
 
--- Специализация — "со слов исполнителя" (ТЗ 6.5.1.3): не требует отдельного
--- допуска на уровне категории в MVP, гейт — только provider_profiles.status.
 CREATE TABLE provider_categories (
     id                      uuid primary key default uuidv7(),
     provider_org_id         uuid not null references organizations (id),
@@ -313,9 +229,6 @@ CREATE TABLE provider_categories (
 CREATE INDEX ix_provider_categories_provider_org_id ON provider_categories (provider_org_id);
 CREATE INDEX ix_provider_categories_category_id ON provider_categories (equipment_category_id);
 
--- Зона обслуживания = город целиком (district_id IS NULL) либо список
--- районов (D12). Частичные уникальные индексы не дают задать один и тот же
--- город/район дважды.
 CREATE TABLE provider_service_areas (
     id              uuid primary key default uuidv7(),
     provider_org_id uuid not null references organizations (id),
@@ -342,15 +255,6 @@ CREATE TABLE provider_brand_restrictions (
 
 CREATE INDEX ix_provider_brand_restrictions_provider_org_id ON provider_brand_restrictions (provider_org_id);
 
-
--- ============================================================================
--- MODULE: TRUST (verification_cases, warranty_authorizations,
---                 service_contracts, service_bindings)
--- ============================================================================
-
--- ТЗ 6.4: раздельные признаки доверия. subject_type определяет, что именно
--- проверяется; organization_id — чья это организация (провайдер или
--- заказчик), membership_id — конкретный представитель при проверке лица.
 CREATE TABLE verification_cases (
     id                  uuid primary key default uuidv7(),
     organization_id     uuid not null references organizations (id),
@@ -376,8 +280,6 @@ CREATE INDEX ix_verification_cases_membership_id ON verification_cases (membersh
 CREATE INDEX ix_verification_cases_operator_user_id ON verification_cases (operator_user_id);
 CREATE INDEX ix_verification_cases_pending ON verification_cases (organization_id) WHERE decision = 'pending';
 
--- ТЗ 6.6.4: гарантирующая сторона и обслуживающая компания хранятся
--- раздельно; метка "Авторизован производителем" — только через этот источник.
 CREATE TABLE warranty_authorizations (
     id                          uuid primary key default uuidv7(),
     guarantor_kind               text not null,
@@ -402,7 +304,6 @@ CREATE INDEX ix_warranty_authorizations_guarantor_org_id ON warranty_authorizati
 CREATE INDEX ix_warranty_authorizations_category_id ON warranty_authorizations (equipment_category_id);
 CREATE INDEX ix_warranty_authorizations_source_case_id ON warranty_authorizations (source_verification_case_id);
 
--- D19: договор как сущность; номер договора — не секрет (ТЗ 6.3).
 CREATE TABLE service_contracts (
     id                          uuid primary key default uuidv7(),
     provider_org_id              uuid not null references organizations (id),
@@ -421,15 +322,12 @@ CREATE TABLE service_contracts (
 CREATE INDEX ix_service_contracts_customer_org_id ON service_contracts (customer_org_id);
 CREATE INDEX ix_service_contracts_created_by ON service_contracts (created_by_membership_id);
 
--- Отложенный FK: invitations.service_contract_id -> service_contracts(id).
 ALTER TABLE invitations
     ADD CONSTRAINT fk_invitations_service_contract
     FOREIGN KEY (service_contract_id) REFERENCES service_contracts (id);
 
 CREATE INDEX ix_invitations_service_contract_id ON invitations (service_contract_id);
 
--- ТЗ 6.3, 6.6.4: связь либо с подключённым исполнителем (provider_org_id),
--- либо с сохранённым личным контактом — ровно одно из двух.
 CREATE TABLE service_bindings (
     id                          uuid primary key default uuidv7(),
     equipment_id                 uuid not null references equipment (id),
@@ -465,23 +363,8 @@ CREATE INDEX ix_service_bindings_warranty_authorization_id ON service_bindings (
 CREATE INDEX ix_service_bindings_source_invitation_id ON service_bindings (source_invitation_id);
 CREATE INDEX ix_service_bindings_pending ON service_bindings (provider_org_id) WHERE status = 'pending';
 
-
--- ============================================================================
--- MODULE: REQUESTS (repair_requests, request_public_cards, assignments,
---                    offers, visit_proposals, repair_quotes,
---                    cancellation_requests, messages, request_events)
--- ============================================================================
--- Граница согласованности (00-decisions.md, B): агрегат «Заявка» =
--- repair_requests + assignments + offers + visit_proposals + repair_quotes +
--- cancellation_requests. Любая команда над агрегатом начинается с
--- SELECT ... FOR UPDATE строки repair_requests.
-
--- Единая последовательность человекочитаемых номеров (00-decisions.md, B;
--- приёмка A04: "тот же номер заявки" у заказчика/исполнителя/CRM).
 CREATE SEQUENCE request_number_seq AS bigint START WITH 1000;
 
--- 13 статусов ТЗ 8.1 + version для оптимistической конкурентности (весь
--- агрегат) + snapshot полей оборудования/точки на момент отправки (ТЗ 10.1).
 CREATE TABLE repair_requests (
     id                          uuid primary key default uuidv7(),
     request_number               bigint not null default nextval('request_number_seq'),
@@ -527,10 +410,6 @@ CREATE INDEX ix_repair_requests_location_id ON repair_requests (location_id);
 CREATE INDEX ix_repair_requests_author_membership_id ON repair_requests (author_membership_id);
 CREATE INDEX ix_repair_requests_status ON repair_requests (status);
 
--- Отдельное разрешённое представление (ТЗ 9: "не формировать удалением
--- нескольких полей из полного объекта"). Владелец-арендатор — только через
--- request_id (чисто дочерняя таблица агрегата заявки на чтение публичного
--- маркетплейса; заказчик уже виден через repair_requests).
 CREATE TABLE request_public_cards (
     id                      uuid primary key default uuidv7(),
     request_id               uuid not null references repair_requests (id),
@@ -552,10 +431,6 @@ CREATE TABLE request_public_cards (
 CREATE INDEX ix_request_public_cards_category_city ON request_public_cards (equipment_category_id, city_id) WHERE status = 'open';
 CREATE INDEX ix_request_public_cards_district_id ON request_public_cards (district_id);
 
--- ТЗ 8.2: попытка назначения pending/accepted/declined/expired/revoked;
--- completed — по факту завершения; withdrawn — добавлено решением D2 (отказ
--- исполнителя после принятия). offer_id ссылается на offers, создаваемую
--- ниже в этом же модуле — FK отложен.
 CREATE TABLE assignments (
     id                          uuid primary key default uuidv7(),
     request_id                   uuid not null references repair_requests (id),
@@ -564,7 +439,7 @@ CREATE TABLE assignments (
     offer_id                        uuid,
     state                            text not null default 'pending',
     field_worker_membership_id        uuid references memberships (id),
-    field_worker_display_name text, -- D31: указано компанией через CRM, если мастер не зарегистрирован
+    field_worker_display_name text,
     field_worker_contact_phone text,
     warranty_decision                  text not null default 'not_stated',
     warranty_decision_comment            text,
@@ -581,9 +456,6 @@ CREATE TABLE assignments (
     constraint ck_assignments_warranty_decision check (warranty_decision in ('not_stated', 'warranty', 'not_warranty', 'undetermined'))
 );
 
--- Обязательное ограничение: не более одной активной попытки на заявку
--- (ТЗ 8.2 + приёмка A09: "конкурирующие действия не создают два активных
--- назначения").
 CREATE UNIQUE INDEX ux_assignments_one_active_per_request
     ON assignments (request_id) WHERE state IN ('pending', 'accepted');
 
@@ -592,9 +464,6 @@ CREATE INDEX ix_assignments_provider_org_state ON assignments (provider_org_id, 
 CREATE INDEX ix_assignments_field_worker ON assignments (field_worker_membership_id);
 CREATE INDEX ix_assignments_expires_at ON assignments (expires_at) WHERE state = 'pending';
 
--- ТЗ 8.2: предложение active/selected/expired/withdrawn/closed. Версии
--- ключуются (request_id, provider_org_id, version) — offer предшествует
--- назначению, assignment_id ещё не существует на момент подачи предложения.
 CREATE TABLE offers (
     id                          uuid primary key default uuidv7(),
     request_id                   uuid not null references repair_requests (id),
@@ -604,7 +473,7 @@ CREATE TABLE offers (
     visit_window_end                  timestamptz,
     visit_amount_minor                 bigint,
     currency                            char(3),
-    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')), -- замечание 14 обзора ТЗ
+    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')),
     zero_cost_reason                     text,
     scope_description                     text,
     comment                                 text,
@@ -626,15 +495,12 @@ CREATE INDEX ix_offers_provider_org_id ON offers (provider_org_id);
 CREATE INDEX ix_offers_created_by ON offers (created_by_membership_id);
 CREATE INDEX ix_offers_valid_until ON offers (valid_until) WHERE state = 'active';
 
--- Отложенный FK: assignments.offer_id -> offers(id).
 ALTER TABLE assignments
     ADD CONSTRAINT fk_assignments_offer
     FOREIGN KEY (offer_id) REFERENCES offers (id);
 
 CREATE INDEX ix_assignments_offer_id ON assignments (offer_id);
 
--- Согласование условий выезда/диагностики (ТЗ 8.2, S2.9, D5, D6). Версии по
--- (request_id, assignment_id, version) — обязательное ограничение задания.
 CREATE TABLE visit_proposals (
     id                          uuid primary key default uuidv7(),
     request_id                   uuid not null references repair_requests (id),
@@ -644,7 +510,7 @@ CREATE TABLE visit_proposals (
     visit_window_end                    timestamptz,
     visit_amount_minor                   bigint,
     currency                              char(3),
-    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')), -- замечание 14 обзора ТЗ
+    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')),
     zero_cost_reason                       text,
     scope_description                       text,
     comment                                   text,
@@ -669,7 +535,6 @@ CREATE INDEX ix_visit_proposals_responded_by ON visit_proposals (responded_by_me
 CREATE INDEX ix_visit_proposals_created_by ON visit_proposals (created_by_membership_id);
 CREATE INDEX ix_visit_proposals_valid_until ON visit_proposals (valid_until) WHERE status = 'pending';
 
--- Согласование стоимости ремонта (ТЗ 8.2 — статусы даны дословно).
 CREATE TABLE repair_quotes (
     id                          uuid primary key default uuidv7(),
     request_id                   uuid not null references repair_requests (id),
@@ -678,7 +543,7 @@ CREATE TABLE repair_quotes (
     description_of_work               text not null,
     amount_minor                       bigint,
     currency                            char(3),
-    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')), -- замечание 14 обзора ТЗ
+    vat_mode text check (vat_mode is null or vat_mode in ('included', 'excluded', 'not_applicable')),
     zero_cost_reason                     text,
     valid_until                           timestamptz not null,
     status                                 text not null default 'pending',
@@ -700,9 +565,6 @@ CREATE INDEX ix_repair_quotes_responded_by ON repair_quotes (responded_by_member
 CREATE INDEX ix_repair_quotes_created_by ON repair_quotes (created_by_membership_id);
 CREATE INDEX ix_repair_quotes_valid_until ON repair_quotes (valid_until) WHERE status = 'pending';
 
--- S6, D4: запрос отмены с целью cancel_request/change_provider; спорная
--- отмена — dispute_deadline_at используется sweeper'ом для одностороннего
--- прекращения через CANCEL_DISPUTE_TIMEOUT (72ч).
 CREATE TABLE cancellation_requests (
     id                          uuid primary key default uuidv7(),
     request_id                   uuid not null references repair_requests (id),
@@ -730,11 +592,6 @@ CREATE INDEX ix_cancellation_requests_assignment_id ON cancellation_requests (as
 CREATE INDEX ix_cancellation_requests_initiated_by ON cancellation_requests (initiated_by_membership_id);
 CREATE INDEX ix_cancellation_requests_dispute_deadline ON cancellation_requests (dispute_deadline_at) WHERE status = 'disputed';
 
--- Переписка по заявке (ТЗ 9, S3). До назначения возможен ограниченный канал
--- "автор предложения <-> заказчик" (S3.5) — visibility_scope='pre_assignment_thread'
--- с обязательным thread_provider_org_id. author_integration_client_id
--- ссылается на integration.integration_clients, создаваемую намного позже —
--- FK отложен.
 CREATE TABLE messages (
     id                              uuid primary key default uuidv7(),
     request_id                       uuid not null references repair_requests (id),
@@ -760,7 +617,6 @@ CREATE INDEX ix_messages_thread_provider_org_id ON messages (thread_provider_org
 CREATE INDEX ix_messages_author_membership_id ON messages (author_membership_id);
 CREATE INDEX ix_messages_created_at ON messages (request_id, created_at);
 
--- Доменная история заявки — основа экрана "История" и метрик пилота (D-раздел).
 CREATE TABLE request_events (
     id                              uuid primary key default uuidv7(),
     request_id                       uuid not null references repair_requests (id),
@@ -780,14 +636,6 @@ CREATE TABLE request_events (
 CREATE INDEX ix_request_events_request_id ON request_events (request_id, occurred_at);
 CREATE INDEX ix_request_events_actor_membership_id ON request_events (actor_membership_id);
 
-
--- ============================================================================
--- MODULE: FILES (attachments, attachment_variants)
--- ============================================================================
-
--- ТЗ 14.1: visibility_class определяет доступ политикой от владельца, а не
--- списком получателей на файл (D-раздел). review_id/moderation_case_id
--- ссылаются на таблицы reputation-модуля, создаваемые позже — FK отложены.
 CREATE TABLE attachments (
     id                          uuid primary key default uuidv7(),
     owner_kind                   text not null,
@@ -834,8 +682,6 @@ CREATE INDEX ix_attachments_verification_case_id ON attachments (verification_ca
 CREATE INDEX ix_attachments_content_hash ON attachments (content_hash) WHERE content_hash IS NOT NULL;
 CREATE INDEX ix_attachments_processing_state ON attachments (processing_state) WHERE processing_state = 'quarantined';
 
--- Копии одного файла: оригинал, безопасная копия, превью, публичная копия
--- (D-раздел).
 CREATE TABLE attachment_variants (
     id              uuid primary key default uuidv7(),
     attachment_id   uuid not null references attachments (id),
@@ -853,15 +699,6 @@ CREATE TABLE attachment_variants (
 
 CREATE INDEX ix_attachment_variants_attachment_id ON attachment_variants (attachment_id);
 
-
--- ============================================================================
--- MODULE: REPUTATION (reviews, review_versions, review_replies,
---                      moderation_cases, provider_rating_aggregates)
--- ============================================================================
-
--- ТЗ 8.3: один отзыв от организации-заказчика на назначение. order_occurred_at
--- денормализован из repair_requests.submitted_at для расчёта "последняя по
--- дате заказа допустимая оценка" (ТЗ 8.3.3) без join по всем отзывам.
 CREATE TABLE reviews (
     id                          uuid primary key default uuidv7(),
     assignment_id                 uuid not null references assignments (id),
@@ -889,14 +726,12 @@ CREATE INDEX ix_reviews_customer_org_id ON reviews (customer_org_id);
 CREATE INDEX ix_reviews_request_id ON reviews (request_id);
 CREATE INDEX ix_reviews_author_membership_id ON reviews (author_membership_id);
 
--- Отложенный FK: attachments.review_id -> reviews(id).
 ALTER TABLE attachments
     ADD CONSTRAINT fk_attachments_review
     FOREIGN KEY (review_id) REFERENCES reviews (id);
 
 CREATE INDEX ix_attachments_review_id ON attachments (review_id) WHERE review_id IS NOT NULL;
 
--- ТЗ 8.3.2: редактирование не создаёт новую оценку — хранится история версий.
 CREATE TABLE review_versions (
     id                      uuid primary key default uuidv7(),
     review_id               uuid not null references reviews (id),
@@ -912,7 +747,6 @@ CREATE TABLE review_versions (
 
 CREATE INDEX ix_review_versions_review_id ON review_versions (review_id);
 
--- Исполнитель может ответить на отзыв один раз (ТЗ 8.3.2).
 CREATE TABLE review_replies (
     id                  uuid primary key default uuidv7(),
     review_id           uuid not null references reviews (id),
@@ -926,8 +760,6 @@ CREATE TABLE review_replies (
 
 CREATE INDEX ix_review_replies_provider_org_id ON review_replies (provider_org_id);
 
--- Операторская очередь: профиль/отзыв/фото/привязка/неявка (ТЗ 8.3.4).
--- filer_org_id — чья организация подала жалобу (для AccessScope заявителя).
 CREATE TABLE moderation_cases (
     id                          uuid primary key default uuidv7(),
     subject_type                  text not null,
@@ -958,16 +790,12 @@ CREATE INDEX ix_moderation_cases_assignment_id ON moderation_cases (assignment_i
 CREATE INDEX ix_moderation_cases_filer_org_id ON moderation_cases (filer_org_id);
 CREATE INDEX ix_moderation_cases_pending ON moderation_cases (status) WHERE status = 'pending';
 
--- Отложенный FK: attachments.moderation_case_id -> moderation_cases(id).
 ALTER TABLE attachments
     ADD CONSTRAINT fk_attachments_moderation_case
     FOREIGN KEY (moderation_case_id) REFERENCES moderation_cases (id);
 
 CREATE INDEX ix_attachments_moderation_case_id ON attachments (moderation_case_id) WHERE moderation_case_id IS NOT NULL;
 
--- ТЗ 8.3.3: агрегат для быстрого чтения профиля — среднее с одним знаком
--- после запятой, число уникальных организаций, порог "Мало отзывов" (<3)
--- считается приложением на чтении из unique_reviewer_orgs_count.
 CREATE TABLE provider_rating_aggregates (
     id                          uuid primary key default uuidv7(),
     provider_org_id               uuid not null references organizations (id),
@@ -979,15 +807,6 @@ CREATE TABLE provider_rating_aggregates (
     constraint ck_provider_rating_aggregates_rating check (average_rating is null or (average_rating >= 1.0 and average_rating <= 5.0))
 );
 
-
--- ============================================================================
--- MODULE: INTEGRATION (integration_clients, external_references,
---                       webhook_subscriptions, integration_events,
---                       webhook_deliveries)
--- ============================================================================
-
--- ТЗ 10.1, 6.7: API-ключ принадлежит одной организации-исполнителю, права
--- ограничены scopes (в т.ч. отдельный service_bindings:write).
 CREATE TABLE integration_clients (
     id                      uuid primary key default uuidv7(),
     provider_org_id          uuid not null references organizations (id),
@@ -1008,15 +827,12 @@ CREATE TABLE integration_clients (
 CREATE INDEX ix_integration_clients_provider_org_id ON integration_clients (provider_org_id);
 CREATE INDEX ix_integration_clients_api_key_prefix ON integration_clients (api_key_prefix);
 
--- Отложенный FK: messages.author_integration_client_id -> integration_clients(id).
 ALTER TABLE messages
     ADD CONSTRAINT fk_messages_author_integration_client
     FOREIGN KEY (author_integration_client_id) REFERENCES integration_clients (id);
 
 CREATE INDEX ix_messages_author_integration_client_id ON messages (author_integration_client_id);
 
--- ТЗ 10.2 POST /requests/{id}/external-reference: уникальность ID CRM в
--- пределах интеграции + одна привязка заявки на клиента интеграции.
 CREATE TABLE external_references (
     id                      uuid primary key default uuidv7(),
     integration_client_id    uuid not null references integration_clients (id),
@@ -1049,12 +865,6 @@ CREATE TABLE webhook_subscriptions (
 CREATE INDEX ix_webhook_subscriptions_integration_client_id ON webhook_subscriptions (integration_client_id);
 CREATE INDEX ix_webhook_subscriptions_provider_org_id ON webhook_subscriptions (provider_org_id);
 
--- Лента /events (ТЗ 11): recipient_org_id + feed_seq — беспропускной курсор
--- на получателя, назначается единственным диспетчером (outbox worker);
--- NULL до присвоения (сразу после вставки в одной транзакции с изменением
--- заявки, ТЗ 11 правило 1). resource_id — полиморфная ссылка без FK
--- (тип ресурса разный для разных event_type), это осознанный отказ от
--- нормализации, см. 03-data-model.md.
 CREATE TABLE integration_events (
     id                  uuid primary key default uuidv7(),
     event_type          text not null,
@@ -1081,8 +891,6 @@ CREATE INDEX ix_integration_events_recipient_unassigned
 CREATE INDEX ix_integration_events_resource ON integration_events (resource_kind, resource_id);
 CREATE INDEX ix_integration_events_created_at ON integration_events (created_at);
 
--- ТЗ 11: доставка отдельна от факта события; на каждую попытку меняются
--- delivery_id/подпись/время, event_id (integration_event_id) неизменен.
 CREATE TABLE webhook_deliveries (
     id                      uuid primary key default uuidv7(),
     integration_event_id     uuid not null references integration_events (id),
@@ -1106,11 +914,6 @@ CREATE INDEX ix_webhook_deliveries_subscription_id ON webhook_deliveries (webhoo
 CREATE INDEX ix_webhook_deliveries_provider_org_id ON webhook_deliveries (provider_org_id);
 CREATE INDEX ix_webhook_deliveries_outbox_queue ON webhook_deliveries (state, next_attempt_at) WHERE state IN ('queued', 'retrying');
 
-
--- ============================================================================
--- MODULE: MAX (bot_conversations, bot_actions, max_updates, notifications)
--- ============================================================================
-
 CREATE TABLE bot_conversations (
     id                          uuid primary key default uuidv7(),
     user_id                       uuid not null references users (id),
@@ -1127,11 +930,6 @@ CREATE TABLE bot_conversations (
 CREATE INDEX ix_bot_conversations_user_id ON bot_conversations (user_id);
 CREATE INDEX ix_bot_conversations_active_membership_id ON bot_conversations (active_membership_id);
 
--- D15: payload кнопки — непрозрачный короткий код строки bot_actions.
--- object_type/object_id — полиморфная ссылка без FK: действия относятся к
--- request/assignment/offer/visit_proposal/repair_quote/cancellation_request/
--- service_binding/invitation, перечисление зависит от action_type и не
--- нормализуется отдельными колонками, чтобы не тянуть FK на все модули.
 CREATE TABLE bot_actions (
     id                          uuid primary key default uuidv7(),
     code                          text not null,
@@ -1151,8 +949,6 @@ CREATE INDEX ix_bot_actions_conversation_id ON bot_actions (created_by_bot_conve
 CREATE INDEX ix_bot_actions_object ON bot_actions (object_type, object_id);
 CREATE INDEX ix_bot_actions_expires_at ON bot_actions (expires_at) WHERE consumed_at IS NULL;
 
--- Дедупликация входящих обновлений MAX (ТЗ 13: "повторные входящие события
--- обрабатываются идемпотентно").
 CREATE TABLE max_updates (
     id                  uuid primary key default uuidv7(),
     max_update_id        text not null,
@@ -1167,8 +963,6 @@ CREATE TABLE max_updates (
 
 CREATE INDEX ix_max_updates_unprocessed ON max_updates (received_at) WHERE processed_at IS NULL;
 
--- Outbox уведомлений в MAX (D-раздел). recipient_membership_id/organization_id
--- — явные колонки для AccessScope на стороне получателя.
 CREATE TABLE notifications (
     id                          uuid primary key default uuidv7(),
     recipient_user_id             uuid not null references users (id),
@@ -1191,15 +985,6 @@ CREATE INDEX ix_notifications_organization_id ON notifications (organization_id)
 CREATE INDEX ix_notifications_request_id ON notifications (request_id);
 CREATE INDEX ix_notifications_outbox_queue ON notifications (state, next_attempt_at) WHERE state = 'queued';
 
-
--- ============================================================================
--- MODULE: INFRA (idempotency_keys, audit_entries)
--- ============================================================================
-
--- ТЗ 10.1: Idempotency-Key — повтор с тем же телом возвращает прежний
--- результат, с другим — 409. Хранится хеш тела запроса, не само тело
--- (тело может содержать вложения/большие payload; для ответа сохраняем
--- response_body).
 CREATE TABLE idempotency_keys (
     id                      uuid primary key default uuidv7(),
     scope                     text not null,
@@ -1220,8 +1005,6 @@ CREATE INDEX ix_idempotency_keys_organization_id ON idempotency_keys (organizati
 CREATE INDEX ix_idempotency_keys_integration_client_id ON idempotency_keys (integration_client_id);
 CREATE INDEX ix_idempotency_keys_expires_at ON idempotency_keys (expires_at);
 
--- Журнал действий (ТЗ 3: "действия оператора журналируются"; ТЗ 6.7: "изменения
--- ключей, webhook URL и привязок журналируются").
 CREATE TABLE audit_entries (
     id                          uuid primary key default uuidv7(),
     actor_kind                    text not null,

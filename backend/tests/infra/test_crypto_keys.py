@@ -65,7 +65,6 @@ async def test_startup_passes_with_matching_key(db_session: AsyncSession) -> Non
 async def test_startup_fails_on_foreign_key(
     db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Восстановление дампа без ключа: api не стартует молча с новым ключом."""
     await _subscription(db_session)
     _use_key(monkeypatch, NEW_KEY)
     with pytest.raises(crypto_keys.KeyMismatchError, match="SECRETS_ENCRYPTION_KEY"):

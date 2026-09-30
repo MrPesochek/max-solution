@@ -207,7 +207,6 @@ async def _published(harness: BotHarness, db_session: AsyncSession) -> rf.BotWor
 async def test_marketplace_card_shows_public_fields(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """S2.4: до отклика видны модель, район и описание, но не адрес точки."""
     world = await _published(harness, db_session)
     uid = int(world.dispatcher_max_id)
     await harness.deliver(message_created("/start", user_id=uid, chat_id=uid))

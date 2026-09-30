@@ -71,7 +71,7 @@ afterEach(() => {
   URL.revokeObjectURL = originalRevoke;
 });
 
-describe('главная (D07): «Нужно ваше решение» из pending_decision', () => {
+describe('главная: «Нужно ваше решение» из pending_decision', () => {
   it('строки выезда и предложений показывают сумму, срок и число предложений без запросов /offers', async () => {
     const { provider, requestId, assignmentId } = await acceptedOwnServiceRequest();
     await apiCall(`/requests/${requestId}/actions/propose-visit`, provider, {
@@ -153,7 +153,7 @@ describe('списки заявок: название техники из кат
   });
 });
 
-describe('карточка техники (D10): заявки по equipment_id и подписи слотов фото', () => {
+describe('карточка техники: заявки по equipment_id и подписи слотов фото', () => {
   it('заявки другой техники той же точки не попадают в блок «Заявки»; фото подписаны слотом', async () => {
     const { requestNumber } = await acceptedOwnServiceRequest();
     const manager = await demoLoginRaw('customer_manager');
@@ -221,7 +221,7 @@ describe('карточка техники (D10): заявки по equipment_id 
   });
 });
 
-describe('каталог и профиль исполнителя (D24)', () => {
+describe('каталог и профиль исполнителя', () => {
   const base: Omit<
     ProviderCatalogItem,
     'id' | 'name' | 'rating' | 'rating_label' | 'reviews_count' | 'unique_customers'

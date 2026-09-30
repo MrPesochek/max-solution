@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 interface ImportMetaEnv {
   readonly VITE_MAX_BRIDGE_URL?: string;
   readonly VITE_DEMO_LOGIN?: string;

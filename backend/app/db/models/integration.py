@@ -92,9 +92,6 @@ class IntegrationEvent(IdMixin, CreatedAtMixin, Base):
 
 
 class IntegrationFeedCounter(Base):
-    """Последний выданный `feed_seq` получателя. Не зависит от уборки событий:
-    после удаления старых строк нумерация продолжается, а не начинается заново."""
-
     __tablename__ = "integration_feed_counters"
 
     organization_id: Mapped[uuid.UUID] = mapped_column(

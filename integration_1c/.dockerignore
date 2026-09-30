@@ -1,4 +1,3 @@
-# В образ попадают только зависимости, connector/, emulator/ и profiles/.
 .venv
 data
 tests

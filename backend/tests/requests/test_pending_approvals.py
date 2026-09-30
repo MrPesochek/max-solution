@@ -97,7 +97,6 @@ async def test_aggregates_every_kind_for_manager(world: World) -> None:
 
 
 async def test_employee_gets_no_manager_decisions(world: World) -> None:
-    """Сотруднику — только «Нужен ваш ответ»; решения руководителя ему не показываются."""
     draft = await _make_marketplace_draft(world)
     await api.request_approval(world.employee, h.rid(draft), expected_version=draft["version"])
     assert await api.pending_approvals(world.employee) == []

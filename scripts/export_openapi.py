@@ -49,15 +49,13 @@ ERROR_SCHEMA: dict[str, Any] = {
 
 
 def _with_error_schema(schema: dict[str, Any]) -> dict[str, Any]:
-    """Добавляет components.schemas.ErrorResponse и ссылку на него в каждую операцию,
-    у которой ещё нет ни одного описанного ответа с кодом ошибки."""
     schema = copy.deepcopy(schema)
     components = schema.setdefault("components", {})
     schemas = components.setdefault("schemas", {})
     schemas["ErrorResponse"] = ERROR_SCHEMA
 
     error_response = {
-        "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+        "description": "Ошибка. Формат одинаковый для всех методов.",
         "content": {
             "application/json": {
                 "schema": {"$ref": "#/components/schemas/ErrorResponse"}
@@ -167,11 +165,6 @@ def _index_operation(operation: dict[str, Any], source: str) -> dict[str, Any]:
 
 
 def build_data_api_index(schemas: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    """Карта путей для `DATA-API.yaml`: эталонный валидатор организаторов сверяет путь
-    и метод каждой проверки с одним OpenAPI-документом по точному совпадению, а наши
-    контуры выгружены тремя файлами, причём пути интеграционного API — без префикса
-    монтирования `/api/v1`. Тела и схемы ответов здесь не повторяются: за ними —
-    файл из `x-source`."""
     paths: dict[str, dict[str, Any]] = {}
     for filename, prefix in (
         ("app-api.json", ""),

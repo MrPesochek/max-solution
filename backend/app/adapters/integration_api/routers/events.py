@@ -14,7 +14,7 @@ router = APIRouter(tags=["events"], responses=STANDARD_ERROR_RESPONSES)
     "/events",
     response_model=EventsPageView,
     description=(
-        "Лента восстановления после курсора (ТЗ 11, п.8). Истёкший курсор — "
+        "Лента восстановления после курсора. Истёкший курсор — "
         "`409 CURSOR_EXPIRED`: выполните сверку через `GET /requests` и начните "
         "ленту заново без курсора. В ленте только события, которые ключ получил бы "
         "и вебхуком — по scope на чтение соответствующих данных."

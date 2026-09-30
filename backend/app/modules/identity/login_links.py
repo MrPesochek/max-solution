@@ -42,7 +42,6 @@ class LinkSessionIssued:
 
 
 def login_links_enabled() -> bool:
-    """Вход по ссылке — только при работающем боте: выпускать ссылки больше некому."""
     return get_settings().bot_enabled
 
 
@@ -68,7 +67,6 @@ def _audit(
 
 
 async def issue_login_link(max_user_id: str, target: str | None = None) -> LoginLinkIssued:
-    """Выпускает ссылку входа для пользователя MAX — вызывается только ботом."""
     settings = get_settings()
     if not login_links_enabled():
         raise NotFound()
@@ -101,13 +99,6 @@ async def issue_login_link(max_user_id: str, target: str | None = None) -> Login
 async def issue_demo_login_link(
     actor: Actor, user_key: str, *, ttl_seconds: int | None = None
 ) -> LoginLinkIssued:
-    """Ссылка входа демо-пользователю для проверяющих — только из CLI оператора.
-
-    Только ключи демо-сида и только на стенде с демо-данными (APP_ENV local/demo):
-    в prod демо-пользователей нет, а настоящему аккаунту MAX ссылку выпускает лишь
-    бот. Пользователь с платформенной ролью так не входит — как и при demo-входе.
-    Выпуск и отказ попадают в аудит (actor — CLI оператора).
-    """
     if not isinstance(actor, SystemActor):
         raise Forbidden()
     settings = get_settings()
@@ -166,10 +157,6 @@ async def issue_demo_login_link(
 
 
 async def login_with_link(raw_token: str) -> LinkSessionIssued:
-    """Гасит ссылку одним UPDATE: из двух одновременных входов проходит ровно один.
-
-    Истёкшая, использованная и неизвестная ссылка неразличимы снаружи; причина — в журнал.
-    """
     if not login_links_enabled():
         log.warning("login_link_rejected", reason="bot_disabled")
         raise _link_rejected()

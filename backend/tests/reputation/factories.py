@@ -63,7 +63,6 @@ async def build_shared_provider(*, category_index: int = 0) -> SharedProvider:
 
 
 async def add_customer_world(shared: SharedProvider, *, name: str, verified: bool = True) -> World:
-    """Ещё один заказчик, привязанный к тому же исполнителю — для проверки I19."""
     async with db_session.transaction() as session:
         customer = await req_factories.create_org(session, name=name, is_customer=True)
         location = await req_factories.create_location(session, customer, name=f"{name}: точка")

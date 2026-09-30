@@ -67,7 +67,6 @@ class TokenBucketLimiter:
         )
 
     def peek(self, key: str, *, now: float | None = None) -> Decision:
-        """Состояние корзины без расхода токена — для проверки «не заблокирован ли уже»."""
         moment = time.monotonic() if now is None else now
         bucket = self._buckets.get(key)
         if bucket is None:
@@ -83,7 +82,6 @@ class TokenBucketLimiter:
         )
 
     def refund(self, key: str) -> None:
-        """Возвращает токен, списанный заранее, — попытка оказалась успешной."""
         bucket = self._buckets.get(key)
         if bucket is not None:
             bucket.tokens = min(float(self._burst), bucket.tokens + 1.0)

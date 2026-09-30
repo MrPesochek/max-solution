@@ -110,7 +110,7 @@ async def test_transient_failure_does_not_burn_button(
         calls["n"] += 1
         if calls["n"] == 1:
             raise ConnectionError("база недоступна")
-        return await original(*args, **kwargs)  # type: ignore[arg-type]
+        return await original(*args, **kwargs)
 
     monkeypatch.setattr(requests_api, "approve_visit_proposal", flaky)
 
@@ -143,7 +143,6 @@ async def test_used_button_shows_current_card(
 async def test_repeated_final_answer_posts_one_message(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Второй обработчик с тем же состоянием диалога (гонка) не пишет второе сообщение."""
     world = await rf.build(db_session)
     await db_session.commit()
     await flows.submit_own_service(harness, world)
@@ -214,6 +213,6 @@ async def _start_reply(
         now=(await flows.only_request(db_session)).updated_at,
     )
     await db_session.commit()
-    reply = message.attachments[0].payload.buttons[0][0].payload  # type: ignore[union-attr]
+    reply = message.attachments[0].payload.buttons[0][0].payload
     await flows.say(harness, "/start", uid)
     await flows.press(harness, reply, uid)

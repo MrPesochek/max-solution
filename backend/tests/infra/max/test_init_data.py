@@ -14,7 +14,6 @@ NOW = datetime.fromtimestamp(AUTH_DATE + 10, tz=UTC)
 
 
 def _build_raw(fields: dict[str, str], *, token: str = BOT_TOKEN) -> str:
-    """Собирает валидную строку initData тем же алгоритмом, что и validate_init_data."""
     check_string = "\n".join(f"{k}={v}" for k, v in sorted(fields.items()))
     secret = hmac.new(b"WebAppData", token.encode(), hashlib.sha256).digest()
     signature = hmac.new(secret, check_string.encode(), hashlib.sha256).hexdigest()

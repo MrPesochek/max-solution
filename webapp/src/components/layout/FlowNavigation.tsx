@@ -22,7 +22,6 @@ export function FlowExitGuard({ save }: { save: ExitGuard }) {
   return null;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useFlowNavigation() {
   const context = useContext(FlowNavigationContext);
   return async () => (context?.guard.current ? context.guard.current() : true);

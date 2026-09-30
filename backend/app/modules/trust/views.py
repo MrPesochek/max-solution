@@ -57,8 +57,6 @@ CONTACT_ONLY_TEXT = (
 
 
 class VerificationBadgeView(BaseModel):
-    """Один признак проверки: что подтверждено, чем и когда."""
-
     kind: str
     confirmed: bool
     title: str
@@ -99,8 +97,6 @@ class VerificationCaseView(BaseModel):
 
 
 class VerificationInformationSubmittedView(BaseModel):
-    """Ответ на донесение сведений: дела, к которым добавлена заметка."""
-
     items: list[VerificationCaseView]
 
 
@@ -127,8 +123,6 @@ class BindingEquipmentView(BaseModel):
 
 
 class ServiceBindingView(BaseModel):
-    """Карточка привязки для заказчика: статус, основание и источник гарантии."""
-
     id: str
     equipment_id: str
     status: str
@@ -154,8 +148,6 @@ class ServiceBindingView(BaseModel):
 
 
 class ProviderBindingView(BaseModel):
-    """Привязка глазами исполнителя. До подтверждения — минимум сведений (ТЗ 6.3)."""
-
     id: str
     status: str
     status_explanation: str
@@ -170,8 +162,6 @@ class ProviderBindingView(BaseModel):
 
 
 class BindingInvitationItemView(BaseModel):
-    """Позиция оборудования по договору в формулировке сервиса."""
-
     index: int
     description: str | None
     serial_number: str | None
@@ -204,8 +194,6 @@ class BindingInvitationIssuedView(BindingInvitationView):
 
 
 class BindingInvitationPreviewView(BaseModel):
-    """Точное предложение привязки: что именно подтверждает руководитель заказчика."""
-
     provider_name: str
     contract_number: str | None
     basis: str | None
@@ -224,14 +212,10 @@ class BindingInvitationPreviewView(BaseModel):
 
 
 class BindingInvitationAcceptedView(BaseModel):
-    """Ответ на приём приглашения: по привязке на каждую позицию приглашения."""
-
     items: list[ServiceBindingView]
 
 
 class BindingRequestAcceptedView(BaseModel):
-    """Нейтральный ответ на запрос привязки: одинаков независимо от наличия договора (A31)."""
-
     status: str = "submitted"
     message: str = "Запрос отправлен на проверку"
     remaining_attempts: int | None = None
@@ -446,9 +430,6 @@ def invitation_item_views(invitation: Invitation) -> list[BindingInvitationItemV
 
 
 def to_binding_invitation_view(invitation: Invitation, now: datetime) -> BindingInvitationView:
-    """До принятия приглашения организация заказчика не раскрывается даже
-    выпустившему приглашение исполнителю (ТЗ 6.6.2): id виден только после
-    того, как приглашение действительно связало платформенный аккаунт."""
     details = invitation.binding_details or {}
     state = invitation_state(invitation, now)
     return BindingInvitationView(
@@ -491,9 +472,6 @@ def to_binding_invitation_preview(
     provider_checks: set[str] | frozenset[str] = frozenset(),
     disclose: bool = False,
 ) -> BindingInvitationPreviewView:
-    """Предпросмотр менеджеру заказчика: сервис, основание, номер договора,
-    описания оборудования и срок — без персональных данных сверх договорного
-    объёма (ТЗ 6.6.2). До сверки адресата — только сервис, его проверки и состояние."""
     state = invitation_state(invitation, now)
     requisites_verified = CHECK_REQUISITES in provider_checks
     representative_verified = CHECK_REPRESENTATIVE in provider_checks
@@ -535,7 +513,6 @@ def to_binding_invitation_preview(
 def binding_event_payload(
     binding: ServiceBinding, contract_number: str | None
 ) -> dict[str, str | None]:
-    """Полезная нагрузка `service_binding.changed`: без токенов и закрытых доказательств."""
     return {
         "service_binding_id": ids.encode("service_binding", binding.id),
         "equipment_id": ids.encode("equipment", binding.equipment_id),

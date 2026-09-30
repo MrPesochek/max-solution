@@ -8,8 +8,6 @@ class LegalForm(StrEnum):
 
 
 class VerificationStatus(StrEnum):
-    """organizations.details_verification_status / representative_verification_status."""
-
     UNVERIFIED = "unverified"
     PENDING = "pending"
     VERIFIED = "verified"
@@ -88,8 +86,6 @@ class WarrantyAuthorizationStatus(StrEnum):
 
 
 class BindingBasis(StrEnum):
-    """service_contracts.basis / service_bindings.basis."""
-
     WARRANTY = "warranty"
     SERVICE_CONTRACT = "service_contract"
     PREFERRED_PROVIDER = "preferred_provider"
@@ -163,8 +159,6 @@ class VatMode(StrEnum):
 
 
 class Currency(StrEnum):
-    """В пилоте — только RUB (00-decisions.md, D-currency)."""
-
     RUB = "RUB"
 
 
@@ -251,8 +245,6 @@ class VisibilityClass(StrEnum):
 
 
 class AttachmentState(StrEnum):
-    """attachments.processing_state."""
-
     QUARANTINED = "quarantined"
     READY = "ready"
     REJECTED = "rejected"
@@ -266,8 +258,6 @@ class AttachmentVariantKind(StrEnum):
 
 
 class ModerationStatus(StrEnum):
-    """reviews.moderation_status / review_versions.moderation_status / moderation_cases.status."""
-
     PENDING = "pending"
     PUBLISHED = "published"
     REJECTED = "rejected"
@@ -309,8 +299,6 @@ class IntegrationEventType(StrEnum):
 
 
 class DeliveryState(StrEnum):
-    """webhook_deliveries.state."""
-
     QUEUED = "queued"
     DELIVERED = "delivered"
     RETRYING = "retrying"

@@ -260,7 +260,7 @@ describe('профиль исполнителя: заполнение, отпр�
   });
 });
 
-describe('портфолио: подписи к фото (15f, K-18)', () => {
+describe('портфолио: подписи к фото', () => {
   it('подпись сохраняется через PATCH /provider-profile/portfolio/{id}', async () => {
     const photo = seedPendingPortfolioAttachment();
     const user = userEvent.setup();

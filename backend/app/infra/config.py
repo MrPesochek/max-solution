@@ -10,11 +10,6 @@ _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
 def parse_host_allowlist(raw: str) -> frozenset[tuple[str, int | None]]:
-    """`host[:port]` через запятую → пары (хост, порт); порт None — любой порт хоста.
-
-    IPv6 пишется в скобках: `[fd00::5]:8083`. Хост приводится к нижнему регистру —
-    так же его отдаёт `urlsplit` при проверке адреса подписки.
-    """
     entries: set[tuple[str, int | None]] = set()
     for item in raw.split(","):
         value = item.strip()
@@ -201,8 +196,6 @@ class Settings(BaseSettings):
 
     @property
     def operator_demo_login_allowed(self) -> bool:
-        """Demo-вход пользователем с платформенной ролью — только на локальном стенде
-        без настоящего бота: такой стенд не принимает реальных пользователей MAX."""
         return self.app_env == "local" and not self.bot_enabled
 
     @property
@@ -211,8 +204,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _check_invariants(self) -> "Settings":
-        """Проверки для любого APP_ENV: опасное сочетание не должно зависеть от того,
-        не забыли ли переключить окружение."""
         problems: list[str] = []
         if self.allow_private_webhook_hosts:
             problems.append(

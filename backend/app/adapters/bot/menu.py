@@ -58,7 +58,6 @@ _HANDLERS: dict[str, MenuHandler] = {}
 
 
 def menu(key: str) -> Callable[[MenuHandler], MenuHandler]:
-    """Регистрирует обработчик пункта меню."""
 
     def decorator(fn: MenuHandler) -> MenuHandler:
         _HANDLERS[key] = fn
@@ -84,7 +83,6 @@ def _chunked(buttons: list[Button], size: int = 2) -> list[list[Button]]:
 
 
 async def send_menu(ctx: BotContext, *, greeting: str | None = None) -> None:
-    """Главное меню. Активная организация всегда видна в заголовке (ТЗ 3)."""
     memberships = await ctx.memberships()
     active = await ctx.active_membership()
     await ctx.save()

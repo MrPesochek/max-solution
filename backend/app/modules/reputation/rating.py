@@ -19,13 +19,6 @@ def _round_half_up(value: Decimal) -> Decimal:
 async def recalculate_rating(
     session: AsyncSession, provider_org_id: uuid.UUID
 ) -> ProviderRatingAggregate:
-    """Пересчитывает агрегат по подтверждённым допустимым отзывам.
-
-    В расчёт идут опубликованные отзывы организаций-заказчиков с подтверждённым
-    представителем, не помеченные
-    подтверждённой накруткой; на пару «заказчик — исполнитель» берётся одна,
-    последняя по дате заказа оценка.
-    """
     rows = (
         await session.execute(
             select(Review.customer_org_id, Review.rating, Review.order_occurred_at, Review.id)
@@ -90,8 +83,6 @@ async def recalculate_rating(
 
 
 async def recalculate_for_customer(session: AsyncSession, customer_org_id: uuid.UUID) -> None:
-    """Статус проверки заказчика меняет вклад всех его отзывов (ТЗ 8.3.3):
-    пересчитываются рейтинги каждого исполнителя, о котором он писал."""
     provider_ids = (
         await session.execute(
             select(Review.provider_org_id)

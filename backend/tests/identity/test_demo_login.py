@@ -78,7 +78,6 @@ async def test_operator_demo_login_refused_on_local_with_real_bot(
 async def test_any_platform_role_blocks_demo_login_outside_local(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Роль, выданная любому демо-пользователю, не превращает его ключ в обход."""
     await _make_operator("demo:manager")
     for _ in factories.apply_test_settings(monkeypatch, APP_ENV="demo"):
         with pytest.raises(Unauthenticated):

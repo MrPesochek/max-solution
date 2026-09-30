@@ -129,8 +129,6 @@ def _columns(conn: sqlite3.Connection, table: str) -> set[str]:
 
 
 def _migration_1(conn: sqlite3.Connection) -> None:
-    """Столбцы, появившиеся до учёта версии схемы: база без `user_version` могла
-    быть создана любой из прежних версий, поэтому каждый столбец проверяется."""
     if "applied_version" not in _columns(conn, "links"):
         conn.execute("ALTER TABLE links ADD COLUMN applied_version INTEGER NOT NULL DEFAULT 0")
         conn.execute("UPDATE links SET applied_version = platform_version WHERE active = 0")

@@ -36,8 +36,6 @@ class ActionRejection(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class RejectedAction:
-    """Отказ с тем, на что указывала кнопка: по нему показывается актуальная карточка."""
-
     reason: ActionRejection
     object_type: str | None = None
     object_id: uuid.UUID | None = None
@@ -51,7 +49,6 @@ class RejectedAction:
 def request_ref(
     object_type: str | None, object_id: uuid.UUID | None, params: dict[str, Any]
 ) -> uuid.UUID | None:
-    """Заявка, к которой относится кнопка: сам объект или `params.request_id`."""
     if object_type == "request":
         return object_id
     value = params.get("request_id")
@@ -79,7 +76,6 @@ class ClaimedAction:
 
     @property
     def membership_id(self) -> uuid.UUID | None:
-        """Членство адресата: от него кнопка и исполняется (у человека их может быть два)."""
         value = self.params.get(RECIPIENT_MEMBERSHIP_PARAM)
         if not isinstance(value, str):
             return None
@@ -90,7 +86,6 @@ class ClaimedAction:
 
     @property
     def idempotency(self) -> Idempotency:
-        """Ключ команды выводится из id действия: повторное нажатие даёт тот же результат."""
         return Idempotency(
             key=f"bot-action-{self.id.hex}",
             operation=f"bot:{self.action_type}",
@@ -113,14 +108,6 @@ async def make_action(
     ttl: timedelta | None = None,
     membership_id: uuid.UUID | None = None,
 ) -> str:
-    """Заводит строку `bot_actions` и возвращает код для payload кнопки.
-
-    `conversation_id` — необязателен: кнопка внутри активного диалога несёт его
-    для отладки, а кнопка уведомления, отправленного вне диалога (worker),
-    заводится без него — адресата подтверждает `recipient_user_id`.
-    `membership_id` — членство адресата: нажатие исполняется от него, а не от
-    членства, активного в диалоге в момент нажатия.
-    """
     lifetime = ttl or timedelta(seconds=get_settings().bot_action_ttl_seconds)
     code = generate_token(CODE_BYTES)
     stored = dict(params or {})
@@ -147,7 +134,6 @@ async def make_action(
 async def claim(
     session: AsyncSession, code: str, user_id: uuid.UUID, now: datetime
 ) -> ClaimedAction | RejectedAction:
-    """Гасит действие. Строка блокируется, поэтому двойное нажатие гасит её один раз."""
     row = (
         await session.execute(select(BotAction).where(BotAction.code == code).with_for_update())
     ).scalar_one_or_none()
@@ -193,7 +179,6 @@ async def claim(
 
 
 async def release(session: AsyncSession, action_id: uuid.UUID) -> None:
-    """Снимает погашение после неожиданного сбоя: кнопку можно нажать ещё раз."""
     await session.execute(
         update(BotAction)
         .where(BotAction.id == action_id, BotAction.consumed_at.is_not(None))
@@ -207,7 +192,6 @@ _HANDLERS: dict[str, ActionHandler] = {}
 
 
 def action(action_type: str) -> Callable[[ActionHandler], ActionHandler]:
-    """Регистрирует обработчик действия кнопки."""
 
     def decorator(fn: ActionHandler) -> ActionHandler:
         _HANDLERS[action_type] = fn

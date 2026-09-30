@@ -15,7 +15,6 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 
 async def test_shared_members_flag_does_not_block_review_creation(world: World) -> None:
-    """Общий пользователь в обеих организациях: отзыв принимается, но помечается."""
     completed = await h.make_completion_reported(world)
     async with db_session.transaction() as session:
         shared_user = await req_factories.create_user(session, "Общий сотрудник")

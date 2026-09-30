@@ -132,7 +132,6 @@ async def test_employee_cannot_create_invitation() -> None:
 
 
 async def test_preview_does_not_consume_invitation() -> None:
-    """A32: GET-предпросмотр не гасит приглашение."""
     actor, org, location_id = await _customer_org()
     created = await identity.create_invitation(
         actor,
@@ -154,9 +153,6 @@ async def test_preview_does_not_consume_invitation() -> None:
 
 
 async def test_accept_creates_membership_with_granted_locations() -> None:
-    """A01: сотрудник получает ровно те точки, что указаны в приглашении.
-
-    Приглашение именное — доступ открывается сразу, без подтверждения (ТЗ 6.5.4)."""
     actor, org, location_id = await _customer_org()
     created = await identity.create_invitation(
         actor,
@@ -239,7 +235,6 @@ async def test_expired_invitation_reports_expiry() -> None:
 
 
 async def test_token_of_other_kind_is_rejected() -> None:
-    """A32: приглашение привязки нельзя использовать как приглашение сотрудника."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s)
         _, token = await factories.create_invitation(s, org, kind="service_binding", role=None)
@@ -262,7 +257,6 @@ async def test_unknown_token_is_rejected_the_same_way() -> None:
 
 
 async def test_provider_membership_needs_admin_approval() -> None:
-    """ТЗ 6.5.4: новый аккаунт исполнителя ждёт подтверждения администратором."""
     async with db_session.transaction() as s:
         org = await factories.create_organization(s, customer=False, provider=True)
         admin = await factories.create_membership(
@@ -297,7 +291,6 @@ async def test_invitation_of_other_organization_is_not_revocable() -> None:
 
 
 async def test_concurrent_accepts_consume_token_once() -> None:
-    """A32: конкурирующие подтверждения расходуют токен ровно один раз."""
     actor, _, _ = await _customer_org()
     created = await identity.create_invitation(
         actor, identity.InvitationCreateData(role="customer_employee"), idem=_idem("inv-10")
@@ -323,11 +316,9 @@ async def test_concurrent_accepts_consume_token_once() -> None:
 
 
 async def test_invitation_without_role_belongs_to_customer_side() -> None:
-    """Старое приглашение без роли принимается как сотрудник заказчика — и видно,
-    и отзывается руководителем заказчика."""
     actor, org, _ = await _customer_org()
     async with db_session.transaction() as s:
-        invitation, _token = await factories.create_invitation(s, org, role=None)  # type: ignore[arg-type]
+        invitation, _token = await factories.create_invitation(s, org, role=None)
         public_id = ids.encode("invitation", invitation.id)
 
     items, _cursor = await identity.list_invitations(scope_of(actor))
@@ -358,7 +349,6 @@ async def test_preview_names_inviter_and_role_locations() -> None:
 
 
 async def test_inactive_invitation_preview_shows_only_state() -> None:
-    """Отозванное или использованное приглашение не раскрывает, кто и куда звал."""
     actor, _, location_id = await _customer_org()
     created = await identity.create_invitation(
         actor,

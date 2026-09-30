@@ -42,7 +42,6 @@ async def test_demo_login_works_for_every_user_key(user_key: str) -> None:
 
 
 async def test_demo_operator_login_only_on_local_stand(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Демо-оператор входит на локальном стенде, на публичном demo-стенде — нет."""
     await seed.run()
     with pytest.raises(Unauthenticated):
         await login_demo("operator")
@@ -62,7 +61,6 @@ async def test_employee_sees_only_one_location() -> None:
 
 
 async def test_manager_sees_both_locations() -> None:
-    """У руководителя `location_ids` пуст — это означает «все точки организации»."""
     await seed.run()
 
     issued = await login_demo("manager")
@@ -95,7 +93,6 @@ async def test_seed_refuses_outside_local_and_demo(monkeypatch: pytest.MonkeyPat
 
 
 async def test_dual_organization_has_membership_per_side() -> None:
-    """ТЗ 3: одна организация — заказчик и исполнитель, у человека роль на каждую сторону."""
     await seed.run()
 
     issued = await login_demo("dual_manager")
@@ -106,7 +103,6 @@ async def test_dual_organization_has_membership_per_side() -> None:
 
 
 async def test_seed_publishes_provider_gallery() -> None:
-    """Галерея демо-исполнителей проходит обработку и модерацию и видна в публичном профиле."""
     report = await seed.run()
     assert report.portfolio_images == 5
 

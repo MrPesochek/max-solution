@@ -16,7 +16,7 @@ async function boschEquipmentId(auth: { token: string; organizationId: string })
   return eq.items.find((e) => e.brand === 'Bosch')!.id;
 }
 
-describe('хаб «Заявки» исполнителя (11a)', () => {
+describe('хаб «Заявки» исполнителя', () => {
   it('пауза закрывает только новые заявки: входящие остаются в списке', async () => {
     const managerAuth = await demoLoginRaw('customer_manager');
     const equipmentId = await boschEquipmentId(managerAuth);
@@ -142,7 +142,7 @@ describe('«Чаты» исполнителя', () => {
   });
 });
 
-describe('отзыв и жалоба исполнителя (15g)', () => {
+describe('отзыв и жалоба исполнителя', () => {
   it('жалоба с причиной уходит оператору, отзыв остаётся виден; до решения её можно отозвать', async () => {
     const user = userEvent.setup();
     renderApp();

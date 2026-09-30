@@ -1,6 +1,3 @@
-# syntax=docker/dockerfile:1
-# Образ web: статика Web App + Caddy (TLS, заголовки безопасности, прокси к api).
-# Версии закреплены; pnpm — версия из packageManager в webapp/package.json (corepack).
 ARG NODE_IMAGE=node:24.21.0-trixie-slim
 ARG CADDY_IMAGE=caddy:2.11.4-alpine
 
@@ -15,18 +12,12 @@ ARG VITE_DEMO_LOGIN="false"
 ARG VITE_MAX_BOT_USERNAME=""
 ENV VITE_MAX_BRIDGE_URL=$VITE_MAX_BRIDGE_URL VITE_DEMO_LOGIN=$VITE_DEMO_LOGIN VITE_USE_MOCKS=false
 ENV VITE_MAX_BOT_USERNAME=$VITE_MAX_BOT_USERNAME
-# Карты исходников не публикуются: сборка с `sourcemap: 'hidden'` (webapp/vite.config.ts)
-# не оставляет ссылок на них в бандле, сами .map удаляются до копирования в итоговый образ.
 RUN pnpm exec tsc -b \
     && pnpm exec vite build \
     && find dist -name '*.map' -delete \
     && if find dist -name '*.map' | grep -q .; then echo "в dist остались .map" >&2; exit 1; fi
 
 FROM ${CADDY_IMAGE}
-# Caddy работает не от root: порты 80/443 открывает sysctl
-# net.ipv4.ip_unprivileged_port_start (compose.prod.yaml), а не capability. File
-# capability у бинарника снимается копированием: с ней при cap_drop: [ALL] ядро
-# отказывает в запуске (EPERM).
 RUN cp /usr/bin/caddy /usr/bin/caddy.nocap && mv /usr/bin/caddy.nocap /usr/bin/caddy \
     && addgroup -S -g 10002 caddy \
     && adduser -S -D -H -u 10002 -G caddy caddy \

@@ -251,9 +251,6 @@ const ComplaintsQueueScreen = lazy(() =>
   })),
 );
 
-const SHOWCASE_ENABLED = import.meta.env.DEV || import.meta.env.VITE_USE_MOCKS === 'true';
-const Showcase = lazy(() => import('./ui/showcase/Showcase').then((m) => ({ default: m.Showcase })));
-
 function LazyFallback() {
   return <Skeleton lines={4} />;
 }
@@ -276,16 +273,6 @@ export function AppRouter() {
         } />
         <Route path="/organizations" element={<OrganizationPickerScreen />} />
         <Route path="/invitations/accept" element={<AcceptInvitationScreen />} />
-        {SHOWCASE_ENABLED && (
-          <Route
-            path="/__ui/:frame?"
-            element={
-              <Suspense fallback={<LazyFallback />}>
-                <Showcase />
-              </Suspense>
-            }
-          />
-        )}
 
         <Route
           element={

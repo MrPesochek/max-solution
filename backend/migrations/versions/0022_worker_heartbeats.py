@@ -1,10 +1,4 @@
-"""worker_heartbeats: heartbeat фоновых циклов для healthcheck и /ops/status
-
-Revision ID: 0022
-Revises: 0021
-Create Date: 2026-09-30
-
-"""
+"""worker_heartbeats: heartbeat фоновых циклов для healthcheck и /ops/status"""
 
 from collections.abc import Sequence
 

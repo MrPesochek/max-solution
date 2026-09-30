@@ -21,6 +21,23 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
+  },
+  {
+    files: [
+      'src/components/layout/FlowNavigation.tsx',
+      'src/session/SessionContext.tsx',
+      'src/ui/layout/unsavedGuard.tsx',
+    ],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
+    files: [
+      'src/api/hooks/messageFeed.ts',
+      'src/screens/requests/PublishSearchScreen.tsx',
+      'src/screens/requests/RequestWizard.tsx',
+    ],
+    rules: { 'react-hooks/exhaustive-deps': 'off' },
   },
 );

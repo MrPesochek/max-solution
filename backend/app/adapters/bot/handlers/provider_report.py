@@ -272,7 +272,6 @@ dialogs.register(
 
 @actions.action(ACTION_WARRANTY)
 async def _warranty_start(ctx: BotContext, claimed: ClaimedAction) -> None:
-    """Решение выбрано кнопкой карточки; пояснение обязательно (D8) — следующим шагом."""
     data = _dialog_data(claimed)
     decision = claimed.params.get("decision")
     if data is None or decision not in _WARRANTY_DECISIONS:
@@ -332,8 +331,6 @@ dialogs.register(
 
 @actions.action(ACTION_CANCEL_DECLINE)
 async def _dispute_start(ctx: BotContext, claimed: ClaimedAction) -> None:
-    """«Не согласен» из карточки или уведомления: причина нужна для ручного
-    согласования (ТЗ S6), шаблонный текст её не заменяет."""
     request_id = claimed.request_id
     assignment_value = claimed.params.get("assignment_id")
     if claimed.object_id is None or request_id is None or not isinstance(assignment_value, str):

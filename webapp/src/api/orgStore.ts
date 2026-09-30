@@ -28,7 +28,6 @@ export function setActiveContext(context: ActiveContext | null): void {
     if (context) window.localStorage.setItem(STORAGE_KEY, context.membershipId);
     else window.localStorage.removeItem(STORAGE_KEY);
   } catch {
-    // приватный режим / запрещённое хранилище — не критично
   }
   for (const listener of listeners) listener(context);
 }
@@ -61,6 +60,5 @@ export function resetOrgStoreForTests(): void {
     window.localStorage.removeItem(STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
-    // игнорируем
   }
 }

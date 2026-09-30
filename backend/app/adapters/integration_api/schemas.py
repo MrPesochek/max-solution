@@ -182,9 +182,6 @@ class BindingResponseBody(BaseModel):
 
 
 class BindingInvitationItemBody(BaseModel):
-    """Позиция оборудования по договору так, как её знает сервис: сопоставляет её
-    с карточкой своего оборудования руководитель заказчика при принятии."""
-
     description: Annotated[str, Field(min_length=1, max_length=500)]
     serial_number: Annotated[str | None, Field(default=None, max_length=200)]
     model: Annotated[str | None, Field(default=None, max_length=200)]

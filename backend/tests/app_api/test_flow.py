@@ -180,8 +180,6 @@ async def test_full_registration_flow(client: AsyncClient) -> None:
 
 
 async def test_patch_null_semantics_for_location_and_equipment(client: AsyncClient) -> None:
-    """ТЗ 10.4: поле, переданное в теле, задаёт значение (в т.ч. `null` — очистка
-    nullable-поля); отсутствующее в теле — не меняется; `null` для NOT NULL — 422."""
     manager_token = await _login(client, 2040)
     created = await _create_customer(client, manager_token, "patch-null", "ООО Патч")
     headers = auth(manager_token, created["organization"]["id"])

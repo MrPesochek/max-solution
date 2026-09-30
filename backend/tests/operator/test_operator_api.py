@@ -178,8 +178,6 @@ async def test_warranty_authorization_via_operator_api(client: AsyncClient) -> N
 
 
 async def test_operator_support_endpoints(client: AsyncClient) -> None:
-    """ТЗ 3, 6.5.3, 11.7: журнал доставок любой организации, принятые работы
-    заблокированных исполнителей, повторная проверка и журнал чтения дела."""
     provider = await make_provider("op-support", status="active", accepting=True, verified=True)
     token = await _session_token("op-support-user", operator=True)
     plain = await _session_token("op-support-plain", operator=False)

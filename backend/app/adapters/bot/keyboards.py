@@ -77,7 +77,6 @@ def rows(*button_rows: list[Button]) -> OutgoingAttachment:
 
 
 def paginate[T](items: list[T], page: int, size: int) -> tuple[list[T], bool, bool]:
-    """Срез страницы и признаки наличия соседних страниц."""
     start = max(page, 0) * size
     chunk = items[start : start + size]
     return chunk, start > 0, start + size < len(items)

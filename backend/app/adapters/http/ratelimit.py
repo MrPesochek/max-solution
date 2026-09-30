@@ -16,7 +16,6 @@ class SlidingWindowLimiter:
         self._hits: dict[str, deque[float]] = {}
 
     def hit(self, key: str, *, limit: int, window: float) -> bool:
-        """Учитывает попытку. False — лимит окна исчерпан."""
         now = self._clock()
         hits = self._hits.get(key)
         if hits is None:

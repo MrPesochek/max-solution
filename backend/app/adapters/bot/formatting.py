@@ -18,7 +18,6 @@ def zone(tz_name: str | None) -> tzinfo:
 
 
 def local_today(tz_name: str | None) -> datetime:
-    """Начало текущих суток по месту — точка отсчёта для выбора дня выезда."""
     return utcnow().astimezone(zone(tz_name)).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
@@ -30,7 +29,6 @@ def local_day_label(offset: int, tz_name: str | None) -> str:
 def local_window_to_utc(
     day_offset: int, start_hour: int, end_hour: int, tz_name: str | None
 ) -> tuple[datetime, datetime]:
-    """Слот «с HH до HH» в день `day_offset` по месту → пара UTC-меток для команды."""
     day = local_today(tz_name) + timedelta(days=day_offset)
     start = day.replace(hour=start_hour)
     end = day.replace(hour=end_hour)
@@ -42,7 +40,6 @@ def tz_label(tz_name: str | None) -> str:
 
 
 def format_local_range(start: datetime, end: datetime, tz_name: str | None) -> str:
-    """«09:00–13:00, 20.09 (Asia/Yekaterinburg)» — всегда по месту, пояс не скрыт."""
     tz = zone(tz_name)
     local_start = start.astimezone(tz)
     local_end = end.astimezone(tz)

@@ -90,8 +90,6 @@ export function useMessageFeed(
     if (!fresh.data || !active) return;
     const page = fresh.data;
     queryClient.setQueryData<FeedData>(feedKey, (prev) => (prev ? mergeFreshPage(prev, page) : prev));
-    // feedKey — новый массив на каждом рендере; сравниваем по времени обновления данных.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fresh.dataUpdatedAt, active]);
 
   return feed;

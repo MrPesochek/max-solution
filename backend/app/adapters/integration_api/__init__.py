@@ -44,7 +44,6 @@ def api_routes() -> list[APIRoute]:
 
 
 def route_scopes(route: APIRoute) -> list[RequireScope]:
-    """Все объявления scope в дереве зависимостей маршрута."""
     found: list[RequireScope] = []
 
     def walk(dependant: Dependant) -> None:
@@ -112,5 +111,5 @@ def build_app() -> FastAPI:
 
     for router in ROUTERS:
         app.include_router(router)
-    app.openapi = lambda: _build_openapi(app)  # type: ignore[method-assign]
+    app.openapi = lambda: _build_openapi(app)
     return app

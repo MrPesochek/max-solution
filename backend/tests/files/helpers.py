@@ -18,7 +18,6 @@ from app.modules.files.owners import AttachmentOwner
 
 
 def jpeg_with_gps(size: tuple[int, int] = (64, 48)) -> bytes:
-    """JPEG с EXIF-ориентацией и GPS — публичная копия обязана их потерять (A36)."""
     img = Image.new("RGB", size, (180, 60, 40))
     exif = img.getexif()
     exif[0x0112] = 3
@@ -37,7 +36,6 @@ def png(size: tuple[int, int] = (40, 30)) -> bytes:
 
 
 def fake_jpeg() -> bytes:
-    """Сигнатура JPEG поверх мусора: тип подделан, декодирование не пройдёт."""
     return b"\xff\xd8\xff" + b"not an image at all" * 8
 
 
@@ -56,7 +54,6 @@ async def stream_of(data: bytes, *, chunk: int = 1024) -> AsyncIterator[bytes]:
 
 
 async def endless_stream(chunk: bytes) -> AsyncIterator[bytes]:
-    """Поток, который никогда не кончается: проверка обрыва по лимиту."""
     yield chunk
     while True:
         yield b"\x00" * len(chunk)

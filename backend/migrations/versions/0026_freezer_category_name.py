@@ -1,8 +1,4 @@
-"""Название категории: морозильная камера.
-
-Revision ID: 0026
-Revises: 0025
-"""
+"""Название категории: морозильная камера."""
 
 from alembic import op
 from sqlalchemy import text

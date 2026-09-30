@@ -74,7 +74,6 @@ async def test_query_count_does_not_grow_with_rows(world: World, db_engine: Asyn
 
 
 async def test_batched_counters_match_card_counters(world: World) -> None:
-    """Регресс: пакетные счётчики совпадают с теми, что карточка считает по одной заявке."""
     first = await _accepted_with_messages(world)
     second = await _accepted_with_messages(world)
     await api.mark_messages_read(world.manager, h.rid(first))
@@ -110,7 +109,6 @@ async def test_batched_counters_match_card_counters(world: World) -> None:
 
 
 async def test_own_messages_are_not_unread(world: World) -> None:
-    """Запрет: собственные сообщения читателя в непрочитанное не попадают."""
     accepted = await _accepted_with_messages(world)
     items, _ = await api.list_requests(world.dispatcher)
     [item] = [i for i in items if i.id == accepted["id"]]
@@ -118,7 +116,6 @@ async def test_own_messages_are_not_unread(world: World) -> None:
 
 
 async def test_provider_queues_are_filtered_on_server(world: World) -> None:
-    """«Входящие» и «В работе» — серверным фильтром, а не на клиенте после limit."""
     pending = await h.make_submitted(world)
     accepted = await h.make_accepted(world)
 

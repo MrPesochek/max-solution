@@ -27,7 +27,6 @@ def is_valid_inn(normalized: str) -> bool:
 
 
 def require_valid_inn(raw: str | None) -> str | None:
-    """Пустое значение допустимо; заполненное обязано пройти контрольные цифры."""
     if raw is None or not raw.strip():
         return None
     normalized = normalize_inn(raw)

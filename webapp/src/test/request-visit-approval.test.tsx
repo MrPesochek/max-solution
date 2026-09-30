@@ -144,7 +144,7 @@ async function scheduledWithQuote(amounts: (number | null)[]) {
   return { ...acc, quotes: last!.repair_quotes };
 }
 
-describe('согласование ремонта (D21)', () => {
+describe('согласование ремонта', () => {
   it('карточка ведёт к смете; отклонение уходит с причиной и комментарием', async () => {
     const { requestId, quotes } = await scheduledWithQuote([670000]);
     const bodies: unknown[] = [];
@@ -207,7 +207,7 @@ describe('согласование ремонта (D21)', () => {
     expect(screen.getByRole('button', { name: 'Согласовать ремонт' })).toBeInTheDocument();
   });
 
-  it('ссылка на заменённую смету: «Эти условия уже заменены», затем актуальная версия (D38)', async () => {
+  it('ссылка на заменённую смету: «Эти условия уже заменены», затем актуальная версия', async () => {
     const { requestId, quotes } = await scheduledWithQuote([500000, 620000]);
     const first = quotes.find((q) => q.version === 1)!;
 

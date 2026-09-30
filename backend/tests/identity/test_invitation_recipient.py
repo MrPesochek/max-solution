@@ -133,7 +133,6 @@ async def test_named_invitation_rejects_other_user_without_consuming() -> None:
 
 
 async def test_foreign_attempt_retry_with_same_key_is_not_replayed_as_success() -> None:
-    """Отказ не сохраняется под ключом идемпотентности: повтор снова проверяет адресата."""
     actor, _ = await _customer_org()
     body = await _invite(actor, "n-3", recipient_max_user_id="max-44")
     stranger = await _bare_user("max-stranger-2")

@@ -121,7 +121,6 @@ def _max_update(key: str, status: str, *, age: timedelta, now: datetime) -> MaxU
 
 
 async def test_max_updates_retention(db_session: AsyncSession) -> None:
-    """Обработанные — удаляются по сроку; у неуспешных обнуляется содержимое."""
     now = utcnow()
     db_session.add_all(
         [

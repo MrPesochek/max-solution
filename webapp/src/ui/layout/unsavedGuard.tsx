@@ -47,7 +47,6 @@ export function UnsavedInputGuard({ children }: { children: ReactNode }) {
 
 const PASS: UnsavedGuardValue = { confirmLeave: async () => true, reset: () => {} };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useUnsavedGuard(): UnsavedGuardValue {
   return useContext(UnsavedGuardContext) ?? PASS;
 }

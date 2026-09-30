@@ -259,8 +259,6 @@ class Message(IdMixin, CreatedAtMixin, Base):
 
 
 class MessageRead(IdMixin, Base):
-    """До какого сообщения переписку заявки прочитал участник (членство)."""
-
     __tablename__ = "message_reads"
 
     request_id: Mapped[uuid.UUID] = mapped_column(

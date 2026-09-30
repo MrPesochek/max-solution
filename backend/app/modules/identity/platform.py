@@ -11,7 +11,6 @@ from app.modules.identity.sessions import SessionInfo, is_demo_user
 
 
 def _require_platform_actor(actor: Actor) -> OperatorActor | SystemActor:
-    """Роль оператора выдаёт другой оператор либо CLI платформы."""
     if isinstance(actor, OperatorActor | SystemActor):
         return actor
     raise Forbidden()
@@ -20,9 +19,6 @@ def _require_platform_actor(actor: Actor) -> OperatorActor | SystemActor:
 async def _check_demo_scope(
     session: AsyncSession, actor: OperatorActor | SystemActor, max_user_id: str
 ) -> None:
-    """Демо-оператор (вошёл demo-входом) управляет ролями только демо-пользователей:
-    выдать роль настоящему аккаунту MAX или отозвать её у настоящего оператора
-    он не может."""
     if not isinstance(actor, OperatorActor) or is_demo_user(max_user_id):
         return
     actor_max_user_id = (
@@ -104,7 +100,6 @@ async def revoke_operator(
 
 
 async def resolve_operator(info: SessionInfo) -> OperatorActor:
-    """Роль перечитывается на каждый запрос: отзыв действует со следующей операции."""
     async with db_session.transaction() as session:
         row = (
             await session.execute(

@@ -24,13 +24,13 @@ from tests.support import PROVIDER_INN, idem, make_customer, make_operator, make
 pytestmark = pytest.mark.usefixtures("clean_db")
 
 
-async def _submitted_provider(key: str, *, inn: str | None = PROVIDER_INN):  # type: ignore[no-untyped-def]
+async def _submitted_provider(key: str, *, inn: str | None = PROVIDER_INN):
     provider = await make_provider(key, inn=inn)
     await providers.submit_for_review(provider.admin, idem=idem(f"{key}-submit"))
     return provider
 
 
-async def _cases(organization_id) -> dict[str, VerificationCase]:  # type: ignore[no-untyped-def]
+async def _cases(organization_id) -> dict[str, VerificationCase]:
     async with db_session.transaction() as s:
         rows = list(
             (
@@ -44,7 +44,7 @@ async def _cases(organization_id) -> dict[str, VerificationCase]:  # type: ignor
     return {row.check_kind: row for row in rows}
 
 
-async def _profile_status(organization_id) -> str:  # type: ignore[no-untyped-def]
+async def _profile_status(organization_id) -> str:
     async with db_session.transaction() as s:
         profile = (
             await s.execute(
@@ -55,7 +55,6 @@ async def _profile_status(organization_id) -> str:  # type: ignore[no-untyped-de
 
 
 async def test_decision_requires_reason_and_source() -> None:
-    """A37: решение оператора невозможно без основания, допуск — без источника."""
     provider = await _submitted_provider("ver-reason")
     operator = await make_operator("op-reason")
     case = (await _cases(provider.organization_id))["requisites"]
@@ -78,7 +77,6 @@ async def test_decision_requires_reason_and_source() -> None:
 
 
 async def test_profile_becomes_active_only_after_both_checks() -> None:
-    """A02/A30: допуск требует и реквизитов, и подтверждённого представителя."""
     provider = await _submitted_provider("ver-both")
     operator = await make_operator("op-both")
     cases = await _cases(provider.organization_id)
@@ -169,7 +167,6 @@ async def test_rejection_keeps_reason_and_closes_requests() -> None:
 
 
 async def test_second_provider_with_same_inn_is_domain_conflict() -> None:
-    """A30: один подтверждённый профиль на ИНН; чужие данные не раскрываются."""
     first = await _submitted_provider("ver-inn-1")
     second = await _submitted_provider("ver-inn-2")
     operator = await make_operator("op-inn")
@@ -209,7 +206,6 @@ async def test_only_operator_decides() -> None:
 
 
 async def test_suspend_closes_new_requests_and_notifies_active_customers() -> None:
-    """D28: заказчик с активной работой узнаёт о потере статуса исполнителем."""
     provider = await make_provider("ver-susp", status="active", accepting=True, verified=True)
     customer = await make_customer("ver-susp-c")
     operator = await make_operator("op-susp")
@@ -262,8 +258,6 @@ async def test_suspend_closes_new_requests_and_notifies_active_customers() -> No
 
 
 async def test_expired_verification_stops_counting_and_worker_reopens_it() -> None:
-    """verification_cases.expires_at: признак снимается сразу по истечении срока,
-    цикл worker возвращает проверку в очередь, а профиль — в needs_information."""
     provider = await _submitted_provider("ver-exp")
     operator = await make_operator("op-exp")
     cases = await _cases(provider.organization_id)
@@ -339,7 +333,7 @@ async def test_decision_rejects_expiry_in_the_past() -> None:
         )
 
 
-async def _approved_case(organization_id, kind: str, *, checked_at, expires_at):  # type: ignore[no-untyped-def]
+async def _approved_case(organization_id, kind: str, *, checked_at, expires_at):
     async with db_session.transaction() as s:
         case = VerificationCase(
             organization_id=organization_id,
@@ -362,8 +356,6 @@ async def _approved_case(organization_id, kind: str, *, checked_at, expires_at):
 
 
 async def test_representative_status_survives_while_other_side_check_is_valid() -> None:
-    """Представитель заказчика и исполнителя ведут один статус: истечение одного
-    вида не снимает признак, пока действует дело другого вида."""
     provider = await make_provider("ver-both", verified=True)
     now = utcnow()
     await _approved_case(
@@ -420,7 +412,7 @@ async def test_failing_case_does_not_block_expiry_of_others(
     original = verification._expire_case
     attempts: list[object] = []
 
-    async def flaky(ctx, case):  # type: ignore[no-untyped-def]
+    async def flaky(ctx, case):
         if case.id == bad:
             attempts.append(case.id)
             raise RuntimeError("сбой записи")

@@ -21,7 +21,7 @@ async def _invitation(
     db_session: AsyncSession, *, role: str = "customer_employee", **kwargs: object
 ) -> tuple[Invitation, str]:
     org = await factories.create_organization(db_session, name="ООО Ромашка")
-    invitation, token = await factories.create_invitation(db_session, org, role=role, **kwargs)  # type: ignore[arg-type]
+    invitation, token = await factories.create_invitation(db_session, org, role=role, **kwargs)
     await db_session.commit()
     return invitation, token
 
@@ -43,7 +43,6 @@ async def test_preview_does_not_consume_invitation(
 async def test_accept_button_consumes_invitation(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Именное приглашение адресату: доступ открывается сразу (ТЗ 6.5.4, 6.7)."""
     invitation, token = await _invitation(db_session, recipient_max_user_id=str(USER_ID))
     await harness.deliver(message_created(f"/start inv_{token}"))
     payload = harness.payload_of(texts.INVITATION_ACCEPT)
@@ -63,7 +62,6 @@ async def test_accept_button_consumes_invitation(
 async def test_accept_without_recipient_waits_for_manager(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Приглашение без адресата: членство ждёт подтверждения руководителем."""
     invitation, token = await _invitation(db_session)
     await harness.deliver(message_created(f"/start inv_{token}"))
     payload = harness.payload_of(texts.INVITATION_ACCEPT)
@@ -94,7 +92,6 @@ async def test_named_invitation_of_other_user_is_not_consumed(
 async def test_token_is_not_kept_in_conversation(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Токен нигде не сохраняется: кнопку подтверждает строка `bot_actions`."""
     invitation, token = await _invitation(db_session)
     await harness.deliver(message_created(f"/start inv_{token}"))
 
@@ -141,7 +138,6 @@ async def test_unknown_token_is_explained(harness: BotHarness) -> None:
 async def test_foreign_accept_button_is_rejected(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Пересланная кнопка не работает: адресат проверяется по отправителю события."""
     invitation, token = await _invitation(db_session)
     await harness.deliver(message_created(f"/start inv_{token}"))
     payload = harness.payload_of(texts.INVITATION_ACCEPT)

@@ -29,7 +29,7 @@ describe('сценарий: приём приглашения', () => {
     expect(await navigator.clipboard.readText()).toContain('startapp=inv_');
   });
 
-  it('без адресата: принявший ждёт подтверждения руководителя (ТЗ 6.5.4, 6.7)', async () => {
+  it('без адресата: принявший ждёт подтверждения руководителя', async () => {
     const invitationLink = await issueInvitation({});
 
     const user = userEvent.setup();

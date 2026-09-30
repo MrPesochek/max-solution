@@ -35,7 +35,6 @@ async def _directories() -> tuple[str, str, str | None]:
 
 
 async def test_self_registration_gives_no_verified_marks() -> None:
-    """A02: саморегистрация не выдаёт ни одного признака проверки."""
     provider = await make_provider("prof-a02")
     view = await providers.get_own_profile(scope_of(provider.admin))
 
@@ -190,8 +189,6 @@ async def test_update_rejects_unknown_category_in_brand_restriction() -> None:
 
 
 async def test_update_null_semantics() -> None:
-    """ТЗ 10.4: непереданное поле не трогается, явный `null` очищает nullable-поле,
-    для `provider_kind`/`can_provide_documents` (NOT NULL) — `ValidationFailed`."""
     provider = await make_provider("prof-null")
     await providers.update_profile(
         provider.admin,
@@ -282,7 +279,6 @@ async def test_customer_scope_has_no_provider_profile() -> None:
 
 
 async def test_public_profile_shows_separate_marks_with_source_and_date() -> None:
-    """ТЗ 6.4: каждый признак — со своей расшифровкой, источником и датой."""
     provider = await make_provider("prof-pub", status="active", accepting=True, verified=True)
     async with db_session.transaction() as s:
         org = await s.get(Organization, provider.organization_id)
@@ -319,7 +315,6 @@ async def test_public_profile_shows_separate_marks_with_source_and_date() -> Non
 
 
 async def test_profile_reports_portfolio_limit_of_ten() -> None:
-    """ТЗ 14.1 / design-specification: галерея — до 10 изображений, лимит задаёт сервер."""
     provider = await make_provider("prof-gallery")
     view = await providers.get_own_profile(scope_of(provider.admin))
     assert view.portfolio_max_images == 10

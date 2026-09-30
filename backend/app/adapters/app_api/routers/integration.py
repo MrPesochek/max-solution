@@ -51,7 +51,6 @@ async def rotate_api_key(actor: OrgActor, client_id: str, idem_key: IdemKey) -> 
 
 @router.get("/summary", response_model=IntegrationSummaryView)
 async def integration_summary(actor: OrgActor) -> IntegrationSummaryView:
-    """Сводка экрана «Интеграция»: ключи, подписка и доставки за сутки, без секретов."""
     return await integration.integration_summary(actor)
 
 
@@ -66,7 +65,6 @@ async def list_subscriptions(actor: OrgActor) -> list[WebhookSubscriptionView]:
 async def create_subscription(
     actor: OrgActor, body: WebhookSubscriptionCreateBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Секрет подписи показывается один раз; адрес проходит ту же проверку, что в API CRM."""
     data = integration.SubscriptionCreateData(
         url=body.url, events=body.events, client_public_id=body.client_id
     )
@@ -83,7 +81,6 @@ async def create_subscription(
 async def disable_subscription(
     actor: OrgActor, subscription_id: str, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Отключает доставку; ключи интеграции при этом не отзываются."""
     idem = make_idempotency(
         idem_key, f"POST /integration/webhook-subscriptions/{subscription_id}/disable", {}
     )
@@ -111,7 +108,6 @@ async def enable_subscription(
 async def rotate_subscription_secret(
     actor: OrgActor, subscription_id: str, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Новый секрет показывается один раз; повтор с тем же ключом его не выдаёт."""
     idem = make_idempotency(
         idem_key, f"POST /integration/webhook-subscriptions/{subscription_id}/rotate-secret", {}
     )

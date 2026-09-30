@@ -136,7 +136,6 @@ async def test_sent_notification_is_not_taken_twice(db_session: AsyncSession) ->
 
 
 async def test_stale_lease_is_released(db_session: AsyncSession) -> None:
-    """Зависший экземпляр (взял в аренду, не записал результат) не держит задание вечно."""
     user = await _recipient(db_session)
     await factories.create_notification(db_session, user)
     await db_session.commit()

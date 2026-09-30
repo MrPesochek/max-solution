@@ -4,7 +4,6 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 
 def rub_to_minor(value: str) -> int | None:
-    """Пустая строка/пробелы — цена неизвестна (`None`), не ноль."""
     text = value.strip().replace(",", ".")
     if not text:
         return None

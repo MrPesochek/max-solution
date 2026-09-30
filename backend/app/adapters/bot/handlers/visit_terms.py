@@ -28,7 +28,6 @@ def visit_window(day_offset: int, slot: str, tz_name: str | None) -> tuple[datet
 
 
 def open_slots(day_offset: int, tz_name: str | None) -> list[str]:
-    """Слоты, которые ещё не закончились: прошедшее окно ядро не примет (ТЗ 8.1)."""
     now = utcnow()
     return [key for key in SLOTS if visit_window(day_offset, key, tz_name)[1] > now]
 
@@ -38,7 +37,6 @@ def open_day_offsets(tz_name: str | None) -> list[int]:
 
 
 def parse_rubles(text: str) -> int | None:
-    """Сумма в рублях → минимальные единицы (копейки) без float (ТЗ 5.2)."""
     cleaned = text.strip().replace(" ", "").replace(" ", "").replace(",", ".")
     if not cleaned:
         return None
@@ -94,7 +92,6 @@ def slot_step(next_step: str) -> dialogs.Step:
 def price_mode_step(
     *, prompt_text: str, after_price: str, allow_later: bool, first: bool = False
 ) -> dialogs.Step:
-    """«Назову сумму» / «Уточню после осмотра» / «Бесплатно (с основанием)»."""
 
     async def prompt(ctx: BotContext) -> None:
         rows = [[keyboards.dialog_button(texts.OFFER_PRICE_SUM, STEP_PRICE_MODE, "sum")]]
@@ -158,7 +155,6 @@ def price_free_step(next_step: str) -> dialogs.Step:
 
 
 def price_payload(data: dict[str, Any]) -> dict[str, Any]:
-    """Поля цены для `VisitProposalInput`/`RepairQuoteInput`/`OfferInput`."""
     amount = data.get("amount_minor")
     return {
         "amount_minor": amount,

@@ -29,8 +29,6 @@ async def list_members(
 
 
 class AccessRequestBody(BaseModel):
-    """Только точка и записка: заявку и другие объекты запрос не принимает."""
-
     model_config = ConfigDict(extra="forbid")
 
     location_id: str | None = None
@@ -45,9 +43,6 @@ class AccessRequestSentView(BaseModel):
 async def request_access(
     actor: OrgActor, body: AccessRequestBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Просьба к руководителям своей стороны открыть доступ (экран «Нет доступа»).
-
-    Ответ одинаков для любой точки и не подтверждает существование объекта."""
     if isinstance(actor, UserActor):
         limit_access_requests(str(actor.membership_id))
     idem = make_idempotency(

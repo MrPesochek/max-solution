@@ -24,8 +24,6 @@ if TYPE_CHECKING:
 
 
 class MaxApiError(Exception):
-    """Ошибка ответа MAX Bot API. Никогда не включает токен бота."""
-
     def __init__(self, status: int, code: str, message: str) -> None:
         self.status = status
         self.code = code
@@ -34,8 +32,6 @@ class MaxApiError(Exception):
 
 
 class MaxRetryableError(MaxApiError):
-    """429/5xx и сетевые сбои — вызывающий код может повторить запрос."""
-
     def __init__(
         self, status: int, code: str, message: str, retry_after: float | None = None
     ) -> None:
@@ -52,9 +48,7 @@ class MaxTransport(Protocol):
         text: str | None = None,
         format: TextFormat | None = None,
         attachments: list[OutgoingAttachment] | None = None,
-    ) -> str:
-        """Отправляет сообщение и возвращает mid отправленного сообщения."""
-        ...
+    ) -> str: ...
 
     async def edit_message(
         self,
@@ -77,7 +71,6 @@ class MaxTransport(Protocol):
 
 
 def _translate(exc: BaseException) -> MaxApiError:
-    """Ошибка библиотеки или сети → ошибка порта."""
     if isinstance(exc, InvalidToken):
         return MaxApiError(401, "invalid_token", "Токен бота отклонён MAX")
     if isinstance(exc, LibMaxApiError):
@@ -95,12 +88,6 @@ def _translate(exc: BaseException) -> MaxApiError:
 
 
 class MaxapiTransport:
-    """Реализация порта поверх `maxapi.Bot` с ограничителем частоты.
-
-    Скачивание вложений идёт отдельным HTTP-клиентом без заголовка авторизации:
-    ссылка вложения ведёт на файловый хост MAX, и токен бота туда не отправляется.
-    """
-
     def __init__(
         self,
         bot: Bot,
@@ -250,12 +237,6 @@ class DownloadCall:
 
 @dataclass
 class FakeMaxTransport:
-    """Реализация MaxTransport для юнит-тестов. Записывает вызовы, не ходит в сеть.
-
-    Сбои задаются очередями исключений: следующий вызов метода вместо результата
-    поднимает исключение из соответствующей очереди (если она не пуста).
-    """
-
     sent_messages: list[SentMessageCall] = field(default_factory=list)
     edited_messages: list[EditMessageCall] = field(default_factory=list)
     answered_callbacks: list[AnswerCallbackCall] = field(default_factory=list)

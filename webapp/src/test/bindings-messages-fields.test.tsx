@@ -31,7 +31,7 @@ async function openContractRequestForm(user: ReturnType<typeof userEvent.setup>)
   await user.click(screen.getAllByRole('checkbox')[0]!);
 }
 
-describe('запрос по договору (D25.2): остаток попыток и ожидание после лимита', () => {
+describe('запрос по договору: остаток попыток и ожидание после лимита', () => {
   it('после запроса форма показывает «Попыток осталось: 4 из 5 за 15 минут»', async () => {
     const user = userEvent.setup();
     renderApp();
@@ -76,7 +76,7 @@ describe('запрос по договору (D25.2): остаток попыт�
   });
 });
 
-describe('запрос по договору (15h): основание, ожидание и отмена', () => {
+describe('запрос по договору: основание, ожидание и отмена', () => {
   it('основание уходит в запрос, «Отменить запрос» отзывает созданную ожидающую привязку', async () => {
     const user = userEvent.setup();
     const sent: { path: string; body: unknown }[] = [];
@@ -122,7 +122,7 @@ describe('запрос по договору (15h): основание, ожид
     expect(screen.getByLabelText('Номер договора')).toHaveValue('СО-2291');
   });
 
-  it('сервис ищется по названию или ИНН целиком (K-10): короткий запрос не уходит на сервер', async () => {
+  it('сервис ищется по названию или ИНН целиком: короткий запрос не уходит на сервер', async () => {
     const user = userEvent.setup();
     const queries: string[] = [];
     server.events.on('request:start', ({ request }) => {
@@ -154,7 +154,7 @@ describe('запрос по договору (15h): основание, ожид
   });
 });
 
-describe('гарантирующая сторона в приглашении (12b, K-13)', () => {
+describe('гарантирующая сторона в приглашении', () => {
   it('«Гарантию даёт» — со слов сервиса; производитель без проверки полномочий не «авторизован»', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const preview = await apiCall<BindingInvitationPreview>('/service-binding-invitations/preview', manager, {
@@ -186,7 +186,7 @@ describe('гарантирующая сторона в приглашении (1
   });
 });
 
-describe('приглашение от сервиса (D25.4)', () => {
+describe('приглашение от сервиса', () => {
   it('подпись «Проверенный сервис» — по requisites_verified и representative_verified', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const preview = await apiCall<BindingInvitationPreview>(
@@ -287,7 +287,7 @@ describe('приглашение от сервиса (D25.4)', () => {
     expect(bodies).toEqual([{ token: issued.token, reason: 'Договор расторгнут' }]);
   });
 
-  it('исполнитель видит отказ: название заказчика, «Отклонено» и причину (D35)', async () => {
+  it('исполнитель видит отказ: название заказчика, «Отклонено» и причину', async () => {
     const provider = await demoLoginRaw('provider_active_admin');
     const issued = await apiCall<BindingInvitationIssued>(
       '/service-binding-invitations',
@@ -426,7 +426,7 @@ describe('баннер сотрудника: кто опубликует чер�
   });
 });
 
-describe('черновик (D16 draft): карточка перед мастером', () => {
+describe('черновик: карточка перед мастером', () => {
   it('показывает, что заполнено, «Продолжить» открывает мастер на нужном шаге', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const draft = await apiCall<RequestCustomer>('/requests', manager, {

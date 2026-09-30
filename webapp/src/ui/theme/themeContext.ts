@@ -40,6 +40,5 @@ export function storePreference(value: ThemePreference): void {
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, value);
   } catch {
-    // выбор останется до перезапуска
   }
 }

@@ -7,7 +7,6 @@ from app.db.enums import MembershipRole
 
 
 def require_customer_side(scope: AccessScope) -> None:
-    """Контексты заказчика и исполнителя разделены даже внутри одной организации (ТЗ 3)."""
     if scope.side != "customer":
         raise Forbidden()
 
@@ -18,6 +17,5 @@ def require_customer_manager(actor: Actor) -> UserActor:
 
 
 def check_location_visible(scope: AccessScope, location_id: uuid.UUID) -> None:
-    """Сотрудник видит только выданные ему точки (A01); чужая точка — 404."""
     if not scope.allows_location(location_id):
         raise NotFound()

@@ -105,7 +105,6 @@ async def _proposal_statuses(request_id: Any) -> dict[int, str]:
 async def test_completion_supersedes_pending_children_and_sweeper_survives(
     world: World, clock: Clock
 ) -> None:
-    """Репро аудита: смета и повторный выезд в in_progress → завершение → срок."""
     in_progress = await h.make_in_progress(world)
     quoted = await _quote(world, in_progress, clock, hours=1)
     proposed = await _propose(world, quoted, clock, hours=1)

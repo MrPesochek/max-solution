@@ -26,7 +26,6 @@ async def open_menu(harness: BotHarness, key: str, uid: int) -> None:
 
 
 async def collect_request(harness: BotHarness, uid: int, *, menu_key: str) -> None:
-    """Точка → оборудование → описание → без кода → срочность → без фото."""
     await say(harness, "/start", uid)
     await open_menu(harness, menu_key, uid)
     await press(harness, harness.payload_of("Кафе на Ленина"), uid)

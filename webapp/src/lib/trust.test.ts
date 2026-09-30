@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatRating } from './trust';
 
-describe('formatRating — рейтинг исполнителя (ТЗ 8.3.3)', () => {
+describe('formatRating — рейтинг исполнителя', () => {
   it('показывает число с одним знаком после запятой, когда отзывов достаточно', () => {
     expect(formatRating(4.6, null)).toBe('4.6');
     expect(formatRating(5, null)).toBe('5.0');

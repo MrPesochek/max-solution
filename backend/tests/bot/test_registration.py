@@ -101,7 +101,6 @@ async def test_cancel_closes_dialog(harness: BotHarness, db_session: AsyncSessio
 
 
 async def test_dialog_survives_restart(harness: BotHarness, db_session: AsyncSession) -> None:
-    """Состояние живёт в БД: новые объекты бота продолжают тот же диалог."""
     await _open_registration(harness)
     await harness.deliver(message_created("ООО Ромашка"))
 
@@ -159,7 +158,6 @@ async def _fill_profile(harness: BotHarness) -> None:
 async def test_provider_registration_reaches_review_in_bot(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """ТЗ 5.4: самостоятельный мастер доходит до проверки без Web App."""
     await _register_provider(harness)
     assert harness.last_text == texts.SETUP_ASK_KIND
     await _fill_profile(harness)

@@ -53,9 +53,6 @@ from app.modules.reputation.views import to_complaint_view, to_my_review_view, t
 
 
 async def _ensure_provider_may_change(session: AsyncSession, actor: Actor) -> None:
-    """ТЗ 6.5.3: заблокированный исполнитель не меняет ничего и в репутации —
-    ни ответа, ни оспаривания, ни жалоб. Обжалование самой блокировки
-    (`appeal_provider_profile`) остаётся: это путь выхода из неё."""
     provider_side = isinstance(actor, UserActor) and actor.side == "provider"
     if not (provider_side or isinstance(actor, IntegrationActor)):
         return
@@ -67,8 +64,6 @@ async def _ensure_provider_may_change(session: AsyncSession, actor: Actor) -> No
 
 
 async def _reload_if_expired(session: AsyncSession, review: Review) -> None:
-    """После UPDATE серверные `updated_at` помечены устаревшими: читать их лениво
-    внутри async-сессии нельзя (см. `providers/queries.py: build_profile_view`)."""
     if inspect(review).expired_attributes:
         await session.refresh(review)
 
@@ -115,8 +110,6 @@ async def _check_self_review(
     provider_org_id: uuid.UUID,
     user_id: uuid.UUID,
 ) -> None:
-    """Запрет самооценки (ТЗ 8.3.1): автор не может быть участником организации-
-    исполнителя, совпадение нормализованного ИНН обеих сторон — тоже отказ."""
     if customer_org_id == provider_org_id:
         raise Forbidden(
             "Нельзя оставить отзыв о собственной организации", code=SELF_REVIEW_FORBIDDEN
@@ -172,8 +165,6 @@ async def _publish_review_photos(
     *,
     confirm_sensitive: bool = False,
 ) -> None:
-    """Публичные копии фото отзыва делает модуль files (без EXIF, review_public);
-    каждый вызов заменяет прежний набор выбранных фото (ТЗ 8.3.2)."""
     if not photo_ids and review.current_version == 1:
         return
     await attach_review_photos(ctx, review.id, photo_ids, confirm_sensitive=confirm_sensitive)
@@ -187,12 +178,6 @@ async def submit_review(
     idem: Idempotency | None,
     assignment_id: uuid.UUID | None = None,
 ) -> CommandResult:
-    """Создание либо редактирование отзыва (I18): один отзыв организации на одно
-    назначение; повтор той же организации правит существующую строку.
-
-    Назначение выбирает сервер — последнее реально работавшее; явно указанное
-    `assignment_id` допускается, только если оно само даёт право на отзыв.
-    """
     manager = policy.require_customer_manager(actor)
     _validate_submit_data(data)
     photo_ids = data.photo_attachment_ids
@@ -302,8 +287,6 @@ async def _edit_review(
     data: ReviewSubmitData,
     photo_ids: list[uuid.UUID],
 ) -> CommandResult:
-    """Правка не создаёт новую оценку: новая версия снова проходит модерацию, а
-    прежняя опубликованная оценка до решения выходит из рейтинга (ТЗ 8.3.2)."""
     review = await lock_by_id(ctx.session, Review, existing.id)
     review.rating = data.rating
     review.text_body = data.text
@@ -339,13 +322,6 @@ async def _edit_review(
 async def reply_to_review(
     actor: Actor, review_id: uuid.UUID, body: str, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Один публичный ответ исполнителя (ТЗ 8.3.2); оценку и видимость не меняет.
-
-    `review_replies.author_membership_id` в схеме обязателен, а CRM отвечает
-    ключом интеграции без привязки к сотруднику: для интеграционного актора
-    ответ подписывается от имени действующего администратора/диспетчера
-    компании — ближайшее допустимое приближение без изменения схемы.
-    """
     if isinstance(actor, UserActor):
         admin = policy.require_provider_side(actor)
         provider_org_id = admin.organization_id
@@ -404,7 +380,6 @@ async def appeal_review(
     idem: Idempotency | None,
     reason_code: str | None = None,
 ) -> CommandResult:
-    """Обжалование решения модератора: автор либо исполнитель заводит новое дело."""
     if not isinstance(actor, UserActor):
         raise Forbidden()
     filer_membership_id = actor.membership_id
@@ -474,10 +449,6 @@ async def appeal_review(
 async def withdraw_complaint(
     actor: Actor, case_id: uuid.UUID, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Заявитель отзывает жалобу или оспаривание, пока по ним нет решения.
-
-    Отзыв жалобы ничего не меняет в объекте: отзыв исполнителя остаётся
-    опубликованным и во время рассмотрения (ТЗ 8.3.2, A37)."""
     if not isinstance(actor, UserActor):
         raise Forbidden()
     side_roles = CUSTOMER_ROLES if actor.side == "customer" else PROVIDER_ROLES
@@ -530,11 +501,6 @@ _APPEALABLE_PROFILE_STATUSES = (
 async def appeal_provider_profile(
     actor: Actor, text: str, *, idem: Idempotency | None
 ) -> CommandResult:
-    """ТЗ 6.5.1: путь обжалования отказа или приостановки профиля — дело оператору.
-
-    Само по себе статус профиля не меняет: при обоснованном обжаловании оператор
-    отдельно восстанавливает профиль.
-    """
     admin = require_roles(actor, MembershipRole.PROVIDER_ADMIN)
     checked_text = policy.require_text(text, "text", "Опишите основания обжалования")
 
@@ -589,12 +555,6 @@ _COMPLAINT_SUBJECTS = frozenset({"provider_profile", "review", "attachment", "no
 async def create_complaint(
     actor: Actor, data: ComplaintCreateData, *, idem: Idempotency | None
 ) -> CommandResult:
-    """Жалобы на профиль, отзыв, фотографию и неявку (ТЗ 8.3.4).
-
-    Пожаловаться можно только на то, что заявитель сам видит: публичный профиль,
-    опубликованный или собственный отзыв, доступное ему фото, неявку по своей
-    заявке. Число жалоб пользователя ограничено окном `complaint_window_seconds`.
-    """
     if not isinstance(actor, UserActor):
         raise Forbidden()
     if data.subject_type not in _COMPLAINT_SUBJECTS:
@@ -682,7 +642,6 @@ async def _review_visible(session: AsyncSession, review: Review, actor: UserActo
 
 
 async def _check_complaint_rate(ctx: CommandContext, actor: UserActor) -> None:
-    """Счёт и запись жалобы — в одной транзакции под блокировкой пользователя."""
     await advisory_xact_lock(ctx.session, f"{COMPLAINT_AUDIT_ACTION}:{actor.user_id}")
     settings = get_settings()
     cutoff = ctx.now - timedelta(seconds=settings.complaint_window_seconds)
@@ -700,7 +659,6 @@ async def _check_complaint_rate(ctx: CommandContext, actor: UserActor) -> None:
 
 
 async def _check_appeal_rate(ctx: CommandContext, actor: UserActor) -> None:
-    """Оспаривания отзывов считаются в том же окне и с тем же лимитом, что жалобы."""
     settings = get_settings()
     cutoff = ctx.now - timedelta(seconds=settings.complaint_window_seconds)
     filed = await ctx.session.scalar(

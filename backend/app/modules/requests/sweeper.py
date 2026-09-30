@@ -57,7 +57,6 @@ Apply = Callable[[uuid.UUID], Awaitable[int | None]]
 
 
 async def expire_due(now: datetime | None = None, *, batch: int = 50) -> dict[str, int]:
-    """Применяет накопившиеся переходы по срокам. Возвращает счётчики по видам."""
     moment = now or utcnow()
     stages: list[tuple[str, Due, Apply]] = [
         ("visit_proposals", _due_proposals, _expire_proposals),
@@ -79,11 +78,6 @@ async def expire_due(now: datetime | None = None, *, batch: int = 50) -> dict[st
 
 
 async def expire_request(request_id: uuid.UUID) -> None:
-    """Истечение сроков одной заявки отдельной транзакцией — до команды пользователя.
-
-    Отказ команды из-за истёкшего срока откатывает её транзакцию; здесь переход
-    фиксируется заранее, и следующий экран уже показывает актуальное состояние.
-    """
 
     async def handler(ctx: CommandContext) -> CommandResult:
         request = await _lock_skipping(ctx.session, request_id)
@@ -235,7 +229,6 @@ async def _due_reminders(
 
 
 def _cancellation_deadline() -> ColumnElement[datetime]:
-    """Срок ответа исполнителя на запрос отмены — как в `cancellation.response_deadline`."""
     timeout = timedelta(seconds=get_settings().cancel_dispute_timeout_seconds)
     return func.coalesce(
         CancellationRequest.dispute_deadline_at, CancellationRequest.created_at + timeout
@@ -255,7 +248,6 @@ async def _due_cancellation_reminders(
 
 
 def _reported_at() -> Select[tuple[uuid.UUID, datetime]]:
-    """Последнее сообщение о завершении: после `RejectCompletion` срок идёт заново."""
     return (
         select(
             RequestEvent.request_id.label("request_id"),
@@ -339,7 +331,6 @@ def _system() -> SystemActor:
 async def _per_request(
     request_id: uuid.UUID, body: Callable[[CommandContext, RepairRequest], Awaitable[int]]
 ) -> int | None:
-    """Одна заявка — одна транзакция; `None` — строка занята, обработаем позже."""
 
     async def handler(ctx: CommandContext) -> CommandResult:
         request = await _lock_skipping(ctx.session, request_id)
@@ -353,8 +344,6 @@ async def _per_request(
 
 
 async def _expire_children(ctx: CommandContext, request: RepairRequest, *, kind: str) -> int:
-    """T31/T67. В статусе, где переход таблицей не предусмотрен (заявка уже вне
-    работ), объект просто помечается истёкшим — статус заявки не трогается."""
     expired = 0
     if kind == "visit":
         live = request.status in allowed_from(C.EXPIRE_VISIT_PROPOSAL, None)
@@ -418,11 +407,6 @@ async def _notify_expiry(ctx: CommandContext, request: RepairRequest, kind: str)
 
 
 async def _expire_request_offers(ctx: CommandContext, request: RepairRequest) -> int:
-    """T18: просроченное предложение выбрать нельзя; статус заявки не меняется.
-
-    Отклики конкурентов истекают и во время резерва назначения; вне подбора
-    оставшиеся активные отклики просто помечаются истёкшими.
-    """
     live = request.status in allowed_from(C.EXPIRE_OFFER, None)
     expired = 0
     for offer in await queries.active_offers(ctx.session, request.id):
@@ -442,7 +426,6 @@ async def _expire_offers(request_id: uuid.UUID) -> int | None:
 
 
 async def _release_due_reservation(ctx: CommandContext, request: RepairRequest) -> int:
-    """T25/T26: резерв назначения освобождается по сроку (A10)."""
     if request.status != RequestStatus.AWAITING_ASSIGNMENT_CONFIRMATION:
         return 0
     assignment = await queries.active_assignment(ctx.session, request.id)
@@ -462,7 +445,6 @@ async def _release_reservation(request_id: uuid.UUID) -> int | None:
 
 
 async def _close_search_window(request_id: uuid.UUID) -> int | None:
-    """T20/D21: окно поиска истекло и действующих предложений нет."""
 
     async def body(ctx: CommandContext, request: RepairRequest) -> int:
         if request.status != RequestStatus.SEARCHING:
@@ -513,9 +495,6 @@ async def _remind_own_service(request_id: uuid.UUID) -> int | None:
 
 
 async def _remind_cancellation(request_id: uuid.UUID) -> int | None:
-    """ТЗ S6: исполнитель не ответил на запрос отмены в срок. Решение за сторонами —
-    заявка не меняется, сторонам уходит по одному напоминанию: исполнителю — ответить,
-    руководителю — что он может прекратить работы сам (`force_cancellation`)."""
 
     async def body(ctx: CommandContext, request: RepairRequest) -> int:
         if request.status != RequestStatus.CANCELLATION_PENDING:
@@ -570,7 +549,6 @@ async def _last_report(ctx: CommandContext, request: RepairRequest) -> RequestEv
 
 
 async def _remind_completion(request_id: uuid.UUID) -> int | None:
-    """T49/D7: напоминания руководителю через 24 ч и 72 ч, каждое — не более раза."""
 
     async def body(ctx: CommandContext, request: RepairRequest) -> int:
         if request.status != RequestStatus.COMPLETION_REPORTED:
@@ -608,7 +586,6 @@ async def _remind_completion(request_id: uuid.UUID) -> int | None:
 
 
 async def _auto_close(request_id: uuid.UUID) -> int | None:
-    """T48/D7: при `AUTO_CLOSE_DAYS > 0` неподтверждённый результат закрывается системой."""
 
     async def body(ctx: CommandContext, request: RepairRequest) -> int:
         days = get_settings().auto_close_days

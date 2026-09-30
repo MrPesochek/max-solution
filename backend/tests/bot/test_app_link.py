@@ -123,7 +123,7 @@ async def _notification_button(db: AsyncSession, user: User) -> tuple[str, str]:
     )
     await db.commit()
     [attachment] = message.attachments or []
-    [[button]] = attachment.payload.buttons  # type: ignore[union-attr]
+    [[button]] = attachment.payload.buttons
     return str(button.payload), request_public_id
 
 

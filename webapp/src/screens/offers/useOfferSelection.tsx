@@ -96,7 +96,6 @@ export function useOfferSelection(request: RequestCustomer | null, offersQuery: 
     >
       {offer && (
         <>
-          {/* Условия — в самом акте согласия (ТЗ 5.4): когда, что входит, цена и НДС. */}
           <KeyValueRows
             rows={[
               { label: strings.offers.providerLabel, value: offer.provider?.display_name ?? strings.offers.providerFallback },

@@ -90,8 +90,6 @@ async def test_received_but_unprocessed_event_is_resumed(harness) -> None:
 
 
 async def test_onec_down_during_event_is_retried(harness, monkeypatch) -> None:
-    """1С недоступна при обработке вебхука: событие остаётся `failed`/повторяется
-    фоном, документ создаётся при следующей попытке без дубля."""
     harness.subscribe()
     harness.platform.add_request("req_down")
     original = harness.state.onec.create

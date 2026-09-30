@@ -18,7 +18,6 @@ FORMER_PHONE = "Мастер Иван +79990000000"
 
 
 async def _former_assignment(world: World) -> dict[str, Any]:
-    """Переписка и отмена первого назначения, затем повторный поиск."""
     accepted = await h.make_marketplace_accepted(world)
     request_id = h.rid(accepted)
     await api.post_message(world.manager, request_id, body=INTERCOM)
@@ -84,7 +83,6 @@ async def test_new_provider_channel_excludes_former_messages(world: World) -> No
 
 
 async def test_reassigned_same_provider_sees_only_current_assignment(world: World) -> None:
-    """Повторное назначение той же организации — новое назначение со своим каналом."""
     former = await _former_assignment(world)
     selected = await h.select_next_provider(world, world, h.rid(former), amount_minor=1500)
     assert h.assignment_id(selected) != h.assignment_id(former)
@@ -105,8 +103,6 @@ async def test_messages_store_assignment_of_shared_channel(world: World) -> None
 
 
 async def test_provider_list_hides_customer_until_disclosure(world: World) -> None:
-    """Биржевое назначение до подтверждения: ни точки, ни заказчика, ни договора —
-    даже при подтверждённой привязке оборудования к этому сервису."""
     async with db_session.transaction() as session:
         binding = await session.get(ServiceBinding, world.binding_id)
         assert binding is not None

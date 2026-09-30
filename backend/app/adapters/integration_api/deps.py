@@ -42,7 +42,6 @@ def get_limiter() -> TokenBucketLimiter:
 
 
 def get_auth_failure_limiter() -> TokenBucketLimiter:
-    """Неудачи на пару «IP — префикс ключа»."""
     global _auth_failures
     if _auth_failures is None:
         settings = get_settings()
@@ -54,7 +53,6 @@ def get_auth_failure_limiter() -> TokenBucketLimiter:
 
 
 def get_ip_auth_failure_limiter() -> TokenBucketLimiter:
-    """Общий порог неудач на IP — против перебора с разными префиксами."""
     global _auth_failures_by_ip
     if _auth_failures_by_ip is None:
         settings = get_settings()
@@ -66,7 +64,6 @@ def get_ip_auth_failure_limiter() -> TokenBucketLimiter:
 
 
 def reset_limiter() -> None:
-    """Сброс состояния лимитеров (смена настроек, изолированные тесты)."""
     global _limiter, _auth_failures, _auth_failures_by_ip
     _limiter = None
     _auth_failures = None
@@ -124,11 +121,6 @@ async def rate_limited_actor(
 
 
 class RequireScope:
-    """Зависимость маршрута: действующий ключ и хотя бы один из scope.
-
-    Пустой перечень — маршрут доступен любому действующему ключу (`GET /me`).
-    """
-
     def __init__(self, *scopes: str) -> None:
         unknown = [s for s in scopes if s not in policy.SCOPES]
         if unknown:
@@ -143,12 +135,6 @@ class RequireScope:
 
 
 class CommandIdempotency:
-    """Ключ идемпотентности мутации: заголовок `Idempotency-Key` плюс метод и путь.
-
-    Тело (или его отпечаток) передаётся в `of()` — повтор с другим телом даёт
-    `409 IDEMPOTENCY_CONFLICT` (ТЗ 10.1).
-    """
-
     def __init__(self, key: str, operation: str) -> None:
         self.key = key
         self.operation = operation

@@ -29,8 +29,6 @@ async def _make_repair_request(session: AsyncSession) -> RepairRequest:
 
 
 async def test_one_active_assignment_per_request(db_session: AsyncSession) -> None:
-    """ux_assignments_one_active_per_request: второе pending/accepted-назначение
-    на ту же заявку запрещено."""
     request = await _make_repair_request(db_session)
     provider_a = await make_provider_org(db_session)
     provider_b = await make_provider_org(db_session)
@@ -61,7 +59,6 @@ async def test_one_active_assignment_per_request(db_session: AsyncSession) -> No
 
 
 async def test_zero_price_offer_requires_reason(db_session: AsyncSession) -> None:
-    """ck_offers_zero_cost: visit_amount_minor = 0 без zero_cost_reason запрещён."""
     request = await _make_repair_request(db_session)
     provider = await make_provider_org(db_session)
 
@@ -82,8 +79,6 @@ async def test_zero_price_offer_requires_reason(db_session: AsyncSession) -> Non
 
 
 async def test_second_verified_provider_same_inn_rejected(db_session: AsyncSession) -> None:
-    """ux_organizations_verified_provider_inn: второй verified-исполнитель
-    с тем же ИНН запрещён (черновики с тем же ИНН допустимы, ТЗ 6.5.3)."""
     inn = "7700000000"
     org_a = await make_provider_org(db_session, inn_normalized=inn)
     org_a.details_verification_status = "verified"
@@ -98,8 +93,6 @@ async def test_second_verified_provider_same_inn_rejected(db_session: AsyncSessi
 
 
 async def test_service_binding_requires_provider_or_contact(db_session: AsyncSession) -> None:
-    """ck_service_bindings_provider_or_contact: ровно один из provider_org_id/
-    personal_contact_name — без исполнителя и без личного контакта запрещено."""
     customer_org, _location, equipment, membership = await make_customer_chain(db_session)
 
     db_session.add(

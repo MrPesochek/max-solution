@@ -24,7 +24,6 @@ PROVIDER_INVITE_ROLES = frozenset(
 
 
 def user_id_of(actor: Actor) -> uuid.UUID:
-    """Любой вошедший пользователь: с контекстом организации или без него."""
     if isinstance(actor, UserActor | BareUserActor | OperatorActor):
         return actor.user_id
     raise Forbidden()
@@ -66,7 +65,6 @@ def founder_role(kind: Side) -> MembershipRole:
 
 
 def role_side(role: str) -> Side:
-    """Сторона задаётся ролью членства, а не типами участия организации (ТЗ 3)."""
     return "customer" if role in CUSTOMER_ROLES else "provider"
 
 
@@ -80,10 +78,6 @@ def check_can_add_participation(org: Organization, kind: Side) -> None:
 
 
 def membership_status_on_accept(*, named: bool) -> str:
-    """ТЗ 6.5.4, 6.7: доступ сразу — только адресату именного приглашения.
-
-    Ссылку без адресата может переслать и принять кто угодно, поэтому такое
-    членство ждёт явного подтверждения руководителем своей стороны."""
     return "active" if named else "pending"
 
 
@@ -97,8 +91,6 @@ def check_locations_role(role: MembershipRole, location_ids: list[uuid.UUID]) ->
 def check_requisites_change(
     org: Organization, *, inn_changed: bool, legal_form_changed: bool
 ) -> None:
-    """ТЗ 6.5.3: ИНН проверенной организации не меняется — только через оператора;
-    на время проверки реквизиты заморожены, иначе решение примут по устаревшим данным."""
     status = org.details_verification_status
     if inn_changed and status == VerificationStatus.VERIFIED:
         raise Conflict(

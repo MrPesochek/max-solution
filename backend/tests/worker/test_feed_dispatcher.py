@@ -66,8 +66,6 @@ async def test_assigns_sequence_per_recipient(db_session: AsyncSession) -> None:
 
 
 async def test_late_commit_does_not_create_gap(db_session: AsyncSession) -> None:
-    """Транзакция с меньшим id фиксируется позже: её событие получает следующий
-    номер, и курсор потребителя его не пропускает."""
     org = await provider_org(db_session)
     client, _ = await factories.create_integration_client(db_session, org)
     await db_session.commit()

@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import Any
 
 try:
-    import yaml  # type: ignore[import-untyped]
-    from jsonschema import Draft202012Validator  # type: ignore[import-untyped]
-except ImportError:  # pragma: no cover — подсказка для запуска без uv
+    import yaml
+    from jsonschema import Draft202012Validator
+except ImportError:
     sys.exit("Нужны PyYAML и jsonschema: uv run scripts/data-api-check.py")
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -64,7 +64,7 @@ def urllib_transport(timeout: float = 20.0) -> Transport:
 
 
 class MissingValue(Exception):
-    """Шаблон ссылается на переменную, которой нет (упал шаг, который её извлекает)."""
+    pass
 
 
 class PassportError(Exception):
@@ -93,7 +93,6 @@ class Passport:
         return dict((self.ext.get("checks") or {}).get(check_id) or {})
 
     def suite_ids(self, suite: str) -> list[str] | None:
-        """Идентификаторы проверок набора; None — все проверки по порядку."""
         suites = self.ext.get("suites") or {}
         if not suites:
             if suite != "full":
@@ -118,8 +117,6 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 
 def load_passport(path: Path) -> Passport:
-    """Паспорт с расширением. Принимает и путь к DATA-API.yaml (расширение ищется рядом
-    по имени `<имя>.extended.yaml`), и путь к расширению (паспорт — по полю `extends`)."""
     path = path.resolve()
     data = _load_yaml(path)
     if "extends" in data:
@@ -131,8 +128,6 @@ def load_passport(path: Path) -> Passport:
 
 
 def json_path(data: Any, expression: str) -> Any:
-    """Значение по JSONPath-подмножеству эталона: `$.a.b[0].c`; допускается и `a.b.0.c`.
-    KeyError, если поля нет."""
     tokens = _path_tokens(expression)
     current = data
     for token in tokens:
@@ -149,13 +144,11 @@ def json_path(data: Any, expression: str) -> Any:
 
 
 def _path_tokens(expression: str) -> list[str]:
-    """`$.a.b[0].c` → ["a", "b", "0", "c"]; индекс через точку (`$.items.0.id`) тоже принят."""
     flat = JSON_INDEX_RE.sub(r".\1", expression.removeprefix("$"))
     return [token for token in flat.split(".") if token != ""]
 
 
 def link_token(value: str) -> str:
-    """Токен из ссылки входа `.../#/auth/link?t=<токен>` или сам токен."""
     if "t=" not in value:
         return value.strip()
     fragment = value.split("#", 1)[-1]
@@ -356,7 +349,6 @@ class Runner:
     def _login_spec(
         self, check: Mapping[str, Any]
     ) -> tuple[dict[str, Any], str | None]:
-        """Шаг входа с учётом способа доступа. Возвращает спецификацию и причину SKIP."""
         role = self.logins.get(str(check["id"]))
         if role is None or self.access == "demo" or "request" not in self.mode:
             return dict(check), None
@@ -451,8 +443,6 @@ class Runner:
         return self.results
 
     def _cleanup(self) -> None:
-        """Шаги cleanup — только те, для которых все переменные уже получены: иначе
-        удалять нечего (шаг, создающий объект, не выполнялся)."""
         for step in self.passport.cleanup:
             needed = set()
             for text in _strings(step.get("request") or {}):
@@ -518,7 +508,6 @@ def _options(
 def schema_has_path(
     schema: Mapping[str, Any], tokens: list[str], doc: Mapping[str, Any]
 ) -> bool:
-    """Путь (`a`, `0`, `b`) описан в схеме ответа (через $ref, anyOf, items)."""
     if not tokens:
         return True
     head, rest = tokens[0], tokens[1:]
@@ -552,7 +541,6 @@ def _response_schema(
 def _schema_field_paths(
     schema: Mapping[str, Any], prefix: list[str]
 ) -> Iterable[list[str]]:
-    """Пути полей, о которых говорит bodySchema (properties/required/prefixItems/items)."""
     for name in set(schema.get("required") or []) | set(schema.get("properties") or {}):
         yield [*prefix, name]
         child = (schema.get("properties") or {}).get(name)
@@ -643,8 +631,6 @@ def validate_request(
 
 
 def validate_passport(passport: Passport) -> list[str]:
-    """Согласованность паспорта, расширения и схем OpenAPI. Структуру по JSON Schema
-    организаторов проверяет их валидатор; здесь — переменные, роли, наборы и поля."""
     doc, ext = passport.doc, passport.ext
     problems: list[str] = []
     if doc.get("schemaVersion") != "1.0":

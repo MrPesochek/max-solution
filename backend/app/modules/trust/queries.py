@@ -93,10 +93,6 @@ def _is_current(case: VerificationCase | None, now: datetime) -> bool:
 def _confirmed_checks(
     org: Organization, latest: dict[str, VerificationCase], now: datetime
 ) -> set[str]:
-    """Действующие признаки: статус организации плюс срок последнего решения.
-
-    Истёкшая проверка перестаёт считаться действующей сразу, не дожидаясь
-    цикла worker, который доведёт состояние до базы (`expire_verifications`)."""
     confirmed = set()
     if org.details_verification_status == VerificationStatus.VERIFIED and _is_current(
         latest.get(CHECK_REQUISITES), now
@@ -117,7 +113,6 @@ def _confirmed_checks(
 async def active_checks(
     session: AsyncSession, organization_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, set[str]]:
-    """Батч действующих признаков проверки для каталога и кратких карточек."""
     if not organization_ids:
         return {}
     now = utcnow()
@@ -143,7 +138,6 @@ async def active_checks(
 async def verification_badges(
     session: AsyncSession, organization_id: uuid.UUID
 ) -> list[VerificationBadgeView]:
-    """Раздельные признаки проверки организации (ТЗ 6.4)."""
     org = await session.get(Organization, organization_id)
     if org is None:
         raise NotFound()
@@ -169,9 +163,6 @@ async def verification_badges(
 async def warranty_badges(
     session: AsyncSession, provider_org_id: uuid.UUID
 ) -> list[WarrantyAuthorizationView]:
-    """Гарантийные полномочия исполнителя: только подтверждённые оператором (A33)
-    и только действующие — с истёкшим сроком полномочий или проверки источника
-    признак не показывается."""
     now = utcnow()
     rows = list(
         (
@@ -208,10 +199,6 @@ _SIDE_CHECKS = {
 
 
 async def list_verification_cases(actor: Actor | AccessScope) -> list[VerificationCaseView]:
-    """Свои проверки: заявитель видит и закрытые доказательства, которые сам подал.
-
-    Сторона видит только свои виды проверок; роли вне `_VERIFICATION_ROLES` —
-    урезанный вид: вид проверки, решение и даты."""
     scope = actor if isinstance(actor, AccessScope) else scope_of(actor)
     full = isinstance(actor, UserActor) and actor.role in _VERIFICATION_ROLES
     async with db_session.transaction() as session:
@@ -259,7 +246,6 @@ async def list_verification_queue(
 
 
 async def get_verification_case(actor: Actor, case_id: uuid.UUID) -> VerificationCaseOperatorView:
-    """Карточка дела с закрытыми сведениями: просмотр оператором журналируется (ТЗ 3)."""
     policy.require_operator(actor)
 
     async def handler(ctx: CommandContext) -> CommandResult:
@@ -335,7 +321,6 @@ async def list_bindings(
     cursor: uuid.UUID | None = None,
     limit: int = DEFAULT_LIMIT,
 ) -> tuple[list[ServiceBindingView | ProviderBindingView], uuid.UUID | None]:
-    """Заказчик видит свои привязки целиком, исполнитель — только договорный объём."""
     async with db_session.transaction() as session:
         stmt: Select[tuple[ServiceBinding]] = (
             select(ServiceBinding).order_by(ServiceBinding.id).limit(limit + 1)
@@ -434,7 +419,6 @@ async def _binding_view(
 async def list_provider_equipment(
     scope: AccessScope, *, cursor: uuid.UUID | None = None, limit: int = DEFAULT_LIMIT
 ) -> tuple[list[uuid.UUID], uuid.UUID | None]:
-    """Оборудование, доступное исполнителю: только по подтверждённым привязкам."""
     async with db_session.transaction() as session:
         stmt = (
             select(ServiceBinding.equipment_id)
@@ -491,7 +475,6 @@ async def verified_customer_by_inn(session: AsyncSession, inn: str) -> Organizat
 async def intended_recipient(
     session: AsyncSession, invitation: Invitation, customer: Organization
 ) -> bool:
-    """ТЗ 6.6.2 п.4: приглашение адресовано этой организации заказчика."""
     if (
         invitation.target_organization_id is not None
         and invitation.target_organization_id != customer.id
@@ -509,11 +492,6 @@ async def intended_recipient(
 async def preview_binding_invitation(
     token: str, actor: Actor | None = None
 ) -> BindingInvitationPreviewView:
-    """Предпросмотр не гасит приглашение; тип токена не взаимозаменяем (A32).
-
-    Договор и позиции видит только руководитель организации-адресата и только
-    пока приглашение ждёт ответа; остальным — сервис, его проверки и состояние.
-    Ответ не отличает «чужое» приглашение от ещё не принятого своего."""
     now = utcnow()
     async with db_session.transaction() as session:
         invitation = (
@@ -555,7 +533,6 @@ async def list_operator_bindings(
     cursor: uuid.UUID | None = None,
     limit: int = DEFAULT_LIMIT,
 ) -> tuple[list[dict[str, Any]], uuid.UUID | None]:
-    """Спорные привязки для оператора: обе стороны и заявленный номер договора."""
     policy.require_operator(actor)
     async with db_session.transaction() as session:
         stmt = select(ServiceBinding).order_by(ServiceBinding.id).limit(limit + 1)

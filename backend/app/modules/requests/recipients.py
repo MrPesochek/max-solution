@@ -58,7 +58,6 @@ class Target:
 async def customer_targets(
     session: AsyncSession, request: RepairRequest, *, managers_only: bool = False
 ) -> list[Target]:
-    """D18: автор заявки + руководители; согласования — только руководители."""
     stmt = select(Membership.id, Membership.user_id, Membership.role).where(
         Membership.organization_id == request.customer_org_id,
         Membership.status == MembershipStatus.ACTIVE,
@@ -78,7 +77,6 @@ async def provider_org_targets(
     *,
     field_worker_membership_id: uuid.UUID | None = None,
 ) -> list[Target]:
-    """D18: активные диспетчеры и администратор + назначенный выездной сотрудник."""
     stmt = select(Membership.id, Membership.user_id, Membership.role).where(
         Membership.organization_id == provider_org_id,
         Membership.status == MembershipStatus.ACTIVE,
@@ -168,7 +166,6 @@ async def notify_provider_org(
     *,
     payload: dict[str, Any] | None = None,
 ) -> None:
-    """Уведомление исполнителю, у которого ещё (или уже) нет назначения по заявке."""
     targets = await provider_org_targets(ctx.session, provider_org_id)
     notify_targets(
         ctx,
@@ -186,7 +183,6 @@ def request_payload(
     *,
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Тело события — разрешённый получателю срез `RequestProviderView`."""
     view = views.to_provider_view(request, assignment, disclose=discloses_contacts(assignment))
     return {"request": view.model_dump(mode="json"), **(extra or {})}
 
@@ -200,9 +196,8 @@ def emit_provider_event(
     change_kind: str | None = None,
     extra: dict[str, Any] | None = None,
 ) -> None:
-    """Событие организации-исполнителя; наличие подписки проверяет диспетчер вебхуков."""
     if event_type == IntegrationEventType.REQUEST_CHANGED and change_kind is None:
-        raise ValueError("request.changed требует change_kind (D27)")
+        raise ValueError("request.changed требует change_kind")
     if change_kind is not None and change_kind not in CHANGE_KINDS:
         raise ValueError(f"неизвестный change_kind: {change_kind}")
     payload = request_payload(
@@ -227,7 +222,6 @@ def emit_assignment_revoked(
     *,
     reason_kind: str,
 ) -> None:
-    """ТЗ 14: прекращённому исполнителю уходит только запись о назначении, без заявки."""
     if reason_kind not in REASON_KINDS:
         raise ValueError(f"неизвестный reason_kind: {reason_kind}")
     view = views.to_former_provider_view(request.id, assignment)

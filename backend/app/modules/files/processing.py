@@ -195,7 +195,6 @@ async def _reject(attachment_id: uuid.UUID, reason: str) -> None:
 
 
 def materialize_later(copy_ids: list[uuid.UUID]) -> Callable[[], Awaitable[None]]:
-    """Копирование байт после фиксации транзакции; при сбое копию доберёт worker."""
 
     async def run() -> None:
         for copy_id in copy_ids:

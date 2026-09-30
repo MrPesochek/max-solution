@@ -12,8 +12,6 @@ _transport: MaxTransport | None = None
 
 
 class LoggingMaxTransport:
-    """Заглушка транспорта: пишет факт отправки без текста сообщения (ТЗ 12)."""
-
     def __init__(self) -> None:
         self._counter = 0
 
@@ -62,7 +60,6 @@ def get_max_transport() -> MaxTransport:
 
 
 def set_max_transport(transport: MaxTransport | None) -> None:
-    """Подмена транспорта (тесты, отдельный стенд); None возвращает фабричное значение."""
     global _transport
     _transport = transport
 

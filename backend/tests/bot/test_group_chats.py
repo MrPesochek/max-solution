@@ -82,7 +82,6 @@ async def _stored(db_session: AsyncSession) -> list[MaxUpdate]:
 async def test_group_event_is_stored_without_payload(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """Текст сообщения из группы в журнал не попадает: хватает ключа дедупликации."""
     await harness.deliver(_in_group(message_created("Телефон соседа +79990001122")))
     (row,) = await _stored(db_session)
     assert row.raw_payload == {}

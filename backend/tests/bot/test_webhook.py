@@ -58,7 +58,6 @@ async def test_webhook_unknown_update_type_answered(webhook_app: FastAPI) -> Non
 async def test_duplicate_update_processed_once(
     harness: BotHarness, db_session: AsyncSession
 ) -> None:
-    """A16: повтор события не выполняет обработчик второй раз."""
     event = message_created("/start")
 
     first = await harness.deliver(event)
@@ -106,7 +105,6 @@ async def test_handler_failure_is_answered_with_200(
     db_session: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Ошибка обработчика не вызывает бесконечные повторы: 200 и отметка в журнале."""
 
     async def boom(*args: object, **kwargs: object) -> None:
         raise RuntimeError("сценарий сломался")
@@ -142,8 +140,8 @@ async def test_ensure_subscription_is_idempotent(harness: BotHarness) -> None:
     async def subscribe_webhook(url: str, secret: str | None = None, **kwargs: object) -> None:
         subscribed.append(url)
 
-    harness.runtime.bot.get_subscriptions = get_subscriptions  # type: ignore[method-assign]
-    harness.runtime.bot.subscribe_webhook = subscribe_webhook  # type: ignore[method-assign,assignment]
+    harness.runtime.bot.get_subscriptions = get_subscriptions
+    harness.runtime.bot.subscribe_webhook = subscribe_webhook
 
     assert await ensure_subscription(harness.runtime) is True
     assert await ensure_subscription(harness.runtime) is False
@@ -174,9 +172,9 @@ async def test_ensure_subscription_removes_stale_own_webhooks(harness: BotHarnes
         removed.append(url)
         subscribed.remove(url)
 
-    harness.runtime.bot.get_subscriptions = get_subscriptions  # type: ignore[method-assign]
-    harness.runtime.bot.subscribe_webhook = subscribe_webhook  # type: ignore[method-assign,assignment]
-    harness.runtime.bot.unsubscribe_webhook = unsubscribe_webhook  # type: ignore[method-assign,assignment]
+    harness.runtime.bot.get_subscriptions = get_subscriptions
+    harness.runtime.bot.subscribe_webhook = subscribe_webhook
+    harness.runtime.bot.unsubscribe_webhook = unsubscribe_webhook
 
     assert await ensure_subscription(harness.runtime) is True
     assert removed == [stale]
@@ -184,7 +182,6 @@ async def test_ensure_subscription_removes_stale_own_webhooks(harness: BotHarnes
 
 
 async def test_off_mode_starts_app_without_bot(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Стенд без MAX: приложение поднимается, маршрута вебхука нет."""
     from app.main import create_app
 
     for value in apply_test_settings(monkeypatch, MAX_UPDATES_MODE="off", MAX_BOT_TOKEN=""):

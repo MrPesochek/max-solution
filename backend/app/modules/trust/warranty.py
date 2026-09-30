@@ -167,7 +167,6 @@ async def match_warranty_authorization(
     equipment_category_id: uuid.UUID,
     brand: str | None,
 ) -> WarrantyAuthorization | None:
-    """Источник полномочий для привязки по гарантии; при отсутствии метки нет."""
     rows = list(
         (
             await ctx.session.execute(

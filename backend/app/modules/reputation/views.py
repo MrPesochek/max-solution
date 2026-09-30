@@ -19,9 +19,6 @@ class ReviewReplyView(BaseModel):
 
 
 class ReviewPublishedSnapshotView(BaseModel):
-    """Версия, которая реально видна публично: может отставать от последней правки
-    автора, если новая правка ещё не прошла модерацию (ТЗ 8.3.2)."""
-
     version: int
     rating: int
     text: str | None
@@ -29,8 +26,6 @@ class ReviewPublishedSnapshotView(BaseModel):
 
 
 class MyReviewView(BaseModel):
-    """Отзыв глазами его автора: последняя (возможно, ещё не промодерированная) правка."""
-
     id: str
     request_id: str
     assignment_id: str
@@ -64,8 +59,6 @@ class RequestReviewStateView(BaseModel):
 
 
 class PublicReviewView(BaseModel):
-    """Опубликованная версия отзыва — то, что видит рынок (ТЗ 8.3.2)."""
-
     id: str
     provider_organization_id: str
     rating: int
@@ -104,9 +97,6 @@ class ComplaintBriefView(BaseModel):
 
 
 class ProviderReviewView(BaseModel):
-    """Отзыв о своей компании глазами исполнителя: опубликованная версия, номер
-    заявки и последнее оспаривание. Номер заявки в публичный отзыв не попадает."""
-
     id: str
     request_id: str
     request_number: int
@@ -121,12 +111,6 @@ class ProviderReviewView(BaseModel):
 
 
 class ProfileAppealView(BaseModel):
-    """Последнее обжалование отказа/приостановки профиля (ТЗ 6.5.1).
-
-    `status` — `pending` на рассмотрении, `resolved` — оператор принял решение;
-    `decision` — решение по делу, `decision_reason` — его основание.
-    """
-
     id: str
     status: str
     decision: str | None

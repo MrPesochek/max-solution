@@ -71,7 +71,7 @@ afterEach(() => {
   URL.revokeObjectURL = originalRevoke;
 });
 
-describe('карточка заказчика (D16): доставка в CRM и «Позвонить в сервис»', () => {
+describe('карточка заказчика: доставка в CRM и «Позвонить в сервис»', () => {
   it('доставлено в CRM — время доставки, строка «Позвонить в …» ведёт на tel:', async () => {
     const { request } = await ownServiceRequest();
     renderApp();
@@ -150,7 +150,7 @@ describe('мок как сервер: счётчики и события', () =>
   });
 });
 
-describe('история (D17): кто сделал шаг', () => {
+describe('история: кто сделал шаг', () => {
   it('строка события — «Иван Петров · дата»', async () => {
     const { request } = await ownServiceRequest();
     renderApp();
@@ -161,7 +161,7 @@ describe('история (D17): кто сделал шаг', () => {
   });
 });
 
-describe('вопрос кандидата до выбора (D17.2, D19.4)', () => {
+describe('вопрос кандидата до выбора', () => {
   it('«Задать вопрос» из предложения — приватный тред, ответ уходит в /offers/{id}/messages', async () => {
     const { requestId } = await publishedRequest();
     const provider = await demoLoginRaw('provider_active_admin');
@@ -246,7 +246,7 @@ describe('вопрос кандидата до выбора (D17.2, D19.4)', () 
   });
 });
 
-describe('биржа исполнителя (D33): вопрос заказчику и счётчик предложений', () => {
+describe('биржа исполнителя: вопрос заказчику и счётчик предложений', () => {
   it('«Задать вопрос» до отклика — /marketplace/requests/{id}/messages, в списке тег «Уточнение»', async () => {
     const { requestId } = await publishedRequest();
     const posted = captureBodies('POST', /\/marketplace\/requests\/[^/]+\/messages$/);
@@ -284,7 +284,7 @@ describe('биржа исполнителя (D33): вопрос заказчик
   });
 });
 
-describe('входящие исполнителя (D32): заказчик и договор', () => {
+describe('входящие исполнителя: заказчик и договор', () => {
   it('в карточке новой заявки — «Договор № Д-100»', async () => {
     const { request } = await ownServiceRequest();
     renderApp();
@@ -329,7 +329,7 @@ async function inProgressRequest() {
   };
 }
 
-describe('смета по позициям (D21, D34 «Стоимость ремонта»)', () => {
+describe('смета по позициям', () => {
   it('исполнитель отправляет items и итог; заказчик видит позиции с суммами', async () => {
     const { requestId } = await inProgressRequest();
     const posted = captureBodies('POST', /\/actions\/create-repair-quote$/);
@@ -410,7 +410,7 @@ describe('смета по позициям (D21, D34 «Стоимость рем
   });
 });
 
-describe('отчёт мастера (D23, D34 «Отчёт о работе»): фото до и после', () => {
+describe('отчёт мастера: фото до и после', () => {
   it('исполнитель видит слоты «До»/«После»; заказчик — фото отчёта и текст', async () => {
     const { requestId, requestNumber, provider, assignmentId } = await inProgressRequest();
 
@@ -451,7 +451,7 @@ describe('отчёт мастера (D23, D34 «Отчёт о работе»): �
   });
 });
 
-describe('главная (D07.2): «Нужен ваш ответ»', () => {
+describe('главная: «Нужен ваш ответ»', () => {
   it('сотрудник видит вопрос мастера текстом сообщения и переходит в переписку', async () => {
     const { request } = await ownServiceRequest();
     const provider = await demoLoginRaw('provider_active_admin');
@@ -490,7 +490,7 @@ describe('главная (D07.2): «Нужен ваш ответ»', () => {
   });
 });
 
-describe('точки (D08) и приглашение (D05)', () => {
+describe('точки и приглашение', () => {
   it('точка — «Москва, Центральный · N единиц техники»', async () => {
     renderApp();
     await loginAsDemo('customer_manager');
@@ -520,7 +520,7 @@ describe('точки (D08) и приглашение (D05)', () => {
   });
 });
 
-describe('свой профиль исполнителя (D31): условия выезда и отзывы', () => {
+describe('свой профиль исполнителя: условия выезда и отзывы', () => {
   it('«Выезд от» сохраняется в visit_price_from_minor и показывается «от 2 500 ₽»; отзывы — рейтинг сервера', async () => {
     const provider = await demoLoginRaw('provider_active_admin');
     const own = await apiCall<{

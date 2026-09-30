@@ -66,7 +66,7 @@ async function completeRequest(requestId: string, managerAuth: { token: string; 
   });
 }
 
-describe('отзыв о ремонте (ТЗ 8.3.1, 8.3.2)', () => {
+describe('отзыв о ремонте', () => {
   it('отмена до начала работ — отзыв недоступен, показана причина и путь жалобы на неявку', async () => {
     const { managerAuth, requestId } = await createOwnServiceDraft();
     const { providerAuth, assignmentId } = await submitAndAccept(requestId, managerAuth);
@@ -285,7 +285,7 @@ describe('отзыв о ремонте (ТЗ 8.3.1, 8.3.2)', () => {
   });
 });
 
-describe('мои жалобы (ТЗ 8.3.4, K-14)', () => {
+describe('мои жалобы', () => {
   it('жалобу до решения оператора можно отозвать — статус «Отозвана»', async () => {
     const managerAuth = await demoLoginRaw('customer_manager');
     const providerAuth = await demoLoginRaw('provider_active_admin');

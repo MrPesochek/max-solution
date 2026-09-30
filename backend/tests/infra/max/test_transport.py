@@ -49,8 +49,6 @@ async def test_fake_transport_injected_failures() -> None:
 
 
 class _FakeClock:
-    """Часы без реального ожидания: запоминает, сколько просили подождать."""
-
     def __init__(self) -> None:
         self.value = 0.0
         self.waited: list[float] = []

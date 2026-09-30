@@ -12,13 +12,13 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 async def _invite(provider: object, key: str, **extra: object) -> dict[str, object]:
     result = await trust.create_binding_invitation(
-        provider.admin,  # type: ignore[attr-defined]
+        provider.admin,
         trust.BindingInvitationData(
             customer_inn=CUSTOMER_INN,
             contract_number="Д-100",
             basis="warranty",
             equipment_descriptions=["Холодильная витрина"],
-            **extra,  # type: ignore[arg-type]
+            **extra,
         ),
         idem=idem(key),
     )

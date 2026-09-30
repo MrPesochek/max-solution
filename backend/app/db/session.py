@@ -29,7 +29,6 @@ def get_sessionmaker() -> async_sessionmaker[AsyncSession]:
 
 
 def configure(engine: AsyncEngine) -> None:
-    """Подменить engine (тесты, worker с отдельным пулом)."""
     global _engine, _sessionmaker
     _engine = engine
     _sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
@@ -37,7 +36,6 @@ def configure(engine: AsyncEngine) -> None:
 
 @asynccontextmanager
 async def transaction() -> AsyncIterator[AsyncSession]:
-    """Одна транзакция на единицу работы: commit при выходе, rollback при ошибке."""
     async with get_sessionmaker()() as session, session.begin():
         yield session
 

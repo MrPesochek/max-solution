@@ -1,10 +1,4 @@
-"""initial schema — 47 таблиц (docs/architecture/schema-draft.sql)
-
-Revision ID: 0001
-Revises:
-Create Date: 2026-09-19
-
-"""
+"""initial schema"""
 
 from collections.abc import Sequence
 from pathlib import Path

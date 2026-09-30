@@ -60,7 +60,11 @@ def test_table_is_indexed_by_command_and_target() -> None:
     assert len({(row.command, row.to_status) for row in TRANSITIONS}) == len(TRANSITIONS)
 
 
-@pytest.mark.parametrize("row", TRANSITIONS, ids=lambda row: f"{row.rows}:{row.command}")
+def _row_id(row: Transition) -> str:
+    return f"{row.command}:{'|'.join(sorted(row.from_statuses))}"
+
+
+@pytest.mark.parametrize("row", TRANSITIONS, ids=_row_id)
 def test_allowed_transitions_apply(row: Transition) -> None:
     sources = row.from_statuses or {RequestStatus.DRAFT}
     for source in sources:
@@ -82,7 +86,7 @@ def test_allowed_transitions_apply(row: Transition) -> None:
 @pytest.mark.parametrize(
     "row",
     [row for row in TRANSITIONS if not row.initial],
-    ids=lambda row: f"{row.rows}:{row.command}",
+    ids=_row_id,
 )
 def test_forbidden_sources_are_rejected(row: Transition) -> None:
     for status in ALL_STATUSES:
@@ -116,7 +120,6 @@ def test_metric_timestamps_are_stamped_once() -> None:
 
 
 def test_messages_do_not_touch_aggregate_version() -> None:
-    """Переписка не входит в согласуемое состояние: открытые формы остаются годными."""
     ctx, _ = _ctx()
     from app.modules.requests.transitions import RequestCommand as C
 

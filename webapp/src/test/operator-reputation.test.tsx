@@ -31,7 +31,7 @@ async function operatorApiCall<T>(
   return (await response.json()) as T;
 }
 
-describe('оператор: очередь отзывов, жалоб и полномочий (ТЗ 8.3.5, 6.6.4, 14.1)', () => {
+describe('оператор: очередь отзывов, жалоб и полномочий', () => {
   it('отклонение отзыва без причины невозможно', async () => {
     const user = userEvent.setup();
     renderApp();

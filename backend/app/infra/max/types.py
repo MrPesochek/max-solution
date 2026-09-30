@@ -40,13 +40,6 @@ OPEN_APP_PAYLOAD_PREFIX = "o:"
 
 
 class ButtonOpenApp(OpenAppButton):
-    """Кнопка запуска мини-приложения.
-
-    В библиотеке адресат запуска — поле `web_app` (имя бота либо ссылка на него).
-    Исторический параметр `url` принимается как синоним, чтобы не ломать уже
-    написанные шаблоны уведомлений.
-    """
-
     def __init__(self, **data: Any) -> None:
         url = data.pop("url", None)
         if url is not None and data.get("web_app") is None:
@@ -63,26 +56,14 @@ def keyboard(rows: list[list[Button]]) -> AttachmentButton:
 
 
 def webapp_start_payload(screen: str, object_public_id: str | None = None) -> str | None:
-    """Стартовый параметр мини-приложения — формат `webapp_target` (`req_<id>`, `scr_home`).
-
-    Параметр задаёт только экран и объект и сам по себе прав не даёт (ТЗ 5.4).
-    """
     return webapp_target(screen, object_public_id)
 
 
 def open_app_callback(text: str, target: str | None) -> Button:
-    """Кнопка «открыть приложение» режима link: по нажатию бот присылает свежую
-    одноразовую ссылку входа (токен в кнопку не вшивается — сообщение живёт дольше него)."""
     return ButtonCallback(text=text, payload=OPEN_APP_PAYLOAD_PREFIX + (target or ""))
 
 
 def webapp_button(text: str, screen: str, object_public_id: str | None = None) -> Button:
-    """Кнопка открытия Web App.
-
-    Режим `link` (адрес мини-приложения в MAX не зарегистрирован) — callback-кнопка
-    со ссылкой входа по нажатию. Без настроенного имени бота собрать запуск нечем —
-    отдаём обычную ссылку на тот же экран, чтобы стенд без MAX оставался рабочим.
-    """
     settings = get_settings()
     if settings.max_webapp_mode == "link":
         return open_app_callback(text, webapp_target(screen, object_public_id))
@@ -102,5 +83,4 @@ def webapp_button(text: str, screen: str, object_public_id: str | None = None) -
 
 
 def open_webapp_button(screen: str, object_public_id: str | None = None) -> OutgoingAttachment:
-    """Готовая клавиатура из одной кнопки «Открыть» — для шаблонов уведомлений."""
     return keyboard([[webapp_button(OPEN_BUTTON_TEXT, screen, object_public_id)]])

@@ -28,7 +28,6 @@ async def show_request(ctx: BotContext, request_id: uuid.UUID) -> bool:
 
 
 async def show_actual(ctx: BotContext, request_id: uuid.UUID | None) -> None:
-    """Карточка заявки, если она есть и доступна, иначе главное меню."""
     if request_id is not None and await show_request(ctx, request_id):
         return
     await menu.send_menu(ctx)

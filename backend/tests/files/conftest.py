@@ -33,7 +33,6 @@ def storage(settings: Settings, storage_root: Path) -> Iterator[LocalFileStorage
 
 @pytest.fixture
 def override(monkeypatch: pytest.MonkeyPatch) -> Callable[..., Settings]:
-    """Точечная замена настроек внутри теста (лимиты размера, пикселей, попыток)."""
 
     def apply(**env: str) -> Settings:
         for key, value in env.items():

@@ -52,8 +52,6 @@ class BotAction(IdMixin, CreatedAtMixin, Base):
 
 
 class MaxUpdateStatus(StrEnum):
-    """Состояния входящего события MAX (durable inbox, миграция 0023)."""
-
     RECEIVED = "received"
     PROCESSING = "processing"
     PROCESSED = "processed"

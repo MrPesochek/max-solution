@@ -41,7 +41,7 @@ def _access(**changes: object) -> AttachmentAccess:
         "location_id": LOCATION,
     }
     base.update(changes)
-    return AttachmentAccess(**base)  # type: ignore[arg-type]
+    return AttachmentAccess(**base)
 
 
 def test_customer_sees_own_request_photos() -> None:
@@ -182,8 +182,6 @@ def test_gallery_and_review_photos_wait_for_moderation() -> None:
 
 
 def test_unmoderated_photos_are_seen_only_by_their_side_of_dual_org() -> None:
-    """Организация в двух ролях: портфолио исполнителя до модерации не видно её
-    стороне заказчика, а фото отзыва заказчика — её стороне исполнителя."""
     customer_side = UserActor(
         user_id=uuid.uuid4(),
         membership_id=uuid.uuid4(),

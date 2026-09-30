@@ -362,7 +362,6 @@ export function HomeScreen() {
       <h1 className="ui-visually-hidden">{t.heading}</h1>
       <div className="home-top">
         <div className="home-top__context">
-          {/* Организация видна всегда: при нескольких членствах иначе непонятно, чья это главная. */}
           <span className="home-org">{organizationName}</span>
           {points.length > 1 ? (
             <button
@@ -401,7 +400,6 @@ export function HomeScreen() {
         value={tab}
         onChange={setTab}
       />
-      {/* Обычный блок, а не display: contents — иначе WebKit выбрасывает роль tabpanel из дерева доступности. */}
       <div
         id="home-tab-panel"
         role="tabpanel"

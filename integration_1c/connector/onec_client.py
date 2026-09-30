@@ -27,7 +27,7 @@ class OneCError(Exception):
 
 
 class OneCUnreachableError(Exception):
-    """Сеть/таймаут/5xx после повторов: веб-сервер или база 1С недоступны."""
+    pass
 
 
 def guid_literal(ref_key: str) -> str:
@@ -123,8 +123,6 @@ class OneCClient:
         return _strip_metadata(response.json())
 
     async def update(self, entity: str, ref_key: str, body: dict[str, Any]) -> dict[str, Any]:
-        """PATCH меняет только переданные реквизиты; табличная часть в теле заменяется
-        целиком — поэтому её перед записью перечитывают и дополняют."""
         response = await self._request(
             "PATCH", f"{entity}({guid_literal(ref_key)})", json_body=body
         )

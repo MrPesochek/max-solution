@@ -22,7 +22,6 @@ _own_runtime_built = False
 
 
 def _runtime() -> BotRuntime | None:
-    """Бот приложения, а в процессе worker — собранный по настройкам один раз."""
     global _own_runtime, _own_runtime_built
     runtime = bot_runtime.get_runtime()
     if runtime is not None:
@@ -81,7 +80,6 @@ async def run_once(now: datetime) -> int:
 
 
 async def _bury_exhausted(now: datetime, max_attempts: int) -> None:
-    """Зависшее на последней попытке больше не повторяется."""
     async with db_session.transaction() as session:
         result = await session.execute(
             sql_update(MaxUpdate)

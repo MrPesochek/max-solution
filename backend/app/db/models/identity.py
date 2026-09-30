@@ -118,8 +118,6 @@ class Session(IdMixin, CreatedAtMixin, Base):
 
 
 class UsedInitData(Base):
-    """Ключ уже предъявленного initData: строка блокируется на время выдачи сессии (D-S2)."""
-
     __tablename__ = "used_init_data"
 
     digest: Mapped[bytes] = mapped_column(LargeBinary, primary_key=True)
@@ -127,8 +125,6 @@ class UsedInitData(Base):
 
 
 class LoginLink(IdMixin, CreatedAtMixin, Base):
-    """Одноразовый вход в Web App по ссылке из бота (D-S3): в БД только хеш токена."""
-
     __tablename__ = "login_links"
 
     user_id: Mapped[uuid.UUID] = mapped_column(

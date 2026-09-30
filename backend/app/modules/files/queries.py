@@ -47,8 +47,6 @@ EVIDENCE_KIND = "copy_kind"
 
 @dataclass(frozen=True, slots=True)
 class CopySource:
-    """Материализация публичной копии: откуда берутся байты."""
-
     copy_id: uuid.UUID
     copy_storage_key: str
     source_id: uuid.UUID
@@ -93,9 +91,6 @@ async def publication_case(
 
 @dataclass(frozen=True, slots=True)
 class RequestAccessContext:
-    """Заявка, назначение читающего исполнителя и публичная карточка — общие для
-    всех вложений одной заявки: список грузит их один раз, а не на каждое вложение."""
-
     request_id: uuid.UUID
     request: RepairRequest | None
     assignment: Assignment | None
@@ -126,9 +121,6 @@ async def load_access(
     *,
     request_context: RequestAccessContext | None = None,
 ) -> AttachmentAccess:
-    """Собирает состояние владельца, от которого зависит доступ именно этого актора.
-
-    `request_context` — уже загруженное состояние заявки вложения (список вложений)."""
     access = AttachmentAccess(
         attachment_id=attachment.id,
         visibility_class=attachment.visibility_class,
@@ -196,7 +188,6 @@ async def _with_request(
 def message_in_channel(
     message: Message, assignment: Assignment | None, provider_org_id: uuid.UUID
 ) -> bool:
-    """Как в переписке заявки: свой приватный тред и общий канал своего назначения."""
     if message.thread_provider_org_id is not None:
         return message.thread_provider_org_id == provider_org_id
     return assignment is not None and message.assignment_id == assignment.id
@@ -209,12 +200,6 @@ async def _within_assignment(
     assignment: Assignment | None,
     provider_org_id: uuid.UUID,
 ) -> bool:
-    """Вложение относится к периоду назначения читающего исполнителя.
-
-    Файлы сообщений — по видимости сообщения; файлы, добавленные стороной
-    исполнителя, — только свои и загруженные в текущем назначении: фото отчёта
-    прежнего исполнителя новому не показываются. Файлы заказчика видны любому
-    исполнителю с назначением."""
     if attachment.message_id is not None:
         message = await session.get(Message, attachment.message_id)
         return message is not None and message_in_channel(message, assignment, provider_org_id)
@@ -308,7 +293,6 @@ async def request_attachments(
 
 
 async def count_request_photos(session: AsyncSession, request_id: uuid.UUID) -> int:
-    """Лимит фото на заявку считается по собственным вложениям, без публичных копий."""
     stmt = (
         select(func.count())
         .select_from(Attachment)
@@ -356,7 +340,6 @@ async def portfolio_images(
 async def published_portfolio_ids(
     session: AsyncSession, provider_org_id: uuid.UUID
 ) -> list[uuid.UUID]:
-    """Галерея публичного профиля: только прошедшие модерацию готовые фото, без аватара."""
     stmt = (
         select(Attachment.id)
         .join(ProviderProfile, ProviderProfile.id == Attachment.provider_profile_id)
@@ -434,7 +417,6 @@ async def moderation_queue(
 
 
 async def pending_copies(session: AsyncSession, ids_: Sequence[uuid.UUID]) -> list[CopySource]:
-    """Копии, для которых байты ещё не скопированы (после падения — доберёт worker)."""
     if not ids_:
         return []
     stmt = select(Attachment).where(

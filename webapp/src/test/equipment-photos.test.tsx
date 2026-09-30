@@ -45,7 +45,7 @@ function stubEquipmentPhotos() {
   return store;
 }
 
-describe('фото оборудования (ТЗ 5.4)', () => {
+describe('фото оборудования', () => {
   const originalCreate = URL.createObjectURL;
   const originalRevoke = URL.revokeObjectURL;
 

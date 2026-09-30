@@ -166,7 +166,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -304,7 +304,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -468,7 +468,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -641,7 +641,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -805,7 +805,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -969,7 +969,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -987,7 +987,6 @@
           "operator"
         ],
         "summary": "Reopen Verification",
-        "description": "ТЗ 6.5.3: смена реквизитов или представителя допущенного исполнителя —\nповторная проверка; при компрометации ключи и сессии отзываются.",
         "operationId": "reopen_verification_operator_api_v1_provider_profiles__organization_id__reopen_verification_post",
         "parameters": [
           {
@@ -1134,7 +1133,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1152,7 +1151,6 @@
           "operator"
         ],
         "summary": "List Supervised Assignments",
-        "description": "Принятые работы заблокированных исполнителей — под контролем оператора (ТЗ 6.5.3).",
         "operationId": "list_supervised_assignments_operator_api_v1_supervised_assignments_get",
         "parameters": [
           {
@@ -1268,7 +1266,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1286,7 +1284,6 @@
           "operator"
         ],
         "summary": "List Deliveries",
-        "description": "Журнал доставок любой организации: техническая поддержка (ТЗ 3, 11.7).",
         "operationId": "list_deliveries_operator_api_v1_deliveries_get",
         "parameters": [
           {
@@ -1435,7 +1432,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1589,7 +1586,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1762,7 +1759,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1915,7 +1912,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2079,7 +2076,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2252,7 +2249,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2416,7 +2413,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2571,7 +2568,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2726,7 +2723,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2893,7 +2890,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3047,7 +3044,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3211,7 +3208,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3357,7 +3354,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3530,7 +3527,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3668,7 +3665,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3832,7 +3829,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3996,7 +3993,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4203,7 +4200,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4341,7 +4338,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4505,7 +4502,7 @@
             }
           },
           "default": {
-            "description": "Ошибка (формат один для всех методов — ТЗ 10.3).",
+            "description": "Ошибка. Формат одинаковый для всех методов.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4661,8 +4658,7 @@
           "byte_size",
           "created_at"
         ],
-        "title": "AttachmentView",
-        "description": "Состояние и размеры вложения; ключ хранилища и имя файла пользователя не отдаются."
+        "title": "AttachmentView"
       },
       "BindingPartyView": {
         "properties": {
@@ -5574,8 +5570,7 @@
           "created_at",
           "resolved_at"
         ],
-        "title": "ProfileAppealView",
-        "description": "Последнее обжалование отказа/приостановки профиля (ТЗ 6.5.1).\n\n`status` — `pending` на рассмотрении, `resolved` — оператор принял решение;\n`decision` — решение по делу, `decision_reason` — его основание."
+        "title": "ProfileAppealView"
       },
       "ProfileStatusBody": {
         "properties": {
@@ -5888,8 +5883,7 @@
           "created_at",
           "updated_at"
         ],
-        "title": "ProviderProfileView",
-        "description": "Собственный профиль исполнителя: то, что видит его администратор."
+        "title": "ProviderProfileView"
       },
       "ProviderServiceAreaView": {
         "properties": {
@@ -6327,8 +6321,7 @@
           "provider_confirmed_at",
           "created_at"
         ],
-        "title": "ServiceBindingView",
-        "description": "Карточка привязки для заказчика: статус, основание и источник гарантии."
+        "title": "ServiceBindingView"
       },
       "SupervisedAssignmentView": {
         "properties": {
@@ -6378,8 +6371,7 @@
           "provider_organization_id",
           "provider_status"
         ],
-        "title": "SupervisedAssignmentView",
-        "description": "Принятая работа заблокированного исполнителя — её ведёт оператор (ТЗ 6.5.3)."
+        "title": "SupervisedAssignmentView"
       },
       "VerificationBadgeView": {
         "properties": {
@@ -6455,8 +6447,7 @@
           "valid_until",
           "is_demo"
         ],
-        "title": "VerificationBadgeView",
-        "description": "Один признак проверки: что подтверждено, чем и когда."
+        "title": "VerificationBadgeView"
       },
       "VerificationCaseOperatorView": {
         "properties": {
@@ -6775,8 +6766,7 @@
         "required": [
           "items"
         ],
-        "title": "VerificationInformationSubmittedView",
-        "description": "Ответ на донесение сведений: дела, к которым добавлена заметка."
+        "title": "VerificationInformationSubmittedView"
       },
       "WarrantyAuthorizationBody": {
         "properties": {

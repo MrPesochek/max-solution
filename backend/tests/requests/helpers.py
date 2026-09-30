@@ -50,7 +50,6 @@ def window_end() -> datetime:
 
 
 def visit_window() -> dict[str, datetime]:
-    """Окно выезда предложения: без него выезд не согласуется (ТЗ 8.1)."""
     return {"visit_window_start": window_start(), "visit_window_end": window_end()}
 
 
@@ -84,14 +83,12 @@ async def make_published(world: World, **card: Any) -> dict[str, Any]:
 
 
 async def make_published_with_rival(world: World) -> tuple[dict[str, Any], World]:
-    """Второй исполнитель того же профиля — он тоже видит карточку и подаёт отклик."""
     rival = await factories.build_rival_provider(world)
     published = await make_published(world)
     return published, rival
 
 
 async def build_world_without_providers() -> World:
-    """Категория, которую не обслуживает ни один исполнитель в базе теста."""
     return await factories.build_world(provider_matches=False, category_index=2)
 
 
@@ -172,7 +169,6 @@ async def make_completion_reported(world: World) -> dict[str, Any]:
 
 
 async def make_marketplace_accepted(world: World, *, amount_minor: int = 1000) -> dict[str, Any]:
-    """Биржевой путь до подтверждённого назначения исполнителя мира."""
     published = await make_published(world)
     offer = (
         await api.submit_offer(
@@ -192,7 +188,6 @@ async def make_marketplace_accepted(world: World, *, amount_minor: int = 1000) -
 async def change_provider_and_republish(
     world: World, accepted: dict[str, Any], *, reason: str = "Смена сервиса"
 ) -> None:
-    """Смена исполнителя с его согласия и повторный поиск той же заявки."""
     request_id = rid(accepted)
     current = await api.get_request(world.manager, request_id)
     pending = (
@@ -219,7 +214,6 @@ async def change_provider_and_republish(
 async def select_next_provider(
     world: World, provider: World, request_id: uuid.UUID, *, amount_minor: int = 2000
 ) -> dict[str, Any]:
-    """Отклик другого (или того же) исполнителя после повторной публикации и его выбор."""
     offer = (
         await api.submit_offer(
             provider.dispatcher, request_id, data=api.OfferInput(amount_minor=amount_minor)

@@ -10,7 +10,7 @@ from app.adapters.bot.webhook_secret import secret_ok
 
 log = structlog.get_logger("bot")
 
-SECRET_HEADER = "X-Max-Bot-Api-Secret"  # noqa: S105 — имя заголовка, не секрет
+SECRET_HEADER = "X-Max-Bot-Api-Secret"
 
 
 def build_webhook_router() -> APIRouter:

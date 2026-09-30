@@ -124,7 +124,7 @@ async def test_unverified_customer_does_not_count() -> None:
     assert summary.average is not None
 
 
-async def _approve_customer(world, operator) -> None:  # type: ignore[no-untyped-def]
+async def _approve_customer(world, operator) -> None:
     async with db_session.transaction() as session:
         org = await session.get(Organization, world.customer_org_id)
         assert org is not None
@@ -144,7 +144,7 @@ async def _approve_customer(world, operator) -> None:  # type: ignore[no-untyped
     )
 
 
-async def _submit(world, *, rating: int, key: str) -> str:  # type: ignore[no-untyped-def]
+async def _submit(world, *, rating: int, key: str) -> str:
     completed = await h.make_completion_reported(world)
     review = (
         await reputation.submit_review(
@@ -157,7 +157,7 @@ async def _submit(world, *, rating: int, key: str) -> str:  # type: ignore[no-un
     return str(review["id"])
 
 
-async def _summary(provider_org_id):  # type: ignore[no-untyped-def]
+async def _summary(provider_org_id):
     async with db_session.transaction() as session:
         return await reputation.get_rating_summary(session, provider_org_id)
 
@@ -201,7 +201,7 @@ async def test_rating_follows_edit_fraud_flag_removal_and_restore() -> None:
     assert (await _summary(shared.organization_id)).published_reviews_count == 2
 
 
-async def _request_of(review_id: str):  # type: ignore[no-untyped-def]
+async def _request_of(review_id: str):
     async with db_session.transaction() as session:
         review = await session.get(Review, ids.decode("review", review_id))
         assert review is not None

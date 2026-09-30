@@ -76,7 +76,6 @@ async def enter(
     *,
     prompt: bool = True,
 ) -> None:
-    """Открывает диалог сразу на нужном шаге (продолжение черновика, вход из карточки)."""
     scenario = _SCENARIOS[scenario_name]
     step = scenario.step(step_name)
     assert step is not None
@@ -93,7 +92,6 @@ async def enter(
 
 
 def idempotency(ctx: BotContext, operation: str, body: dict[str, Any]) -> Idempotency:
-    """Ключ итоговой команды: диалог + проход + шаг, на котором нажали «Отправить»."""
     state = ctx.conversation
     step = state.finishing or state.current_step or ""
     return Idempotency(
@@ -104,7 +102,6 @@ def idempotency(ctx: BotContext, operation: str, body: dict[str, Any]) -> Idempo
 
 
 async def cancel(ctx: BotContext, *, notify: bool = True) -> bool:
-    """Закрывает текущий диалог. False — закрывать было нечего."""
     if ctx.conversation.current_step is None:
         if notify:
             await ctx.reply(texts.NOTHING_TO_CANCEL)
@@ -125,7 +122,6 @@ def is_expired(ctx: BotContext) -> bool:
 
 
 async def feed(ctx: BotContext, value: str) -> bool:
-    """Передаёт ответ пользователя текущему шагу. False — активного диалога нет."""
     scenario = get(ctx.conversation.scenario)
     step = scenario.step(ctx.conversation.step) if scenario else None
     if scenario is None or step is None:

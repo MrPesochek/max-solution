@@ -105,7 +105,6 @@ async def update_organization(
 async def add_participation(
     actor: OrgActor, organization_id: str, body: ParticipationBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Второй тип участия: ответ несёт новое членство — его id и есть новый контекст."""
     data = identity.ParticipationData(
         kind=body.kind,
         provider_kind=body.provider_kind,

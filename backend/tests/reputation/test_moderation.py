@@ -188,8 +188,6 @@ async def test_isolation_foreign_complaint_not_listed(world: World, other_world:
 
 
 async def test_customer_side_of_provider_org_does_not_see_pending_review(world: World) -> None:
-    """Организация в двух ролях: её сторона заказчика не видит неопубликованный
-    отзыв о ней как об исполнителе."""
     from app.core.actor import UserActor
     from app.db.models import Organization
     from tests.requests import factories

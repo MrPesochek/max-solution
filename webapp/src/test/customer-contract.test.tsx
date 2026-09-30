@@ -49,7 +49,7 @@ function todayAt(hours: number, minutes: number): string {
   return date.toISOString();
 }
 
-describe('главная (10a): счётчик исполнителей и сводка техники', () => {
+describe('главная: счётчик исполнителей и сводка техники', () => {
   it('«Исполнителей в вашем районе» — из /providers/count по городу и району точки', async () => {
     const paths = capturePaths();
     server.use(http.get('*/providers/count', () => HttpResponse.json({ count: 14 })));
@@ -67,7 +67,7 @@ describe('главная (10a): счётчик исполнителей и св�
 
   });
 
-  it('ноль исполнителей — строки со счётчиком нет (ТЗ S5)', async () => {
+  it('ноль исполнителей — строки со счётчиком нет', async () => {
     let answered = false;
     server.use(
       http.get('*/providers/count', () => {
@@ -166,7 +166,7 @@ describe('главная (10a): счётчик исполнителей и св�
   });
 });
 
-describe('«Мои заявки» (13a): поля строки списка (K-03)', () => {
+describe('«Мои заявки»: поля строки списка', () => {
   it('окно выезда, «Мастер едет», непрочитанные и «Выполнено · ★ 5»', async () => {
     const { manager } = await ownServiceRequest();
     const list = await apiCall<Page<RequestListItem>>('/requests?active=true', manager);
@@ -230,7 +230,7 @@ describe('«Мои заявки» (13a): поля строки списка (K-0
   });
 });
 
-describe('карточка заявки (9a, 15d, 13c): поля назначения и переписки', () => {
+describe('карточка заявки: поля назначения и переписки', () => {
   it('«Мастер едет» по en_route_at и рейтинг исполнителя из Assignment.provider', async () => {
     const { request } = await ownServiceRequest();
     const card: RequestCustomer = {
@@ -331,7 +331,7 @@ describe('карточка заявки (9a, 15d, 13c): поля назначе�
   });
 });
 
-describe('карточка техники (13b): история по equipment_id (K-04)', () => {
+describe('карточка техники: история по equipment_id', () => {
   it('история запрашивается с фильтром техники и догружается по курсору', async () => {
     const { manager, request } = await ownServiceRequest();
     const eq = await apiCall<Page<Equipment>>('/equipment', manager);
@@ -371,7 +371,7 @@ describe('карточка техники (13b): история по equipment_i
   });
 });
 
-describe('мастер заявки (15a): техника из адреса', () => {
+describe('мастер заявки: техника из адреса', () => {
   it('/requests/new?equipment=<id> — техника уже выбрана, «Далее» доступно', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const eq = await apiCall<Page<Equipment>>('/equipment', manager);
@@ -391,7 +391,7 @@ describe('мастер заявки (15a): техника из адреса', ()
   });
 });
 
-describe('нет доступа (16e): «Запросить доступ» (K-21)', () => {
+describe('нет доступа: «Запросить доступ»', () => {
   it('сотрудник отправляет запрос без заявки и точки; ответ одинаковый', async () => {
     const bodies: unknown[] = [];
     server.events.on('request:start', ({ request }) => {
@@ -423,7 +423,7 @@ describe('нет доступа (16e): «Запросить доступ» (K-21
   });
 });
 
-describe('гарантия техники (K-13): гарант со слов сервиса', () => {
+describe('гарантия техники: гарант со слов сервиса', () => {
   it('guarantor_stated_by_provider — рядом с гарантом «со слов сервиса»', async () => {
     const manager = await demoLoginRaw('customer_manager');
     const eq = await apiCall<Page<Equipment>>('/equipment', manager);

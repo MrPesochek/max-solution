@@ -30,8 +30,6 @@ def _stamped(context: dict[str, Any]) -> dict[str, Any]:
 
 @dataclass(slots=True)
 class ConversationState:
-    """Снимок строки `bot_conversations`; сохраняется целиком через `save`."""
-
     id: uuid.UUID
     user_id: uuid.UUID
     max_chat_id: str
@@ -85,11 +83,6 @@ async def touch_user(
     started: bool = False,
     available: bool | None = True,
 ) -> User:
-    """Создаёт или обновляет пользователя по MAX user id (D32).
-
-    Любое входящее событие от пользователя подтверждает, что бот ему доступен;
-    `available=None` оставляет признак как есть, `False` — гасит его.
-    """
     values: dict[str, Any] = {"max_user_id": max_user_id, "display_name": display_name}
     if available is not None:
         values["bot_available"] = available
@@ -153,11 +146,6 @@ async def save(session: AsyncSession, state: ConversationState) -> None:
 async def close_if_current(
     session: AsyncSession, conversation_id: uuid.UUID, step: str | None, run: str
 ) -> bool:
-    """Закрывает диалог, если он всё ещё на шаге `step` того же прохода.
-
-    Строка блокируется: второе «Отправить», пришедшее параллельно, дождётся
-    первого и увидит уже закрытый диалог, а не отправит команду повторно.
-    """
     row = (
         await session.execute(
             select(BotConversation).where(BotConversation.id == conversation_id).with_for_update()

@@ -87,7 +87,6 @@ async def set_accepting(
 async def appeal_profile(
     actor: OrgActor, body: ProfileAppealBody, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """ТЗ 6.5.1: обжалование отказа или приостановки — дело в очередь оператора."""
     idem = make_idempotency(idem_key, "POST /provider-profile/appeal", body.model_dump())
     result = await reputation.appeal_provider_profile(actor, body.text, idem=idem)
     return result.body

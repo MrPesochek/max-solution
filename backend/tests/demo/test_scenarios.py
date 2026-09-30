@@ -291,7 +291,6 @@ async def test_refresh_then_full_reset_leaves_no_demo_rows() -> None:
 
 
 async def test_scenarios_survive_half_a_day_of_background_expiry() -> None:
-    """Фоновый процесс сроков через 12 часов не переводит сценарии в `action_required`."""
     await seed.run()
     before = sorted(item.status for item in await _list(MANAGER))
 

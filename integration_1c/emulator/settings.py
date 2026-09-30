@@ -5,14 +5,12 @@ from pathlib import Path
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_DEFAULT_PASSWORD = "demo"  # noqa: S105 — значение по умолчанию для локального стенда
-_DEFAULT_SESSION_SECRET = "change-me-session-secret"  # noqa: S105
-_DEFAULT_ODATA_PASSWORD = "odata-demo"  # noqa: S105
+_DEFAULT_PASSWORD = "demo"
+_DEFAULT_SESSION_SECRET = "change-me-session-secret"
+_DEFAULT_ODATA_PASSWORD = "odata-demo"
 
 
 class Settings(BaseSettings):
-    """Настройки эмулятора 1С. Всё — из окружения, секретов в коде нет (ТЗ 12)."""
-
     model_config = SettingsConfigDict(env_prefix="ONEC_EMULATOR_", env_file=".env", extra="ignore")
 
     base_name: str = "unf_demo"

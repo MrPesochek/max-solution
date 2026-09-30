@@ -50,7 +50,6 @@ async def list_complaints(
 async def withdraw_complaint(
     actor: OrgActor, complaint_id: str, idem_key: IdemKey
 ) -> dict[str, Any]:
-    """Отозвать свою жалобу или оспаривание до решения оператора."""
     idem = make_idempotency(idem_key, f"POST /complaints/{complaint_id}/withdraw", {})
     result = await reputation.withdraw_complaint(
         actor, ids.decode("moderation_case", complaint_id), idem=idem

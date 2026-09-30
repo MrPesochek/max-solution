@@ -30,7 +30,6 @@ class LocalFileStorage:
         return self._within_root(self._root / key, key)
 
     def _resolve_dir(self, prefix: str) -> Path:
-        """Как `_resolve`, но для каталога-префикса: пустая строка — корень хранилища."""
         if prefix == "":
             return self._root_resolved
         normalized = PurePosixPath(prefix)
@@ -91,8 +90,6 @@ class LocalFileStorage:
         return await asyncio.to_thread(path.is_file)
 
     async def iter_keys(self, prefix: str) -> AsyncIterator[str]:
-        """Файлы, чьё имя не начинается с точки: временные файлы `put()` пишутся
-        именно так и не должны попасть под уборку осиротевших ключей."""
         base = self._resolve_dir(prefix)
         if not await asyncio.to_thread(base.is_dir):
             return

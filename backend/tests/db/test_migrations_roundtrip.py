@@ -19,7 +19,7 @@ async def _scalar(database_url: str, statement: str) -> object:
         await engine.dispose()
 
 
-async def test_design_migrations_roundtrip() -> None:
+async def test_migrations_roundtrip() -> None:
     server_url = _server_url()
     db_name = f"test_mig_{uuid.uuid4().hex[:12]}"
     database_url = f"{server_url}/{db_name}"

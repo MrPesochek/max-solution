@@ -14,9 +14,6 @@ class OwnerKind(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class AttachmentOwner:
-    """`object_id = None` допустим там, где объект выводится из актора: профиль
-    исполнителя и открытое дело проверки своей организации."""
-
     kind: OwnerKind
     object_id: uuid.UUID | None = None
 

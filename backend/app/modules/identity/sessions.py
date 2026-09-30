@@ -76,7 +76,6 @@ class SessionInfo:
 
 
 def demo_login_enabled() -> bool:
-    """Только явным флагом и только в нерабочем окружении: в prod — никогда."""
     settings = get_settings()
     return settings.demo_login_enabled and settings.is_demo_environment
 
@@ -128,12 +127,6 @@ def is_demo_user(max_user_id: str) -> bool:
 
 
 async def login_demo(user_key: str) -> SessionIssued:
-    """Изолированный вход для локальной разработки и демо (ТЗ 10.4).
-
-    Только ключи демо-сида. Пользователь с платформенной ролью (оператор) входит
-    так лишь на локальном стенде без настоящего бота: на любом стенде, который
-    видят другие, demo-вход оператором открыл бы модерацию и выдачу ролей.
-    """
     if not demo_login_enabled():
         raise Unauthenticated("Вход недоступен", code="INIT_DATA_INVALID")
     key = user_key.strip()
@@ -188,7 +181,6 @@ async def _issue_session(
 async def open_session(
     session: AsyncSession, user: User, now: datetime, *, init_data_key: bytes | None = None
 ) -> SessionIssued:
-    """Новая сессия пользователя в транзакции вызывающего — общая для всех способов входа."""
     settings = get_settings()
     token = generate_token()
     expires_at = now + timedelta(seconds=settings.session_absolute_ttl_seconds)
@@ -212,12 +204,6 @@ async def open_session(
 async def _claim_init_data(
     session: AsyncSession, digest: bytes, expires_at: datetime, *, now: datetime
 ) -> None:
-    """D-S2: повтор той же строки в пределах TTL допустим (перезагрузка Web App,
-    потерянный ответ), но выданные по ней раньше сессии отзываются.
-
-    Строка ключа блокируется upsert-ом: параллельные входы с одной строкой
-    выстраиваются друг за другом, и живой остаётся только последняя сессия.
-    """
     await session.execute(delete(UsedInitData).where(UsedInitData.expires_at <= now))
     stmt = pg_insert(UsedInitData).values(digest=digest, expires_at=expires_at)
     await session.execute(
@@ -282,11 +268,6 @@ async def resolve_actor(
     organization_public_id: str | None,
     membership_public_id: str | None = None,
 ) -> Actor:
-    """Членство перечитывается на каждый запрос: отзыв роли действует сразу (A27).
-
-    Контекст задаёт членство: у одного человека в организации их может быть два —
-    по одному на сторону. Организации достаточно, пока членство в ней одно.
-    """
     organization_id = (
         ids.decode("organization", organization_public_id)
         if organization_public_id is not None
@@ -303,10 +284,6 @@ async def actor_for_user(
     organization_id: uuid.UUID | None,
     membership_id: uuid.UUID | None = None,
 ) -> Actor:
-    """Актор по пользователю и членству (или организации) — в том числе для бота.
-
-    Членство читается заново на каждое событие: отзыв роли действует сразу (A27).
-    """
     if organization_id is None and membership_id is None:
         return BareUserActor(user_id)
 

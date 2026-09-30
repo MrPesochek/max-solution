@@ -39,8 +39,6 @@ DEFAULT_LIMIT = 50
 
 @dataclass(frozen=True, slots=True)
 class IntegrationIdentityView:
-    """`GET /me`: организация интеграции и её разрешения (ТЗ 10.2)."""
-
     organization_id: str
     organization_name: str
     client_id: str
@@ -85,7 +83,6 @@ async def describe_actor(actor: IntegrationActor) -> IntegrationIdentityView:
 
 
 async def list_api_keys(actor: Actor) -> list[ApiKeyView]:
-    """Ключи видит только администратор исполнителя — как и выпускает их (ТЗ 6.7)."""
     admin = policy.require_provider_admin(actor)
     async with db_session.transaction() as session:
         rows = (
@@ -99,7 +96,6 @@ async def list_api_keys(actor: Actor) -> list[ApiKeyView]:
 
 
 async def list_subscriptions(actor: Actor) -> list[WebhookSubscriptionView]:
-    """Ключ видит только свои подписки, администратор — все подписки организации."""
     access = policy.webhook_access(actor)
     async with db_session.transaction() as session:
         stmt = (
@@ -197,7 +193,6 @@ async def list_events(actor: Actor, *, cursor: str | None, limit: int) -> Events
 async def list_deliveries(
     organization_id: uuid.UUID, *, cursor: str | None = None, limit: int = DEFAULT_LIMIT
 ) -> DeliveryPageView:
-    """Последние доставки с результатами — экран «Интеграция» (A18)."""
     now = utcnow()
     page_limit = max(1, min(limit, 100))
     before = ids.decode("delivery", cursor) if cursor else None
@@ -227,7 +222,6 @@ SUMMARY_WINDOW = timedelta(hours=24)
 
 
 async def integration_summary(actor: Actor) -> IntegrationSummaryView:
-    """Только администратор исполнителя; секрет подписки в сводку не попадает."""
     admin = policy.require_provider_admin(actor)
     organization_id = admin.organization_id
     now = utcnow()

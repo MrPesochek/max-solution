@@ -32,9 +32,9 @@ async def test_list_item_carries_equipment_details(world: World) -> None:
     assert provider_items[0].equipment_brand == "Полюс"
 
     card = await api.get_request(world.manager, h.rid(submitted))
-    assert card.equipment_category_name == item.equipment_category_name  # type: ignore[union-attr]
+    assert card.equipment_category_name == item.equipment_category_name
     provider_card = await api.get_request(world.dispatcher, h.rid(submitted))
-    assert provider_card.equipment_category_name == item.equipment_category_name  # type: ignore[union-attr]
+    assert provider_card.equipment_category_name == item.equipment_category_name
 
 
 async def test_pending_decision_only_for_manager(world: World) -> None:
@@ -78,14 +78,14 @@ async def test_pending_decision_only_for_manager(world: World) -> None:
 async def test_approver_name_for_draft_on_approval(world: World) -> None:
     draft = await _employee_marketplace_draft(world)
     before = await api.get_request(world.employee, h.rid(draft))
-    assert before.approver_name is None  # type: ignore[union-attr]
+    assert before.approver_name is None
 
     result = await api.request_approval(
         world.employee, h.rid(draft), expected_version=draft["version"]
     )
     assert result.body["approver_name"] == "Руководитель"
     card = await api.get_request(world.employee, h.rid(draft))
-    assert card.approver_name == "Руководитель"  # type: ignore[union-attr]
+    assert card.approver_name == "Руководитель"
 
 
 async def test_unread_messages_count_and_mark_read(world: World) -> None:
@@ -101,22 +101,22 @@ async def test_unread_messages_count_and_mark_read(world: World) -> None:
     await api.post_message(world.manager, request_id, body="Хорошо")
 
     manager_card = await api.get_request(world.manager, request_id)
-    assert manager_card.unread_messages_count == 2  # type: ignore[union-attr]
+    assert manager_card.unread_messages_count == 2
     dispatcher_card = await api.get_request(world.dispatcher, request_id)
-    assert dispatcher_card.unread_messages_count == 1  # type: ignore[union-attr]
+    assert dispatcher_card.unread_messages_count == 1
 
     marked = await api.mark_messages_read(world.manager, request_id)
     assert marked.body["unread_messages_count"] == 0
     again = await api.mark_messages_read(world.manager, request_id)
     assert again.body == marked.body
 
-    assert (await api.get_request(world.manager, request_id)).unread_messages_count == 0  # type: ignore[union-attr]
-    assert (await api.get_request(world.employee, request_id)).unread_messages_count == 3  # type: ignore[union-attr]
+    assert (await api.get_request(world.manager, request_id)).unread_messages_count == 0
+    assert (await api.get_request(world.employee, request_id)).unread_messages_count == 3
 
     await api.post_message(
         world.dispatcher, request_id, body="Уже выехали", assignment_id=assignment
     )
-    assert (await api.get_request(world.manager, request_id)).unread_messages_count == 1  # type: ignore[union-attr]
+    assert (await api.get_request(world.manager, request_id)).unread_messages_count == 1
 
 
 async def test_mark_read_respects_access(world: World, other_world: World) -> None:
